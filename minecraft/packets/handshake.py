@@ -20,44 +20,58 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from enum import Enum
+from io import BytesIO
 from .base import Packet
-from ._datatypes import Varint
+from ..datatypes import *
+from ..enums import NextState
 
-
-class NextState(Enum):
-    STATUS = 1
-    LOGIN = 2
 
 class HandshakePacket(Packet):
+    """
+    Handshake packet sent by the client to the server to initiate a connection.
+    
+    Packet ID: 0x00
+    State: Handshaking
+    Bound to: Server
+    """
     packet_id = 0x00
 
-    def __init__(self, protocol_version: int, server_address: str, server_port: int, next_state: NextState):
-        self.protocol_version = protocol_version
-        self.server_address = server_address
-        self.server_port = server_port
-        self.next_state = next_state
+    def __init__(
+            self, 
+            protocol_version: Varint, 
+            server_address: String, 
+            server_port: UnsignedShort, 
+            next_state: NextState,
+    ) -> None:
+        self.protocol_version: Varint = protocol_version
+        self.server_address: String = server_address
+        self.server_port: UnsignedShort = server_port
+        self.next_state: NextState = next_state
 
     @classmethod
-    def from_bytes(cls, data: bytes):
-        packet_id = data[0]
-        if packet_id != cls.packet_id:
-            raise ValueError(f"Packet ID {packet_id} does not match expected packet ID {cls.packet_id}")
+    def _from_bytes(cls, data: BytesIO):
         # Fields: protocol_version (varint), server_address (string(255)), server_port (unsigned short), next_state (varint enum)
-        protocol_version = Varint.from_bytes(data[1:]).value
-        server_address = data[1 + len(Varint(protocol_version).to_bytes()):].split(b"\x00")[0].decode("utf-8")
-        server_port = int.from_bytes(data[1 + len(Varint(protocol_version).to_bytes()) + len(server_address.encode("utf-8")) + len(b"\x00"):1 + len(Varint(protocol_version).to_bytes()) + len(server_address.encode("utf-8")) + len(b"\x00") + 2], "big")
-        next_state = NextState(Varint.from_bytes(data[1 + len(Varint(protocol_version).to_bytes()) + len(server_address.encode("utf-8")) + len(b"\x00") + 2:]).value)
+        # protocol version
+        protocol_version = Varint.from_bytes(data)
+        # server address
+        server_address = String.from_bytes(data)
+        # server port
+        server_port = UnsignedShort.from_bytes(data)
+        # next state
+        next_state = NextState(Varint.from_bytes(data))
         return cls(protocol_version, server_address, server_port, next_state)
 
     def __repr__(self):
         return f"HandshakePacket({self.protocol_version}, {self.server_address}, {self.server_port}, {self.next_state})"
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + Varint(self.protocol_version).to_bytes() + self.server_address.encode("utf-8") + b"\x00" + self.server_port.to_bytes(2, "big") + Varint(self.next_state.value).to_bytes()
-
+        return (
+            self.packet_id.to_bytes(1, "big") + 
+            bytes(self.protocol_version) + 
+            bytes(self.server_address) + 
+            bytes(self.server_port) + 
+            bytes(self.next_state.value)
+        )
+    
     def __len__(self):
         return len(bytes(self))
-    
-    def __eq__(self, other):
-        return self.packet_id == other.packet_id and self.protocol_version == other.protocol_version and self.server_address == other.server_address and self.server_port == other.server_port and self.next_state == other.next_state
