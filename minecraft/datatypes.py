@@ -26,10 +26,46 @@ import uuid
 import struct
 from nbt import nbt
 
+from .enums import CommandParser, StatCategory, StatID
+from .command_parsers import parsers as cmd_parsers
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
+
+
+__all__ = (
+    "BytesIO",  # ext lib, imported for typehints
+    "DataType",
+    "Boolean",
+    "Byte",
+    "UnsignedByte",
+    "Short",
+    "UnsignedShort",
+    "Int",
+    "Long",
+    "Float",
+    "Double",
+    "String",
+    "Chat",
+    "Identifier",
+    "Varint",
+    "Varlong",
+    "Position",
+    "Angle",
+    "UUID",
+    "NBT",
+    "Slot",
+    "Particle",
+    "ByteArray",
+    "EntityMetadataEntry",
+    "VillagerData",
+    "EntityMetadata",
+    "CommandNode",
+    "CommandSuggestionMatch",
+    "Statistic",
+)
 
 
 class DataType:
@@ -54,6 +90,9 @@ class Boolean(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         return cls(bool(data.read(1)[0]))
+
+    def __bool__(self):
+        return self.value
 
 
 class Byte(DataType):
@@ -225,44 +264,8 @@ class Varlong(Varint):
         return super().from_bytes(data, max_size=10)
 
 
-"""
-Entity Metadata is an array of entries, each of which looks like the following:
-
-Name	Type	Meaning
-Index	Unsigned Byte	Unique index key determining the meaning of the following value, see the table below. If this is 0xff then the it is the end of the Entity Metadata array and no more is read.
-Type	Optional VarInt Enum	Only if Index is not 0xff; the type of the index, see the table below
-Value	Optional value of Type	Only if Index is not 0xff: the value of the metadata field
-
-Value of Type field	Type of Value field	Notes
-0	Byte	
-1	VarInt	
-2	VarLong	
-3	Float	
-4	String	
-5	Chat	
-6	OptChat (Boolean + Optional Chat)	Chat is present if the Boolean is set to true
-7	Slot	
-8	Boolean	
-9	Rotation	3 floats: rotation on x, rotation on y, rotation on z
-10	Position	
-11	OptPosition (Boolean + Optional Position)	Position is present if the Boolean is set to true
-12	Direction (VarInt)	(Down = 0, Up = 1, North = 2, South = 3, West = 4, East = 5)
-13	OptUUID (Boolean + Optional UUID)	UUID is present if the Boolean is set to true
-14	OptBlockID (VarInt)	0 for absent (implies air); otherwise, a block state ID as per the global palette
-15	NBT	
-16	Particle	
-17	Villager Data	3 VarInts: villager type, villager profession, level
-18	OptVarInt	0 for absent; 1 + actual value otherwise. Used for entity IDs.
-19	Pose	A VarInt enum: 0: STANDING, 1: FALL_FLYING, 2: SLEEPING, 3: SWIMMING, 4: SPIN_ATTACK, 5: SNEAKING, 6: LONG_JUMPING, 7: DYING, 8: CROAKING, 9: USING_TONGUE, 10: SITTING, 11: ROARING, 12: SNIFFING, 13: EMERGING, 14: DIGGING
-20	Cat Variant	A VarInt that points towards the CAT_VARIANT registry.
-21	Frog Variant	A VarInt that points towards the FROG_VARIANT registry.
-22	GlobalPos	A dimension identifier and Position.
-23	Painting Variant	A VarInt that points towards the PAINTING_VARIANT registry.
-"""
-
-
 class EntityMetadataEntry:
-    def __init__(self, index: UnsignedByte, type: VarInt, value: DataType):
+    def __init__(self, index: UnsignedByte, type: Varint, value: DataType):
         self.index = index
         self.type = type
         self.value = value
@@ -272,7 +275,7 @@ class EntityMetadataEntry:
 
     @classmethod
     def from_bytes(cls, data: BytesIO, index: UnsignedByte) -> Self:
-        type = VarInt.from_bytes(data)
+        type = Varint.from_bytes(data)
         value = {
             0: Byte.from_bytes,
             1: Varint.from_bytes,
@@ -513,12 +516,16 @@ class ByteArray(DataType):
         self.data = data
 
     def __bytes__(self) -> bytes:
-        return bytes(Varint(len(self.data))) + self.data
+        return self.data
+
+    def __len__(self):
+        return len(self.data)
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        length = Varint.from_bytes(data)
-        return cls(data.read(length.value))
+    def from_bytes(cls, data: BytesIO, *, length: int = None) -> Self:
+        if length is None:
+            return cls(data.read())
+        return cls(data.read(length))
 
 
 class Property:
@@ -547,3 +554,99 @@ class Property:
         else:
             signature = None
         return cls(name, value, signature)
+
+
+class Statistic:
+    def __init__(self, category: StatCategory, stat_id: StatID, value: Varint):
+        self.category: StatCategory = category
+        self.stat_id: StatID = stat_id
+        self.value: Varint = value
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.category.value) + bytes(self.stat_id.value) + bytes(self.value)
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        name = String.from_bytes(data)
+        value = Varint.from_bytes(data)
+        return cls(name, value)
+
+
+class CommandSuggestionMatch:
+    def __init__(self, match: String, tooltip: Chat | None = None):
+        self.match: String = match
+        self.tooltip: Chat | None = tooltip
+
+    @property
+    def has_tooltip(self):
+        return self.tooltip is not None
+
+    def __bytes__(self) -> bytes:
+        return (
+            bytes(self.match) +
+            bytes(Boolean(self.has_tooltip)) +
+            bytes(self.tooltip) if self.has_tooltip else b''
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        match = String.from_bytes(data)
+        has_tooltip = Boolean.from_bytes(data)
+        if has_tooltip:
+            tooltip = Chat.from_bytes(data)
+        else:
+            tooltip = None
+        return cls(match, tooltip)
+
+
+class CommandNode:
+    def __init__(
+        self,
+        flags: Byte,
+        children: list[Varint],
+        redirect: Varint | None = None,
+        name: String | None = None,
+        parser: CommandParser | None = None,
+        properties: bytes | None = None,
+        suggestions_type: Identifier | None = None,
+    ):
+        self.flags: Byte = flags
+        self.children: list[Varint] = children
+        self.redirect: Varint | None = redirect
+        self.name: String | None = name
+        self.parser: CommandParser | None = parser
+        self.properties: bytes | None = properties
+        self.suggestions: Identifier | None = suggestions_type
+
+    def __bytes__(self) -> bytes:
+        return (
+            bytes(self.flags) +
+            bytes(Varint(len(self.children))) +
+            b''.join(bytes(child) for child in self.children) +
+            bytes(self.redirect) if self.flags.value & 0x08 else b'' +
+            bytes(self.name) if self.flags.value & 0x03 != 0 else b'' +
+            bytes(self.parser.value) if self.flags.value & 0x03 == 2 else b'' +  # type: ignore
+            bytes(self.properties) if self.flags.value & 0x03 == 2 else b'' +
+            bytes(self.suggestions) if self.flags.value & 0x10 else b''
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        flags = Byte.from_bytes(data)
+        children = []
+        children_count = Varint.from_bytes(data)
+        for _ in range(children_count.value):
+            children.append(Varint.from_bytes(data))
+        _flags = flags.value
+        redirect = Varint.from_bytes(data) if _flags & 0x08 else None
+        name = String.from_bytes(data) if _flags & 0x03 != 0 else None
+        parser = CommandParser(Varint.from_bytes(data)) if _flags & 0x03 == 2 else None
+        properties = None
+        if parser and parser.value.value in cmd_parsers:
+            properties = cmd_parsers[parser.value.value].from_bytes(data)
+        suggestions = Identifier.from_bytes(data) if _flags & 0x10 else None
+        return cls(flags, children, redirect, name, parser, properties, suggestions)
+
+    def __repr__(self):
+        return f'CommandNode({self.flags}, {self.children}, {self.redirect}, ' \
+               f'{self.name}, {self.parser}, {self.properties}, {self.suggestions})'

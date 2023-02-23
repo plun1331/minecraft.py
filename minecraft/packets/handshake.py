@@ -26,7 +26,7 @@ from ..datatypes import *
 from ..enums import NextState
 
 
-class HandshakePacket(Packet):
+class Handshake(Packet):
     """
     Handshake packet sent by the client to the server to initiate a connection.
     
@@ -49,7 +49,7 @@ class HandshakePacket(Packet):
         self.next_state: NextState = next_state
 
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: protocol_version (varint), server_address (string(255)), server_port (unsigned short), next_state (varint enum)
         # protocol version
         protocol_version = Varint.from_bytes(data)

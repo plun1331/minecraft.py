@@ -20,10 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from io import BytesIO
 import json
 from .base import Packet
 from ..datatypes import *
+
 
 class StatusResponse(Packet):
     """
@@ -41,10 +41,10 @@ class StatusResponse(Packet):
 
     @property
     def json(self):
-        return json.loads(self.json_response)
+        return json.loads(self.json_response.value)
 
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: json_response (string)
         # json_response
         json_response = String.from_bytes(data)
@@ -55,10 +55,10 @@ class StatusResponse(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.json_response)
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.json_response)
         )
-    
+
 
 class PingResponse(Packet):
     """
@@ -71,11 +71,11 @@ class PingResponse(Packet):
 
     packet_id = 0x01
 
-    def __init__(self, payload: int):
-        self.payload = payload
+    def __init__(self, payload: Varint):
+        self.payload: Varint = payload
 
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: payload (long)
         # payload
         payload = Varint.from_bytes(data)
@@ -86,8 +86,8 @@ class PingResponse(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            self.payload.to_bytes(8, "big")
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.payload)
         )
 
 
@@ -102,11 +102,8 @@ class StatusRequest(Packet):
 
     packet_id = 0x00
 
-    def __init__(self):
-        pass
-
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: None
         return cls()
 
@@ -132,7 +129,7 @@ class PingRequest(Packet):
         self.payload: Long = payload
 
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: payload (long)
         # payload
         payload = Long.from_bytes(data)
@@ -143,6 +140,6 @@ class PingRequest(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.payload)
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.payload)
         )

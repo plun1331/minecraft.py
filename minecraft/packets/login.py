@@ -24,7 +24,8 @@ from io import BytesIO
 from .base import Packet
 from ..datatypes import *
 
-class Disconnected(Packet):
+
+class DisconnectLogin(Packet):
     """
     Sent by the server when the client is disconnected.
     
@@ -41,15 +42,15 @@ class Disconnected(Packet):
         return bytes(self.id) + bytes(self.reason)
 
     @classmethod
-    def _from_bytes(cls, data: BytesIO):
+    def from_bytes(cls, data: BytesIO):
         # Fields: reason (string)
         return cls(String.from_bytes(data))
 
     def __repr__(self) -> str:
         return f"Disconnected(reason={self.reason!r})"
-    
+
     def __str__(self) -> str:
-        return self.reason
+        return str(self.reason)
 
 
 class EncryptionRequest(Packet):
@@ -70,8 +71,10 @@ class EncryptionRequest(Packet):
     def __bytes__(self) -> bytes:
         public_key_length = Varint(len(self.public_key))
         verify_token_length = Varint(len(self.verify_token))
-        return bytes(self.id) + bytes(self.server_id) + bytes(public_key_length) + self.public_key + bytes(verify_token_length) + self.verify_token
-        
+        return bytes(self.id) + bytes(self.server_id) + bytes(public_key_length) + self.public_key + bytes(
+            verify_token_length
+            ) + self.verify_token
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "EncryptionRequest":
         # Fields: server_id (string), public key length (varint),
@@ -108,7 +111,7 @@ class LoginSuccess(Packet):
         self.properties = properties
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(self.uuid) + bytes(self.username) 
+        return bytes(self.id) + bytes(self.uuid) + bytes(self.username)
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "LoginSuccess":
@@ -154,11 +157,12 @@ class SetCompression(Packet):
 
     def __repr__(self) -> str:
         return f"SetCompression(threshold={self.threshold!r})"
-    
+
 
 class LoginPluginRequest(Packet):
     """
-    Sent by the server to request a plugin message from the client.
+    Used to implement a custom handshaking flow together with Login Plugin Response.
+    Our client should always respond that it hasn't understood the request.
     
     Packet ID: 0x04
     State: Login
@@ -206,13 +210,13 @@ class LoginStart(Packet):
     @property
     def uuid_set(self) -> bool:
         return self.uuid is not None
-    
+
     def __bytes__(self) -> bytes:
         res = bytes(self.id) + bytes(self.username) + bytes(Boolean(self.uuid_set))
         if self.uuid_set:
             res += bytes(self.uuid)
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "LoginStart":
         # Fields: username (string), uuid set (boolean), uuid (uuid)
@@ -225,10 +229,10 @@ class LoginStart(Packet):
         if uuid_set:
             uuid = UUID.from_bytes(data)
         return cls(username, uuid)
-    
+
     def __repr__(self) -> str:
         return f"LoginStart(username={self.username!r}, uuid={self.uuid!r})"
-    
+
 
 class EncryptionResponse(Packet):
     """
@@ -247,8 +251,10 @@ class EncryptionResponse(Packet):
     def __bytes__(self) -> bytes:
         shared_secret_length = self.shared_secret.length
         verify_token_length = self.verify_token.length
-        return bytes(self.id) + bytes(shared_secret_length) + self.shared_secret + bytes(verify_token_length) + self.verify_token
-        
+        return bytes(self.id) + bytes(shared_secret_length) + self.shared_secret + bytes(
+            verify_token_length
+            ) + self.verify_token
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "EncryptionResponse":
         # Fields: shared secret length (varint), shared secret (byte array), verify token length (varint), verify token (byte array)
@@ -264,11 +270,12 @@ class EncryptionResponse(Packet):
 
     def __repr__(self) -> str:
         return f"EncryptionResponse(shared_secret={self.shared_secret!r}, verify_token={self.verify_token!r})"
-    
+
 
 class LoginPluginResponse(Packet):
     """
-    Sent by the client to respond to a plugin message request.
+    Sent in response to a plugin message request.
+    Our client should always respond with a `successful=False` with no further payload.
     
     Packet ID: 0x02
     State: Login

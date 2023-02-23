@@ -23,16 +23,13 @@ SOFTWARE.
 from io import BytesIO
 from typing_extensions import Self
 
+
 class Packet:
     """Represents a Minecraft packet."""
     packet_id: int = None
 
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError("Packet is an abstract class")
-        
-
     @classmethod()
-    def _from_bytes(cls, data: BytesIO) -> Self:
+    def from_bytes(cls, data: BytesIO) -> Self:
         raise NotImplementedError
 
     @classmethod
@@ -41,16 +38,16 @@ class Packet:
         packet_id = int(io.read(1)[0])
         if packet_id != cls.packet_id:
             raise ValueError(f"Packet ID ({packet_id}) does not match expected packet ID ({cls.packet_id})")
-        return cls._from_bytes(io)
-        
+        return cls.from_bytes(io)
+
     def __repr__(self):
-        return f"Packet({self.packet_id}, {self.data})"
+        return f"Packet({self.packet_id})"
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + self.data
+        return self.packet_id.to_bytes(1, "big")
 
     def __len__(self):
-        return len(self.data) + len(self.packet_id.to_bytes(1, "big"))
+        return len(self.packet_id.to_bytes(1, "big"))
 
     def __eq__(self, other):
         return bytes(self) == bytes(other)
