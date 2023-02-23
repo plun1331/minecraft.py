@@ -21,7 +21,7 @@ SOFTWARE.
 """
 
 from .base import *
-from .status import *
 from .handshake import *
 from .login import *
 from .play import *
+from .status import *

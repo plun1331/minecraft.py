@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from io import BytesIO
 from .base import Packet
 from ..datatypes import *
 from ..enums import NextState
@@ -37,11 +36,11 @@ class Handshake(Packet):
     packet_id = 0x00
 
     def __init__(
-            self, 
-            protocol_version: Varint, 
-            server_address: String, 
-            server_port: UnsignedShort, 
-            next_state: NextState,
+        self,
+        protocol_version: Varint,
+        server_address: String,
+        server_port: UnsignedShort,
+        next_state: NextState,
     ) -> None:
         self.protocol_version: Varint = protocol_version
         self.server_address: String = server_address
@@ -61,17 +60,14 @@ class Handshake(Packet):
         next_state = NextState(Varint.from_bytes(data))
         return cls(protocol_version, server_address, server_port, next_state)
 
-    def __repr__(self):
-        return f"HandshakePacket({self.protocol_version}, {self.server_address}, {self.server_port}, {self.next_state})"
-
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + 
-            bytes(self.protocol_version) + 
-            bytes(self.server_address) + 
-            bytes(self.server_port) + 
-            bytes(self.next_state.value)
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.protocol_version) +
+                bytes(self.server_address) +
+                bytes(self.server_port) +
+                bytes(self.next_state.value)
         )
-    
+
     def __len__(self):
         return len(bytes(self))

@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from io import BytesIO
 from .base import Packet
 from ..datatypes import *
 
@@ -46,9 +45,6 @@ class DisconnectLogin(Packet):
         # Fields: reason (string)
         return cls(String.from_bytes(data))
 
-    def __repr__(self) -> str:
-        return f"Disconnected(reason={self.reason!r})"
-
     def __str__(self) -> str:
         return str(self.reason)
 
@@ -61,19 +57,24 @@ class EncryptionRequest(Packet):
     State: Login
     Bound To: Client
     """
-    id = 0x01
+    packet_id = 0x01
 
-    def __init__(self, server_id: str, public_key: bytes, verify_token: bytes) -> None:
+    def __init__(self, server_id: String, public_key: ByteArray, verify_token: ByteArray) -> None:
         self.server_id = server_id
         self.public_key = public_key
         self.verify_token = verify_token
 
-    def __bytes__(self) -> bytes:
+    def __bytes__(self):
         public_key_length = Varint(len(self.public_key))
         verify_token_length = Varint(len(self.verify_token))
-        return bytes(self.id) + bytes(self.server_id) + bytes(public_key_length) + self.public_key + bytes(
-            verify_token_length
-            ) + self.verify_token
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.server_id) +
+                bytes(public_key_length) +
+                bytes(self.public_key) +
+                bytes(verify_token_length) +
+                bytes(self.verify_token)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "EncryptionRequest":
@@ -82,17 +83,14 @@ class EncryptionRequest(Packet):
         # server id
         server_id = String.from_bytes(data)
         # public key length
-        public_key_length = Varint.from_bytes(data)
+        public_key_length = Varint.from_bytes(data).value
         # public key
-        public_key = data.read(public_key_length)
+        public_key = ByteArray.from_bytes(data, length=public_key_length)
         # verify token length
-        verify_token_length = Varint.from_bytes(data)
+        verify_token_length = Varint.from_bytes(data).value
         # verify token
-        verify_token = data.read(verify_token_length)
+        verify_token = ByteArray.from_bytes(data, length=verify_token_length)
         return cls(server_id, public_key, verify_token)
-
-    def __repr__(self) -> str:
-        return f"EncryptionRequest(server_id={self.server_id!r}, public_key={self.public_key!r}, verify_token={self.verify_token!r})"
 
 
 class LoginSuccess(Packet):
@@ -105,7 +103,7 @@ class LoginSuccess(Packet):
     """
     id = 0x02
 
-    def __init__(self, uuid: str, username: str, properties: list[Property]) -> None:
+    def __init__(self, uuid: UUID, username: String, properties: list[Property]) -> None:
         self.uuid = uuid
         self.username = username
         self.properties = properties
@@ -121,15 +119,12 @@ class LoginSuccess(Packet):
         # username
         username = String.from_bytes(data)
         # property count
-        property_count = Varint.from_bytes(data)
+        property_count = Varint.from_bytes(data).value
         # properties
         properties = []
         for _ in range(property_count):
             properties.append(Property.from_bytes(data))
         return cls(uuid, username, properties)
-
-    def __repr__(self) -> str:
-        return f"LoginSuccess(uuid={self.uuid!r}, username={self.username!r} properties={self.properties!r})"
 
 
 class SetCompression(Packet):
@@ -142,11 +137,11 @@ class SetCompression(Packet):
     """
     id = 0x03
 
-    def __init__(self, threshold: int) -> None:
+    def __init__(self, threshold: Varint) -> None:
         self.threshold = threshold
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(Varint(self.threshold))
+        return bytes(self.id) + bytes(self.threshold)
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "SetCompression":
@@ -154,9 +149,6 @@ class SetCompression(Packet):
         # threshold
         threshold = Varint.from_bytes(data)
         return cls(threshold)
-
-    def __repr__(self) -> str:
-        return f"SetCompression(threshold={self.threshold!r})"
 
 
 class LoginPluginRequest(Packet):
@@ -168,15 +160,20 @@ class LoginPluginRequest(Packet):
     State: Login
     Bound To: Client
     """
-    id = 0x04
+    packet_id = 0x04
 
-    def __init__(self, message_id: int, channel: str, data: bytes) -> None:
+    def __init__(self, message_id: Varint, channel: String, data: ByteArray) -> None:
         self.message_id = message_id
         self.channel = channel
         self.data = data
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(Varint(self.message_id)) + bytes(self.channel) + bytes(ByteArray(self.data))
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.message_id) +
+                bytes(self.channel) +
+                bytes(self.data)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "LoginPluginRequest":
@@ -188,9 +185,6 @@ class LoginPluginRequest(Packet):
         # data
         data = ByteArray.from_bytes(data)
         return cls(message_id, channel, data)
-
-    def __repr__(self) -> str:
-        return f"LoginPluginRequest(message_id={self.message_id!r}, channel={self.channel!r}, data={self.data!r})"
 
 
 class LoginStart(Packet):
@@ -230,9 +224,6 @@ class LoginStart(Packet):
             uuid = UUID.from_bytes(data)
         return cls(username, uuid)
 
-    def __repr__(self) -> str:
-        return f"LoginStart(username={self.username!r}, uuid={self.uuid!r})"
-
 
 class EncryptionResponse(Packet):
     """
@@ -242,34 +233,36 @@ class EncryptionResponse(Packet):
     State: Login
     Bound To: Server
     """
-    id = 0x01
+    packet_id = 0x01
 
     def __init__(self, shared_secret: ByteArray, verify_token: ByteArray) -> None:
         self.shared_secret: ByteArray = shared_secret
         self.verify_token: ByteArray = verify_token
 
     def __bytes__(self) -> bytes:
-        shared_secret_length = self.shared_secret.length
-        verify_token_length = self.verify_token.length
-        return bytes(self.id) + bytes(shared_secret_length) + self.shared_secret + bytes(
-            verify_token_length
-            ) + self.verify_token
+        shared_secret_length = len(self.shared_secret)
+        verify_token_length = len(self.verify_token)
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(Varint(shared_secret_length)) +
+                bytes(self.shared_secret) +
+                bytes(Varint(verify_token_length)) +
+                bytes(self.verify_token)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "EncryptionResponse":
-        # Fields: shared secret length (varint), shared secret (byte array), verify token length (varint), verify token (byte array)
+        # Fields: shared secret length (varint), shared secret (byte array),
+        # verify token length (varint), verify token (byte array)
         # shared secret length
-        shared_secret_length = Varint.from_bytes(data)
+        shared_secret_length = Varint.from_bytes(data).value
         # shared secret
-        shared_secret = ByteArray.from_bytes(data, shared_secret_length)
+        shared_secret = ByteArray.from_bytes(data, length=shared_secret_length)
         # verify token length
-        verify_token_length = Varint.from_bytes(data)
+        verify_token_length = Varint.from_bytes(data).value
         # verify token
-        verify_token = ByteArray.from_bytes(data, verify_token_length)
+        verify_token = ByteArray.from_bytes(data, length=verify_token_length)
         return cls(shared_secret, verify_token)
-
-    def __repr__(self) -> str:
-        return f"EncryptionResponse(shared_secret={self.shared_secret!r}, verify_token={self.verify_token!r})"
 
 
 class LoginPluginResponse(Packet):
@@ -281,15 +274,15 @@ class LoginPluginResponse(Packet):
     State: Login
     Bound To: Server
     """
-    id = 0x02
+    packet_id = 0x02
 
     def __init__(self, message_id: Varint, successful: Boolean, data: ByteArray | None = None) -> None:
-        self.message_id: int = message_id
+        self.message_id: Varint = message_id
         self.successful: Boolean = successful
         self.data: ByteArray | None = data
 
     def __bytes__(self) -> bytes:
-        res = bytes(self.id) + bytes(self.message_id) + bytes(self.successful)
+        res = self.packet_id.to_bytes(1, "big") + bytes(self.message_id) + bytes(self.successful)
         if self.successful:
             res += bytes(self.data)
         return res
@@ -307,6 +300,3 @@ class LoginPluginResponse(Packet):
         else:
             data = None
         return cls(message_id, successful, data)
-
-    def __repr__(self) -> str:
-        return f"LoginPluginResponse(message_id={self.message_id!r}, successful={self.successful!r}, data={self.data!r})"

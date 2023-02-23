@@ -21,6 +21,7 @@ SOFTWARE.
 """
 
 import json
+
 from .base import Packet
 from ..datatypes import *
 
@@ -50,9 +51,6 @@ class StatusResponse(Packet):
         json_response = String.from_bytes(data)
         return cls(json_response)
 
-    def __repr__(self):
-        return f"StatusResponse({self.json_response!r})"
-
     def __bytes__(self):
         return (
                 self.packet_id.to_bytes(1, "big") +
@@ -81,9 +79,6 @@ class PingResponse(Packet):
         payload = Varint.from_bytes(data)
         return cls(payload)
 
-    def __repr__(self):
-        return f"PingResponse({self.payload!r})"
-
     def __bytes__(self):
         return (
                 self.packet_id.to_bytes(1, "big") +
@@ -106,9 +101,6 @@ class StatusRequest(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: None
         return cls()
-
-    def __repr__(self):
-        return "StatusRequest()"
 
     def __bytes__(self):
         return self.packet_id.to_bytes(1, "big")
@@ -134,9 +126,6 @@ class PingRequest(Packet):
         # payload
         payload = Long.from_bytes(data)
         return cls(payload)
-
-    def __repr__(self):
-        return f"PingRequest({self.payload!r})"
 
     def __bytes__(self):
         return (

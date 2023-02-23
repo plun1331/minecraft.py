@@ -45,9 +45,9 @@ class _Brigadier:
     def __bytes__(self):
         _flags = self.flags.value
         return (
-            bytes(self.flags) +
-            (bytes(self.min) if _flags & 0x01 else b"") +
-            (bytes(self.max) if _flags & 0x02 else b"")
+                bytes(self.flags) +
+                (bytes(self.min) if _flags & 0x01 else b"") +
+                (bytes(self.max) if _flags & 0x02 else b"")
         )
 
     def __len__(self):

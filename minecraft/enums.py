@@ -21,7 +21,8 @@ SOFTWARE.
 """
 
 from enum import Enum
-from .datatypes import Int, Varint, UnsignedByte
+
+from .datatypes import Int, UnsignedByte, Varint
 
 
 class NextState(Enum):

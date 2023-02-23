@@ -20,20 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import json
+import struct
+import uuid
 from io import BytesIO
 from typing import Any
-import uuid
-import struct
+
 from nbt import nbt
 
-from .enums import CommandParser, MapIconType, StatCategory, StatID
 from .command_parsers import parsers as cmd_parsers
+from .enums import CommandParser, MapIconType, StatCategory, StatID
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
-
 
 __all__ = (
     "BytesIO",  # ext lib, imported for typehints
@@ -68,6 +68,7 @@ __all__ = (
     "BlockEntity",
     "BitSet",
     "MapIcon",
+    "Property",
 )
 
 
@@ -570,9 +571,9 @@ class Statistic:
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.category.value) +
-            bytes(self.stat_id.value) +
-            bytes(self.value)
+                bytes(self.category.value) +
+                bytes(self.stat_id.value) +
+                bytes(self.value)
         )
 
     @classmethod
@@ -635,10 +636,18 @@ class CommandNode:
             bytes(Varint(len(self.children))) +
             b''.join(bytes(child) for child in self.children) +
             bytes(self.redirect) if self.flags.value & 0x08 else b'' +
-            bytes(self.name) if self.flags.value & 0x03 != 0 else b'' +
-            bytes(self.parser.value) if self.flags.value & 0x03 == 2 else b'' +  # type: ignore
-            bytes(self.properties) if self.flags.value & 0x03 == 2 else b'' +
-            bytes(self.suggestions) if self.flags.value & 0x10 else b''
+                                                                 bytes(
+                                                                     self.name
+                                                                     ) if self.flags.value & 0x03 != 0 else b'' +
+                                                                                                            bytes(
+                                                                                                                self.parser.value
+                                                                                                                ) if self.flags.value & 0x03 == 2 else b'' +  # type: ignore
+                                                                                                                                                       bytes(
+                                                                                                                                                           self.properties
+                                                                                                                                                           ) if self.flags.value & 0x03 == 2 else b'' +
+                                                                                                                                                                                                  bytes(
+                                                                                                                                                                                                      self.suggestions
+                                                                                                                                                                                                      ) if self.flags.value & 0x10 else b''
         )
 
     @classmethod
@@ -680,10 +689,10 @@ class BlockEntity:
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.xz) +
-            bytes(self.y) +
-            bytes(self.type) +
-            bytes(self.data)
+                bytes(self.xz) +
+                bytes(self.y) +
+                bytes(self.type) +
+                bytes(self.data)
         )
 
     @classmethod

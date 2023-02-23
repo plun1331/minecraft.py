@@ -1787,12 +1787,12 @@ class MapDataPacket(Packet):
 
     def __bytes__(self):
         res = (
-            bytes(self.map_id) +
-            bytes(self.scale) +
-            bytes(self.locked) +
-            bytes(Varint(len(self.icons))) +
-            b"".join([bytes(i) for i in self.icons]) +
-            bytes(self.updated_columns)
+                bytes(self.map_id) +
+                bytes(self.scale) +
+                bytes(self.locked) +
+                bytes(Varint(len(self.icons))) +
+                b"".join([bytes(i) for i in self.icons]) +
+                bytes(self.updated_columns)
         )
         if self.updated_columns.value > 0:
             res += bytes(self.updated_rows)
