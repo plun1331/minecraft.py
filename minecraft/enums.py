@@ -21,7 +21,7 @@ SOFTWARE.
 """
 
 from enum import Enum
-from .datatypes import Short, Varint, UnsignedByte
+from .datatypes import Int, Varint, UnsignedByte
 
 
 class NextState(Enum):
@@ -200,53 +200,6 @@ class BrigadierStringParser(Enum):
     GREEDY_PHRASE = Varint(2)
 
 
-class FurnaceWindowProperty(Enum):
-    FIRE_ICON = Short(0)
-    MAX_BURN_TIME = Short(1)
-    PROGRESS_ARROW = Short(2)
-    MAX_PROGRESS_ARROW = Short(3)
-
-
-class EnchantmentTableWindowProperty(Enum):
-    LEVEL_REQUIREMENT_1 = Short(0)
-    LEVEL_REQUIREMENT_2 = Short(1)
-    LEVEL_REQUIREMENT_3 = Short(2)
-    ENCHANTMENT_SEED = Short(3)
-    ENCHANTMENT_ID_1 = Short(4)
-    ENCHANTMENT_ID_2 = Short(5)
-    ENCHANTMENT_ID_3 = Short(6)
-    ENCHANTMENT_LEVEL_1 = Short(7)
-    ENCHANTMENT_LEVEL_2 = Short(8)
-    ENCHANTMENT_LEVEL_3 = Short(9)
-
-
-class BeaconWindowProperty(Enum):
-    POWER_LEVEL = Short(0)
-    PRIMARY_EFFECT = Short(1)
-    SECONDARY_EFFECT = Short(2)
-
-
-class AnvilWindowProperty(Enum):
-    REPAIR_COST = Short(0)
-
-
-class BrewingStandWindowProperty(Enum):
-    BREW_TIME = Short(0)
-    FUEL_TIME = Short(1)
-
-
-class StonecutterWindowProperty(Enum):
-    RECIPE = Short(0)
-
-
-class LoomWindowProperty(Enum):
-    PATTERN = Short(0)
-
-
-class LecternWindowProperty(Enum):
-    PAGE = Short(0)
-
-
 class Enchant(Enum):
     PROTECTION = Varint(0)
     FIRE_PROTECTION = Varint(1)
@@ -292,3 +245,115 @@ class ChatSuggestionAction(Enum):
     ADD = Varint(0)
     REMOVE = Varint(1)
     SET = Varint(2)
+
+
+class GameEvents(Enum):
+    NO_RESPAWN_BLOCK_AVAILABLE = UnsignedByte(0)
+    END_RAINING = UnsignedByte(1)
+    BEGIN_RAINING = UnsignedByte(2)
+    CHANGE_GAMEMODE = UnsignedByte(3)
+    WIN_GAME = UnsignedByte(4)
+    DEMO_EVENT = UnsignedByte(5)
+    ARROW_HIT_PLAYER = UnsignedByte(6)
+    RAIN_STRENGTH = UnsignedByte(7)
+    THUNDER_STRENGTH = UnsignedByte(8)
+    PUFFERFISH_STING = UnsignedByte(9)
+    ELDER_GUARDIAN_MOB_APPEARANCE = UnsignedByte(10)
+    ENABLE_RESPAWN_SCREEN = UnsignedByte(11)
+
+
+class WorldEvents(Enum):
+    DISPENSER_DISPENSES = Int(1000)
+    DISPENSER_FAILS_TO_DISPENSE = Int(1001)
+    DISPENSER_SHOOTS = Int(1002)
+    ENDER_EYE_LAUNCHED = Int(1003)
+    FIREWORK_SHOT = Int(1004)
+    IRON_DOOR_OPENED = Int(1005)
+    WOODEN_DOOR_OPENED = Int(1006)
+    WOODEN_TRAPDOOR_OPENED = Int(1007)
+    FENCE_GATE_OPENED = Int(1008)
+    FIRE_EXTINGUISHED = Int(1009)
+    PLAY_RECORD = Int(1010)
+    IRON_DOOR_CLOSED = Int(1011)
+    WOODEN_DOOR_CLOSED = Int(1012)
+    WOODEN_TRAPDOOR_CLOSED = Int(1013)
+    FENCE_GATE_CLOSED = Int(1014)
+    GHAST_WARN = Int(1015)
+    GHAST_SHOOTS = Int(1016)
+    ENDERDRAGON_SHOOTS = Int(1017)
+    BLAZE_SHOOTS = Int(1018)
+    ZOMBIE_ATTACKS_WOOD_DOOR = Int(1019)
+    ZOMBIE_ATTACKS_IRON_DOOR = Int(1020)
+    ZOMBIE_BREAKS_WOOD_DOOR = Int(1021)
+    WITHER_BREAKS_BLOCK = Int(1022)
+    WITHER_SPAWNED = Int(1023)
+    WITHER_SHOOTS = Int(1024)
+    BAT_TAKES_OFF = Int(1025)
+    ZOMBIE_INFECTS = Int(1026)
+    ZOMBIE_VILLAGER_CONVERTED = Int(1027)
+    ENDERDRAGON_DEATH = Int(1028)
+    ANVIL_DESTROYED = Int(1029)
+    ANVIL_USED = Int(1030)
+    ANVIL_LANDED = Int(1031)
+    PORTAL_TRAVEL = Int(1032)
+    CHORUS_FLOWER_GROWN = Int(1033)
+    CHORUS_FLOWER_DIED = Int(1034)
+    BREWING_STAND_BREWED = Int(1035)
+    IRON_TRAPDOOR_OPENED = Int(1036)
+    IRON_TRAPDOOR_CLOSED = Int(1037)
+    END_PORTAL_CREATED_IN_OVERWORLD = Int(1038)
+    PHANTOM_BITES = Int(1039)
+    ZOMBIE_CONVERTS_TO_DROWNED = Int(1040)
+    HUSK_CONVERTS_TO_ZOMBIE_BY_DROWNING = Int(1041)
+    GRINDSTONE_USED = Int(1042)
+    BOOK_PAGE_TURNED = Int(1043)
+    COMPOSTER_COMPOSTS = Int(1500)
+    LAVA_CONVERTS_BLOCK = Int(1501)
+    REDSTONE_TORCH_BURNS_OUT = Int(1502)
+    ENDER_EYE_PLACED = Int(1503)
+    SPAWNS_10_SMOKE_PARTICLES = Int(2000)
+    BLOCK_BREAK = Int(2001)
+    SPLASH_POTION = Int(2002)
+    EYE_OF_ENDER_ENTITY_BREAK_ANIMATION = Int(2003)
+    MOB_SPAWN_PARTICLE_EFFECT = Int(2004)
+    BONEMEAL_PARTICLES = Int(2005)
+    DRAGON_BREATH = Int(2006)
+    INSTANT_SPLASH_POTION = Int(2007)
+    ENDERDRAGON_DESTROYS_BLOCK = Int(2008)
+    WET_SPONGE_VAPORIZES_IN_NETHER = Int(2009)
+    END_GATEWAY_SPAWN = Int(3000)
+    ENDERDRAGON_GROWL = Int(3001)
+    ELECTRIC_SPARK = Int(3002)
+    COPPER_APPLY_WAX = Int(3003)
+    COPPER_REMOVE_WAX = Int(3004)
+    COPPER_SCRAPE_OXIDATION = Int(3005)
+
+
+class MapIconType(Enum):
+    WHITE_ARROW = Varint(0)
+    GREEN_ARROW = Varint(1)
+    RED_ARROW = Varint(2)
+    BLUE_ARROW = Varint(3)
+    WHITE_CROSS = Varint(4)
+    RED_POINTER = Varint(5)
+    WHITE_CIRCLE = Varint(6)
+    SMALL_WHITE_CIRCLE = Varint(7)
+    MANSION = Varint(8)
+    TEMPLE = Varint(9)
+    WHITE_BANNER = Varint(10)
+    ORANGE_BANNER = Varint(11)
+    MAGENTA_BANNER = Varint(12)
+    LIGHT_BLUE_BANNER = Varint(13)
+    YELLOW_BANNER = Varint(14)
+    LIME_BANNER = Varint(15)
+    PINK_BANNER = Varint(16)
+    GRAY_BANNER = Varint(17)
+    LIGHT_GRAY_BANNER = Varint(18)
+    CYAN_BANNER = Varint(19)
+    PURPLE_BANNER = Varint(20)
+    BLUE_BANNER = Varint(21)
+    BROWN_BANNER = Varint(22)
+    GREEN_BANNER = Varint(23)
+    RED_BANNER = Varint(24)
+    BLACK_BANNER = Varint(25)
+    TREASURE_MARKER = Varint(26)

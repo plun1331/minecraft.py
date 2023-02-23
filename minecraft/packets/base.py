@@ -41,7 +41,7 @@ class Packet:
         return cls.from_bytes(io)
 
     def __repr__(self):
-        return f"Packet({self.packet_id})"
+        return f"{self.__class__.__name__}(packet_id={self.packet_id})"
 
     def __bytes__(self):
         return self.packet_id.to_bytes(1, "big")

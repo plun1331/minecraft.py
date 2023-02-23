@@ -26,7 +26,7 @@ import uuid
 import struct
 from nbt import nbt
 
-from .enums import CommandParser, StatCategory, StatID
+from .enums import CommandParser, MapIconType, StatCategory, StatID
 from .command_parsers import parsers as cmd_parsers
 
 try:
@@ -65,6 +65,9 @@ __all__ = (
     "CommandNode",
     "CommandSuggestionMatch",
     "Statistic",
+    "BlockEntity",
+    "BitSet",
+    "MapIcon",
 )
 
 
@@ -393,35 +396,6 @@ class EntityMetadata(DataType):
         return cls(entries)
 
 
-class Slot(DataType):
-    def __init__(self, present: Boolean, item: Item | None, count: UnsignedByte | None, nbt: NBT | None):
-        self.present = present
-        self.item = item
-        self.count = count
-        self.nbt = nbt
-
-    def __bytes__(self) -> bytes:
-        out = bytes(self.present)
-        if self.present:
-            out += bytes(self.item)
-            out += bytes(self.count)
-            out += bytes(self.nbt)
-        return out
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        present = Boolean.from_bytes(data)
-        if present:
-            item_id = Varint.from_bytes(data)
-            item_count = Byte.from_bytes(data)
-            nbt = NBT.from_bytes(data)
-        else:
-            item = None
-            count = None
-            nbt = None
-        return cls(present, item, count, nbt)
-
-
 class NBT(DataType):
     def __init__(self, data: bytes):
         self.data = data
@@ -437,6 +411,38 @@ class NBT(DataType):
     def from_bytes(cls, data: BytesIO) -> Self:
         length = Varint.from_bytes(data)
         return cls(data.read(length.value))
+
+
+class Slot(DataType):
+    def __init__(
+        self, present: Boolean, item_id: Varint | None = None,
+        count: UnsignedByte | None = None, _nbt: NBT | None = None
+    ):
+        self.present = present
+        self.item_id = item_id
+        self.count = count
+        self.nbt = _nbt
+
+    def __bytes__(self) -> bytes:
+        out = bytes(self.present)
+        if self.present:
+            out += bytes(self.item_id)
+            out += bytes(self.count)
+            out += bytes(self.nbt)
+        return out
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        present = Boolean.from_bytes(data)
+        if present:
+            item_id = Varint.from_bytes(data)
+            item_count = Byte.from_bytes(data)
+            _nbt = NBT.from_bytes(data)
+        else:
+            item_id = None
+            item_count = None
+            _nbt = None
+        return cls(present, item_id, item_count, _nbt)
 
 
 class Position(DataType):
@@ -563,13 +569,18 @@ class Statistic:
         self.value: Varint = value
 
     def __bytes__(self) -> bytes:
-        return bytes(self.category.value) + bytes(self.stat_id.value) + bytes(self.value)
+        return (
+            bytes(self.category.value) +
+            bytes(self.stat_id.value) +
+            bytes(self.value)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        name = String.from_bytes(data)
+        category = StatCategory(Varint.from_bytes(data))
+        stat_id = StatID(Varint.from_bytes(data))
         value = Varint.from_bytes(data)
-        return cls(name, value)
+        return cls(category, stat_id, value)
 
 
 class CommandSuggestionMatch:
@@ -650,3 +661,83 @@ class CommandNode:
     def __repr__(self):
         return f'CommandNode({self.flags}, {self.children}, {self.redirect}, ' \
                f'{self.name}, {self.parser}, {self.properties}, {self.suggestions})'
+
+
+class BlockEntity:
+    def __init__(self, xy: Byte, y: Short, type: Varint, data: NBT):
+        self.xz: Byte = xy
+        self.y: Short = y
+        self.type: Varint = type
+        self.data: NBT = data
+
+    @property
+    def x(self):
+        return self.xz.value >> 4
+
+    @property
+    def z(self):
+        return self.xz.value & 15
+
+    def __bytes__(self) -> bytes:
+        return (
+            bytes(self.xz) +
+            bytes(self.y) +
+            bytes(self.type) +
+            bytes(self.data)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        xz = Byte.from_bytes(data)
+        y = Short.from_bytes(data)
+        type = Varint.from_bytes(data)
+        data = NBT.from_bytes(data)
+        return cls(xz, y, type, data)
+
+
+class BitSet:
+    def __init__(self, longs: list[Long]):
+        self.longs: list[Long] = longs
+
+    def __bytes__(self) -> bytes:
+        return bytes(Varint(len(self.longs))) + b''.join(bytes(long) for long in self.longs)
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        longs = []
+        longs_count = Varint.from_bytes(data)
+        for _ in range(longs_count.value):
+            longs.append(Long.from_bytes(data))
+        return cls(longs)
+
+    def __repr__(self):
+        return f'BitSet({self.longs})'
+
+
+class MapIcon:
+    def __init__(self, type: MapIconType, x: Byte, y: Byte, direction: Byte, display_name: Chat | None):
+        self.type: MapIconType = type
+        self.x: Byte = x
+        self.y: Byte = y
+        self.direction: Byte = direction
+        self.display_name: Chat | None = display_name
+
+    def __bytes__(self) -> bytes:
+        return (
+            bytes(self.type.value) +
+            bytes(self.x) +
+            bytes(self.y) +
+            bytes(self.direction) +
+            bytes(Boolean(self.display_name is not None)) +
+            bytes(self.display_name) if self.display_name else b''
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        type = MapIconType(Byte.from_bytes(data))
+        x = Byte.from_bytes(data)
+        y = Byte.from_bytes(data)
+        direction = Byte.from_bytes(data)
+        has_display_name = Boolean.from_bytes(data)
+        display_name = Chat.from_bytes(data) if has_display_name else None
+        return cls(type, x, y, direction, display_name)
