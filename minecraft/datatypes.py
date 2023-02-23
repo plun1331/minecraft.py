@@ -632,22 +632,14 @@ class CommandNode:
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.flags) +
-            bytes(Varint(len(self.children))) +
-            b''.join(bytes(child) for child in self.children) +
-            bytes(self.redirect) if self.flags.value & 0x08 else b'' +
-                                                                 bytes(
-                                                                     self.name
-                                                                     ) if self.flags.value & 0x03 != 0 else b'' +
-                                                                                                            bytes(
-                                                                                                                self.parser.value
-                                                                                                                ) if self.flags.value & 0x03 == 2 else b'' +  # type: ignore
-                                                                                                                                                       bytes(
-                                                                                                                                                           self.properties
-                                                                                                                                                           ) if self.flags.value & 0x03 == 2 else b'' +
-                                                                                                                                                                                                  bytes(
-                                                                                                                                                                                                      self.suggestions
-                                                                                                                                                                                                      ) if self.flags.value & 0x10 else b''
+                bytes(self.flags) +
+                bytes(Varint(len(self.children))) +
+                b''.join(bytes(child) for child in self.children) +
+                (bytes(self.redirect) if self.flags.value & 0x08 else b'') +
+                (bytes(self.name) if self.flags.value & 0x03 != 0 else b'') +
+                (bytes(self.parser.value) if self.flags.value & 0x03 == 2 else b'') +  # type: ignore
+                (bytes(self.properties) if self.flags.value & 0x03 == 2 else b'') +
+                (bytes(self.suggestions) if self.flags.value & 0x10 else b'')
         )
 
     @classmethod
