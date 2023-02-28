@@ -26,7 +26,11 @@ from ..enums import (
     BossBarColor,
     BossBarDivision,
     ChatSuggestionAction,
+    FeetEyes,
+    FilterType,
     GameEvents,
+    Hand,
+    PlayerInfoUpdateActionBits,
     WorldEvents,
 )
 
@@ -1639,8 +1643,8 @@ class LoginPlay(Packet):
     """
     Updates some data about the player.
 
-    Packet ID: 0x02
-    State: Login
+    Packet ID: 0x24
+    State: Play
     Bound to: Client
     """
 
@@ -1766,6 +1770,14 @@ class LoginPlay(Packet):
 
 
 class MapDataPacket(Packet):
+    """
+    Updates a rectangular area on a map item.
+
+    Packet ID: 0x25
+    State: Play
+    Bound to: Client
+    """
+
     packet_id = 0x25
 
     def __init__(
@@ -1787,6 +1799,7 @@ class MapDataPacket(Packet):
 
     def __bytes__(self):
         res = (
+                self.packet_id.to_bytes(1, "big") +
                 bytes(self.map_id) +
                 bytes(self.scale) +
                 bytes(self.locked) +
@@ -1842,3 +1855,885 @@ class MapDataPacket(Packet):
             map_id, scale, locked, icons, updated_columns,
             updated_rows, x, z, data
         )
+
+
+class MerchantOffers(Packet):
+    """
+    The list of trades a villager NPC is offering.
+
+    Packet ID: 0x26
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x26
+
+    def __init__(
+        self, window_id: Varint, trades: list[Trade], villager_level: Varint,
+        experience: Varint, is_regular_villager: Boolean, can_restock: Boolean
+    ):
+        self.window_id = window_id
+        self.trades = trades
+        self.villager_level = villager_level
+        self.experience = experience
+        self.is_regular_villager = is_regular_villager
+        self.can_restock = can_restock
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.window_id) +
+                bytes(Varint(len(self.trades))) +
+                b"".join([bytes(i) for i in self.trades]) +
+                bytes(self.villager_level) +
+                bytes(self.experience) +
+                bytes(self.is_regular_villager) +
+                bytes(self.can_restock)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: window_id (varint), trades (list[trade]),
+        # villager_level (varint), experience (varint),
+        # is_regular_villager (boolean), can_restock (boolean)
+        # window_id
+        window_id = Varint.from_bytes(data)
+        # trades
+        trades_size = Varint.from_bytes(data).value
+        trades = []
+        for _ in range(trades_size):
+            trades.append(Trade.from_bytes(data))
+        # villager_level
+        villager_level = Varint.from_bytes(data)
+        # experience
+        experience = Varint.from_bytes(data)
+        # is_regular_villager
+        is_regular_villager = Boolean.from_bytes(data)
+        # can_restock
+        can_restock = Boolean.from_bytes(data)
+        return cls(
+            window_id, trades, villager_level, experience,
+            is_regular_villager, can_restock
+        )
+    
+
+class UpdateEntityPosition(Packet):
+    """
+    This packet is sent by the server when an entity moves less then 8 blocks; 
+    if an entity moves more than 8 blocks Teleport Entity should be sent instead.
+
+    Packet ID: 0x27
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x27
+
+    def __init__(
+        self, entity_id: Varint, delta_x: Short, delta_y: Short, delta_z: Short,
+        on_ground: Boolean
+    ):
+        self.entity_id = entity_id
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.delta_z = delta_z
+        self.on_ground = on_ground
+
+    @property
+    def blocks(self) -> tuple[float, float, float]:
+        return (
+            self.delta_x.value / (32 * 128),
+            self.delta_y.value / (32 * 128),
+            self.delta_z.value / (32 * 128),
+        )
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.entity_id) +
+                bytes(self.delta_x) +
+                bytes(self.delta_y) +
+                bytes(self.delta_z) +
+                bytes(self.on_ground)
+        )
+    
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), delta_x (short), delta_y (short),
+        # delta_z (short), on_ground (boolean)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # delta_x
+        delta_x = Short.from_bytes(data)
+        # delta_y
+        delta_y = Short.from_bytes(data)
+        # delta_z
+        delta_z = Short.from_bytes(data)
+        # on_ground
+        on_ground = Boolean.from_bytes(data)
+        return cls(entity_id, delta_x, delta_y, delta_z, on_ground)
+    
+
+class UpdateEntityPositionAndRotation(Packet):
+    """
+    This packet is sent by the server when an entity rotates and moves. 
+    A maximum of 8 blocks can be moved.
+
+    Packet ID: 0x28
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x28
+
+    def __init__(
+        self, entity_id: Varint, delta_x: Short, delta_y: Short, delta_z: Short,
+        yaw: Angle, pitch: Angle, on_ground: Boolean
+    ):
+        self.entity_id = entity_id
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.delta_z = delta_z
+        self.yaw = yaw
+        self.pitch = pitch
+        self.on_ground = on_ground
+
+    @property
+    def blocks(self) -> tuple[float, float, float]:
+        return (
+            self.delta_x.value / (32 * 128),
+            self.delta_y.value / (32 * 128),
+            self.delta_z.value / (32 * 128),
+        )
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.entity_id) +
+                bytes(self.delta_x) +
+                bytes(self.delta_y) +
+                bytes(self.delta_z) +
+                bytes(self.yaw) +
+                bytes(self.pitch) +
+                bytes(self.on_ground)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), delta_x (short), delta_y (short),
+        # delta_z (short), yaw (angle), pitch (angle), on_ground (boolean)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # delta_x
+        delta_x = Short.from_bytes(data)
+        # delta_y
+        delta_y = Short.from_bytes(data)
+        # delta_z
+        delta_z = Short.from_bytes(data)
+        # yaw
+        yaw = Angle.from_bytes(data)
+        # pitch
+        pitch = Angle.from_bytes(data)
+        # on_ground
+        on_ground = Boolean.from_bytes(data)
+        return cls(
+            entity_id, delta_x, delta_y, delta_z, yaw, pitch, on_ground
+        )
+
+
+class UpdateEntityRotation(Packet):
+    """
+    This packet is sent by the server when an entity rotates.
+
+    Packet ID: 0x29
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x29
+
+    def __init__(
+        self, entity_id: Varint, yaw: Angle, pitch: Angle, on_ground: Boolean
+    ):
+        self.entity_id = entity_id
+        self.yaw = yaw
+        self.pitch = pitch
+        self.on_ground = on_ground
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.entity_id) +
+                bytes(self.yaw) +
+                bytes(self.pitch) +
+                bytes(self.on_ground)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), yaw (angle), pitch (angle),
+        # on_ground (boolean)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # yaw
+        yaw = Angle.from_bytes(data)
+        # pitch
+        pitch = Angle.from_bytes(data)
+        # on_ground
+        on_ground = Boolean.from_bytes(data)
+        return cls(entity_id, yaw, pitch, on_ground)
+
+
+class MoveVehicle(Packet):
+    """
+    This packet is sent by the server when a vehicle moves.
+
+    Packet ID: 0x2A
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2A
+
+    def __init__(
+        self, entity_id: Varint, x: Double, y: Double, z: Double, yaw: Angle,
+        pitch: Angle
+    ):
+        self.entity_id = entity_id
+        self.x = x
+        self.y = y
+        self.z = z
+        self.yaw = yaw
+        self.pitch = pitch
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.entity_id) +
+                bytes(self.x) +
+                bytes(self.y) +
+                bytes(self.z) +
+                bytes(self.yaw) +
+                bytes(self.pitch)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), x (double), y (double), z (double),
+        # yaw (angle), pitch (angle)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # x
+        x = Double.from_bytes(data)
+        # y
+        y = Double.from_bytes(data)
+        # z
+        z = Double.from_bytes(data)
+        # yaw
+        yaw = Angle.from_bytes(data)
+        # pitch
+        pitch = Angle.from_bytes(data)
+        return cls(entity_id, x, y, z, yaw, pitch)
+
+
+class OpenBook(Packet):
+    """
+    Sent when a player right clicks with a signed book. 
+    This tells the client to open the book GUI.
+
+    Packet ID: 0x2B
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2B
+
+    def __init__(self, hand: Hand):
+        self.hand = hand
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.hand)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: hand (hand)
+        # hand
+        hand = Hand.from_bytes(data)
+        return cls(hand)
+
+
+class OpenScreen(Packet):
+    """
+    This is sent to the client when it should open an inventory, 
+    such as a chest, workbench, furnace, or other container.
+
+    Packet ID: 0x2C
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2C
+
+    def __init__(
+        self, window_id: Varint, window_type: Varint, window_title: Chat,
+    ):
+        self.window_id = window_id
+        self.window_type = window_type
+        self.window_title = window_title
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.window_id) +
+                bytes(self.window_type) +
+                bytes(self.window_title)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: window_id (varint), window_type (varint), window_title
+        # (chat)
+        # window_id
+        window_id = Varint.from_bytes(data)
+        # window_type
+        window_type = Varint.from_bytes(data)
+        # window_title
+        window_title = Chat.from_bytes(data)
+        return cls(window_id, window_type, window_title)
+    
+
+class OpenSignEditor(Packet):
+    """
+    Sent when the client has placed a sign and is allowed to send Update Sign.
+
+    Packet ID: 0x2D
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2D
+
+    def __init__(
+        self, location: Position
+    ):
+        self.location: Position = location
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.location)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: location (position)
+        # location
+        location = Position.from_bytes(data)
+        return cls(location)
+    
+
+class Ping(Packet):
+    """
+    An unused packet by the default server. 
+    The client should respond with a Pong when recieved.
+
+    Packet ID: 0x2E
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2E
+
+    def __init__(self, id: Int):
+        self.id = id
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.id)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: id (long)
+        # id
+        id = Int.from_bytes(data)
+        return cls(id)
+    
+
+class PlaceGhostRecipe(Packet):
+    """
+    Sent when the client has placed a ghost recipe in a crafting table.
+
+    Packet ID: 0x2F
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x2F
+
+    def __init__(
+        self, window_id: Varint, recipe: Identifier
+    ):
+        self.window_id = window_id
+        self.recipe = recipe
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.window_id) +
+                bytes(self.recipe_id)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: window_id (varint), recipe (identifier)
+        # window_id
+        window_id = Varint.from_bytes(data)
+        # recipe
+        recipe = Identifier.from_bytes(data)
+        return cls(window_id, recipe)
+    
+
+class PlayerAbilities(Packet):
+    """
+    This packet is sent by the server to update the client's 
+    abilities and flags.
+
+    Packet ID: 0x30
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x30
+
+    def __init__(
+        self, flags: Byte, flying_speed: Float, field_of_view_modifier: Float
+    ):
+        self.flags = flags
+        self.flying_speed = flying_speed
+        self.field_of_view_modifier = field_of_view_modifier
+
+    @property
+    def invulnerable(self) -> bool:
+        return bool(self.flags.value & 0x01)
+    
+    @property
+    def flying(self) -> bool:
+        return bool(self.flags.value & 0x02)
+    
+    @property
+    def allow_flying(self) -> bool:
+        return bool(self.flags.value & 0x04)
+    
+    @property
+    def creative_mode(self) -> bool:
+        return bool(self.flags.value & 0x08)
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.flags) +
+                bytes(self.flying_speed) +
+                bytes(self.field_of_view_modifier)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: flags (byte), flying_speed (float), field_of_view_modifier
+        # (float)
+        # flags
+        flags = Byte.from_bytes(data)
+        # flying_speed
+        flying_speed = Float.from_bytes(data)
+        # field_of_view_modifier
+        field_of_view_modifier = Float.from_bytes(data)
+        return cls(flags, flying_speed, field_of_view_modifier)
+
+
+class PlayerChatMessage(Packet):
+    """
+    Sends the client a message from a player.
+
+    Packet ID: 0x31
+    State: Play
+    Bound To: Server
+    """
+    packet_id = 0x31
+
+    def __init__(
+        self,
+        header: _DataProxy,
+        body: _DataProxy,
+        previous_messages: list[_DataProxy],
+        other: _DataProxy,
+        network_target: _DataProxy,
+    ):
+        self.header = header
+        self.body = body
+        self.previous_messages = previous_messages
+        self.other = other
+        self.network_target = network_target
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.header.sender) +
+                bytes(self.header.index) +
+                bytes(Boolean(self.header.message_signature is not None)) +
+                (bytes(self.header.message_signature) if self.header.message_signature is not None else b"") +
+                bytes(self.body.body) +
+                bytes(self.body.timestamp) +
+                bytes(self.body.salt) +
+                bytes(Varint(len(self.previous_messages))) +
+                b"".join(bytes(msg) for msg in self.previous_messages) +
+                bytes(self.other.unsigned_content) +
+                bytes(Varint(self.other.filter_type.value)) +
+                (bytes(self.other.filter_bits) if self.other.filter_bits is not None else b"") +
+                bytes(Varint(self.network_target.chat_type.value)) +
+                bytes(self.network_target.network_name) +
+                bytes(Boolean(self.network_target.network_target_name is not None)) +
+                (bytes(self.network_target.network_target_name) if self.network_target.network_target_name is not None else b"")
+        )
+
+    sig_len = 256
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: 
+        # - Header
+        # sender (uuid), index (varint), message_signature (byte array), 
+        # - Body
+        # body (message), timestamp (long), salt (long), 
+        # - Previous Messages
+        # previous_messages (array[message id, signature]), 
+        # - Other
+        # unsigned_content: (chat), filter_type (enum varint), filter_bits (bit set | None),
+        # - Network Target
+        # chat_type (varint), network_name (chat), network_target_name_present (bool), 
+        # network_target_name (chat | None)
+
+        # - Header
+        # sender
+        sender = UUID.from_bytes(data)
+        # index
+        index = Varint.from_bytes(data)
+        # message_signature
+        sig_present = Boolean.from_bytes(data)
+        message_signature = ByteArray.from_bytes(data, length=256)
+        header_section = _DataProxy(
+            sender=sender,
+            index=index,
+            message_signature=message_signature,
+        )
+        # - Body
+        # body
+        body = String.from_bytes(data)
+        # timestamp
+        timestamp = Long.from_bytes(data)
+        # salt
+        salt = Long.from_bytes(data)
+        body_section = _DataProxy(
+            body=body,
+            timestamp=timestamp,
+            salt=salt,
+        )
+        # - Previous Messages
+        # previous_messages
+        prev_count = Varint.from_bytes(data).value
+        previous_messages = []
+        for _ in range(prev_count):
+            prev_id = Varint.from_bytes(data).value
+            prev_sig = ByteArray.from_bytes(data, length=256)
+            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
+        # - Other
+        # unsigned_content
+        unsigned_content_present = Boolean.from_bytes(data)
+        unsigned_content = Chat.from_bytes(data) if unsigned_content_present else None
+        # filter_type
+        filter_type = FilterType(Varint.from_bytes(data))
+        # filter_bits
+        filter_bits = BitSet.from_bytes(data) if filter_type is FilterType.PARTIALLY_FILTERED else None
+        other_section = _DataProxy(
+            unsigned_content=unsigned_content,
+            filter_type=filter_type,
+            filter_bits=filter_bits,
+        )
+        # - Network Target
+        # chat_type
+        chat_type = Varint.from_bytes(data)
+        # network_name
+        network_name = Chat.from_bytes(data)
+        # network_target_name
+        network_target_name_present = Boolean.from_bytes(data)
+        network_target_name = Chat.from_bytes(data) if network_target_name_present else None
+        network_target_section = _DataProxy(
+            chat_type=chat_type,
+            network_name=network_name,
+            network_target_name=network_target_name,
+        )
+        return cls(
+            header=header_section,
+            body=body_section,
+            previous_messages=previous_messages,
+            other=other_section,
+            network_target=network_target_section,
+        )
+
+
+class EndCombat(Packet):
+    """
+    Unused by the default client.
+
+    Packet ID: 0x32
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x32
+
+    def __init__(self, duration: Int, entity_id: Varint):
+        self.duration = duration
+        self.entity_id = entity_id
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.duration) +
+                bytes(self.entity_id)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: duration (int), entity_id (varint)
+        # duration
+        duration = Int.from_bytes(data)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        return cls(duration, entity_id)
+    
+
+class EnterCombat(Packet):
+    """
+    Unused by the default client.
+
+    Packet ID: 0x33
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x33
+
+    def __init__(self):
+        pass
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.entity_id)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # No fields
+        return cls()
+
+
+class CombatDeath(Packet):
+    """
+    Used to send a respawn screen.
+
+    Packet ID: 0x34
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x34
+
+    def __init__(self, player_id: Varint, entity_id: Int, message: Chat):
+        self.player_id = player_id
+        self.entity_id = entity_id
+        self.message = message
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.player_id) +
+                bytes(self.entity_id) +
+                bytes(self.message)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: player_id (varint), entity_id (int), message (chat)
+        # player_id
+        player_id = Varint.from_bytes(data)
+        # entity_id
+        entity_id = Int.from_bytes(data)
+        # message
+        message = Chat.from_bytes(data)
+        return cls(player_id, entity_id, message)
+    
+
+class PlayerInfoRemove(Packet):
+    """
+    Used by the server to remove players from the player list.
+
+    Packet ID: 0x35
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x35
+
+    def __init__(self, players: list[UUID]):
+        self.players = players
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(Varint(len(self.players))) +
+                bytes(self.players)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: players (list of UUID)
+        # players
+        player_count = Varint.from_bytes(data).value
+        players = []
+        for _ in range(player_count):
+            players.append(UUID.from_bytes(data))
+        return cls(players)
+
+
+class PlayerInfoUpdate(Packet):
+    """
+    Sent by the server to update the user list (<tab> in the client).
+
+    Packet ID: 0x36
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x36
+
+    def __init__(self, actions: Byte, players: list[PlayerInfoUpdatePlayer]):
+        self.actions = actions
+        self.players = players
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.actions) +
+                bytes(Varint(len(self.players))) +
+                b"".join(bytes(player) for player in self.players) 
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: actions (byte), players (list of player info)
+        # actions
+        actions = Byte.from_bytes(data)
+        # players
+        player_count = Varint.from_bytes(data).value
+        players = []
+        for _ in range(player_count):
+            players.append(PlayerInfoUpdatePlayer.from_bytes(data, actions))
+        return cls(players)
+    
+
+class LookAt(Packet):
+    """
+    Used to change the player's look direction.
+
+    Packet ID: 0x37
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x37
+
+    def __init__(
+            self, 
+            feet_eyes: FeetEyes,
+            target_x: Double,
+            target_y: Double,
+            target_z: Double,
+            is_entity: Boolean,
+            entity_id: Varint | None,
+            entity_feet_eyes: FeetEyes | None,
+            ):
+        self.feet_eyes = feet_eyes
+        self.target_x = target_x
+        self.target_y = target_y
+        self.target_z = target_z
+        self.is_entity = is_entity
+        self.entity_id = entity_id
+        self.entity_feet_eyes = entity_feet_eyes
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.position) +
+                bytes(self.flags)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: feet_eyes (varint), target_x (double), target_y (double), target_z (double), 
+        # is_entity (boolean), entity_id (varint), entity_feet_eyes (varint)
+        # feet_eyes
+        feet_eyes = FeetEyes(Varint.from_bytes(data))
+        # target_x
+        target_x = Double.from_bytes(data)
+        # target_y
+        target_y = Double.from_bytes(data)
+        # target_z
+        target_z = Double.from_bytes(data)
+        # is_entity
+        is_entity = Boolean.from_bytes(data)
+        # entity_id
+        entity_id = Varint.from_bytes(data) if is_entity else None
+        # entity_feet_eyes
+        entity_feet_eyes = FeetEyes(Varint.from_bytes(data)) if is_entity else None
+        return cls(feet_eyes, target_x, target_y, target_z, is_entity, entity_id, entity_feet_eyes)
+    
+
+class SynchronizePlayerPosition(Packet):
+    """
+    Used to synchronize the player's position with the server.
+
+    Packet ID: 0x38
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x38
+
+    def __init__(
+            self, 
+            x: Double,
+            y: Double,
+            z: Double,
+            feet_eyes: FeetEyes,
+            flags: Byte,
+            teleport_id: Varint,
+            dismount_vehicle: Boolean
+            ):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.feet_eyes = feet_eyes
+        self.flags = flags
+        self.teleport_id = teleport_id
+        self.dismount_vehicle = dismount_vehicle
+
+
+
+    def __bytes__(self):
+        return (
+                self.packet_id.to_bytes(1, "big") +
+                bytes(self.x) +
+                bytes(self.y) +
+                bytes(self.z) +
+                bytes(self.feet_eyes) +
+                bytes(self.flags) +
+                bytes(self.teleport_id) +
+                bytes(self.dismount_vehicle)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: x (double), y (double), z (double), feet_eyes (varint), flags (byte),
+        # teleport_id (varint), dismount_vehicle (boolean)
+        # x
+        x = Double.from_bytes(data)
+        # y
+        y = Double.from_bytes(data)
+
+        

@@ -358,3 +358,28 @@ class MapIconType(Enum):
     RED_BANNER = Varint(24)
     BLACK_BANNER = Varint(25)
     TREASURE_MARKER = Varint(26)
+
+
+class Hand(Enum):
+    MAIN_HAND = Varint(0)
+    OFF_HAND = Varint(1)
+
+
+class FilterType(Enum):
+    PASS_THROUGH = Varint(0)
+    FULLY_FILTERED = Varint(1)
+    PARTIALLY_FILTERED = Varint(2)
+
+
+class PlayerInfoUpdateActionBits(Enum):
+    ADD_PLAYER = 0x01
+    INITIALIZE_CHAT = 0x02
+    UPDATE_GAMEMODE = 0x04
+    UPDATE_LISTED = 0x08
+    UPDATE_LATENCY = 0x16
+    UPDATE_DISPLAY_NAME = 0x32
+
+
+class FeetEyes(Enum):
+    FEET = Varint(0)
+    EYES = Varint(1)

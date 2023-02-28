@@ -28,7 +28,7 @@ from typing import Any
 from nbt import nbt
 
 from .command_parsers import parsers as cmd_parsers
-from .enums import CommandParser, MapIconType, StatCategory, StatID
+from .enums import CommandParser, MapIconType, PlayerInfoUpdateActionBits, StatCategory, StatID
 
 try:
     from typing import Self
@@ -69,6 +69,9 @@ __all__ = (
     "BitSet",
     "MapIcon",
     "Property",
+    "Trade",
+    "_DataProxy",
+    "PlayerInfoUpdatePlayer",
 )
 
 
@@ -535,7 +538,7 @@ class ByteArray(DataType):
         return cls(data.read(length))
 
 
-class Property:
+class Property(DataType):
     def __init__(self, name: String, value: String, signature: String | None = None):
         self.name = name
         self.value = value
@@ -563,7 +566,7 @@ class Property:
         return cls(name, value, signature)
 
 
-class Statistic:
+class Statistic(DataType):
     def __init__(self, category: StatCategory, stat_id: StatID, value: Varint):
         self.category: StatCategory = category
         self.stat_id: StatID = stat_id
@@ -584,7 +587,7 @@ class Statistic:
         return cls(category, stat_id, value)
 
 
-class CommandSuggestionMatch:
+class CommandSuggestionMatch(DataType):
     def __init__(self, match: String, tooltip: Chat | None = None):
         self.match: String = match
         self.tooltip: Chat | None = tooltip
@@ -611,7 +614,7 @@ class CommandSuggestionMatch:
         return cls(match, tooltip)
 
 
-class CommandNode:
+class CommandNode(DataType):
     def __init__(
         self,
         flags: Byte,
@@ -664,7 +667,7 @@ class CommandNode:
                f'{self.name}, {self.parser}, {self.properties}, {self.suggestions})'
 
 
-class BlockEntity:
+class BlockEntity(DataType):
     def __init__(self, xy: Byte, y: Short, type: Varint, data: NBT):
         self.xz: Byte = xy
         self.y: Short = y
@@ -696,7 +699,7 @@ class BlockEntity:
         return cls(xz, y, type, data)
 
 
-class BitSet:
+class BitSet(DataType):
     def __init__(self, longs: list[Long]):
         self.longs: list[Long] = longs
 
@@ -715,7 +718,7 @@ class BitSet:
         return f'BitSet({self.longs})'
 
 
-class MapIcon:
+class MapIcon(DataType):
     def __init__(self, type: MapIconType, x: Byte, y: Byte, direction: Byte, display_name: Chat | None):
         self.type: MapIconType = type
         self.x: Byte = x
@@ -742,3 +745,192 @@ class MapIcon:
         has_display_name = Boolean.from_bytes(data)
         display_name = Chat.from_bytes(data) if has_display_name else None
         return cls(type, x, y, direction, display_name)
+
+
+class Trade(DataType):
+    def __init__(
+            self, 
+            input_item_1: Slot, 
+            output_item: Slot, 
+            input_item_2: Slot, 
+            trade_disabled: Boolean,
+            trade_uses: Int, 
+            max_trade_uses: Int, 
+            xp: Int, 
+            special_price: Int, 
+            price_multiplier: Float, 
+            demand: Int,
+    ):
+        self.input_item_1: Slot = input_item_1
+        self.output_item: Slot = output_item
+        self.input_item_2: Slot = input_item_2
+        self.trade_disabled: Boolean = trade_disabled
+        self.trade_uses: Int = trade_uses
+        self.max_trade_uses: Int = max_trade_uses
+        self.xp: Int = xp
+        self.special_price: Int = special_price
+        self.price_multiplier: Float = price_multiplier
+        self.demand: Int = demand
+
+    def __bytes__(self) -> bytes:
+        return (
+                bytes(self.input_item_1) +
+                bytes(self.output_item) +
+                bytes(self.input_item_2) +
+                bytes(self.trade_disabled) +
+                bytes(self.trade_uses) +
+                bytes(self.max_trade_uses) +
+                bytes(self.xp) +
+                bytes(self.special_price) +
+                bytes(self.price_multiplier) +
+                bytes(self.demand)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        input_item_1 = Slot.from_bytes(data)
+        output_item = Slot.from_bytes(data)
+        input_item_2 = Slot.from_bytes(data)
+        trade_disabled = Boolean.from_bytes(data)
+        trade_uses = Int.from_bytes(data)
+        max_trade_uses = Int.from_bytes(data)
+        xp = Int.from_bytes(data)
+        special_price = Int.from_bytes(data)
+        price_multiplier = Float.from_bytes(data)
+        demand = Int.from_bytes(data)
+        return cls(
+            input_item_1, output_item, input_item_2, trade_disabled, trade_uses, max_trade_uses, xp, special_price,
+            price_multiplier, demand
+        )
+
+
+class _DataProxy(dict):
+    def __init__(self, **attrs):
+        self.__dict__.update(attrs)
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __setattr__(self, name, value):
+        self[name] = value
+    
+
+class PlayerInfoUpdatePlayer(DataType):
+    def __init__(
+            self,
+            uuid: UUID,
+            add_player: _DataProxy | None = None,
+            initialize_chat: _DataProxy | None = None,
+            update_gamemode: _DataProxy | None = None,
+            update_listed: _DataProxy | None = None,
+            update_latency: _DataProxy | None = None,
+            update_display_name: _DataProxy | None = None,
+    ):
+        self.uuid: UUID = uuid
+        self.add_player: _DataProxy | None = add_player
+        self.initialize_chat: _DataProxy | None = initialize_chat
+        self.update_gamemode: _DataProxy | None = update_gamemode
+        self.update_listed: _DataProxy | None = update_listed
+        self.update_latency: _DataProxy | None = update_latency
+        self.update_display_name: _DataProxy | None = update_display_name
+
+    def __bytes__(self) -> bytes:
+        res = bytes(self.uuid)
+        if self.add_player:
+            res += bytes(self.add_player.name)
+            res += bytes(Varint(len(self.add_player.properties)))
+            for property in self.add_player.properties:
+                res += bytes(property)
+        if self.initialize_chat:
+            res += bytes(self.initialize_chat.has_signature_data)
+            if self.initialize_chat.has_signature_data:
+                res += bytes(self.initialize_chat.chat_session_id)
+                res += bytes(self.initialize_chat.public_key_expiry)
+                res += bytes(Varint(len(self.initialize_chat.public_key)))
+                res += bytes(self.initialize_chat.public_key)
+                res += bytes(Varint(len(self.initialize_chat.public_key_signature)))
+                res += bytes(self.initialize_chat.public_key_signature)
+        if self.update_gamemode:
+            res += bytes(self.update_gamemode.gamemode)
+        if self.update_listed:
+            res += bytes(self.update_listed.listed)
+        if self.update_latency:
+            res += bytes(self.update_latency.latency)
+        if self.update_display_name:
+            res += bytes(Boolean(self.update_display_name.display_name is not None))
+            if self.update_display_name.display_name is not None:
+                res += bytes(self.update_display_name.display_name)
+        return res
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO, actions: Byte) -> Self:
+        uuid = UUID.from_bytes(data)
+        add_player = None
+        initialize_chat = None
+        update_gamemode = None
+        update_listed = None
+        update_latency = None
+        update_display_name = None
+        if actions.value & PlayerInfoUpdateActionBits.ADD_PLAYER.value:
+            name = String.from_bytes(data)
+            properties_count = Varint.from_bytes(data).value
+            properties = []
+            for _ in range(properties_count):
+                properties.append(Property.from_bytes(data))
+            add_player = _DataProxy(
+                name=name,
+                properties=properties,
+            )
+        if actions.value & PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value:
+            has_signature_data = Boolean.from_bytes(data)
+            chat_session_id = None
+            public_key_expiry = None
+            public_key = None
+            public_key_signature = None
+            if has_signature_data:
+                chat_session_id = UUID.from_bytes(data)
+                public_key_expiry = Long.from_bytes(data)
+                pk_size = Varint.from_bytes(data).value
+                public_key = ByteArray.from_bytes(data, length=pk_size)
+                pk_sig_size = Varint.from_bytes(data).value
+                public_key_signature = ByteArray.from_bytes(data, length=pk_sig_size)
+            initialize_chat = _DataProxy(
+                has_signature_data=has_signature_data,
+                chat_session_id=chat_session_id,
+                public_key_expiry=public_key_expiry,
+                public_key=public_key,
+                public_key_signature=public_key_signature,
+            )
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value:
+            gamemode = Varint.from_bytes(data)
+            update_gamemode = _DataProxy(
+                gamemode=gamemode,
+            )
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value:
+            listed = Boolean.from_bytes(data)
+            update_listed = _DataProxy(
+                listed=listed,
+            )
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value:
+            latency = Varint.from_bytes(data)
+            update_latency = _DataProxy(
+                latency=latency,
+            )
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value:
+            has_display_name = Boolean.from_bytes(data)
+            display_name = None
+            if has_display_name:
+                display_name = Chat.from_bytes(data)
+            update_display_name = _DataProxy(
+                has_display_name=has_display_name,
+                display_name=display_name,
+            )
+        return cls(
+            uuid,
+            add_player,
+            initialize_chat,
+            update_gamemode,
+            update_listed,
+            update_latency,
+            update_display_name,
+        )
