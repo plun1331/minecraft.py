@@ -30,7 +30,6 @@ from ..enums import (
     FilterType,
     GameEvents,
     Hand,
-    PlayerInfoUpdateActionBits,
     RecipeBookActionType,
     WorldEvents,
 )
@@ -1961,6 +1960,7 @@ class UpdateEntityPosition(Packet):
             bytes(self.on_ground)
         )
 
+    @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: entity_id (varint), delta_x (short), delta_y (short),
         # delta_z (short), on_ground (boolean)
@@ -3099,6 +3099,3 @@ class SetHeadRotation(Packet):
         # head_yaw
         head_yaw = Angle.from_bytes(data)
         return cls(entity_id, head_yaw)
-    
-
-

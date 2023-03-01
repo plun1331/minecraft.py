@@ -20,17 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from enum import Enum
+from enum import ReprEnum
 
 from .datatypes import Int, UnsignedByte, Varint
 
 
-class NextState(Enum):
+class NextState(Varint, ReprEnum):
     STATUS = Varint(1)
     LOGIN = Varint(2)
 
 
-class Animation(Enum):
+class Animation(UnsignedByte, ReprEnum):
     SWING_MAIN_ARM = UnsignedByte(0)
     TAKE_DAMAGE = UnsignedByte(1)
     LEAVE_BED = UnsignedByte(2)
@@ -39,7 +39,7 @@ class Animation(Enum):
     MAGIC_CRITICAL_EFFECT = UnsignedByte(5)
 
 
-class StatCategory(Enum):
+class StatCategory(Varint, ReprEnum):
     MINED = Varint(0)
     CRAFTED = Varint(1)
     USED = Varint(2)
@@ -51,7 +51,7 @@ class StatCategory(Enum):
     CUSTOM = Varint(8)
 
 
-class StatID(Enum):
+class StatID(Varint, ReprEnum):
     LEAVE_GAME = Varint(0)
     PLAY_ONE_MINUTE = Varint(1)
     TIME_SINCE_DEATH = Varint(2)
@@ -128,7 +128,7 @@ class StatID(Enum):
     INTERACT_WITH_SMITHING_TABLE = Varint(73)
 
 
-class BossBarColor(Enum):
+class BossBarColor(Varint, ReprEnum):
     PINK = Varint(0)
     BLUE = Varint(1)
     RED = Varint(2)
@@ -138,7 +138,7 @@ class BossBarColor(Enum):
     WHITE = Varint(6)
 
 
-class BossBarDivision(Enum):
+class BossBarDivision(Varint, ReprEnum):
     NO_DIVISION = Varint(0)
     SIX_NOTCHES = Varint(1)
     TEN_NOTCHES = Varint(2)
@@ -146,7 +146,7 @@ class BossBarDivision(Enum):
     TWENTY_NOTCHES = Varint(4)
 
 
-class CommandParser(Enum):
+class CommandParser(Varint, ReprEnum):
     BOOL = Varint(0)
     FLOAT = Varint(1)
     DOUBLE = Varint(2)
@@ -195,13 +195,13 @@ class CommandParser(Enum):
     UUID = Varint(47)
 
 
-class BrigadierStringParser(Enum):
+class BrigadierStringParser(Varint, ReprEnum):
     SINGLE_WORD = Varint(0)
     QUOTABLE_PHRASE = Varint(1)
     GREEDY_PHRASE = Varint(2)
 
 
-class Enchant(Enum):
+class Enchant(Varint, ReprEnum):
     PROTECTION = Varint(0)
     FIRE_PROTECTION = Varint(1)
     FEATHER_FALLING = Varint(2)
@@ -242,13 +242,13 @@ class Enchant(Enum):
     VANISHING_CURSE = Varint(37)
 
 
-class ChatSuggestionAction(Enum):
+class ChatSuggestionAction(Varint, ReprEnum):
     ADD = Varint(0)
     REMOVE = Varint(1)
     SET = Varint(2)
 
 
-class GameEvents(Enum):
+class GameEvents(UnsignedByte, ReprEnum):
     NO_RESPAWN_BLOCK_AVAILABLE = UnsignedByte(0)
     END_RAINING = UnsignedByte(1)
     BEGIN_RAINING = UnsignedByte(2)
@@ -263,7 +263,7 @@ class GameEvents(Enum):
     ENABLE_RESPAWN_SCREEN = UnsignedByte(11)
 
 
-class WorldEvents(Enum):
+class WorldEvents(Int, ReprEnum):
     DISPENSER_DISPENSES = Int(1000)
     DISPENSER_FAILS_TO_DISPENSE = Int(1001)
     DISPENSER_SHOOTS = Int(1002)
@@ -330,7 +330,7 @@ class WorldEvents(Enum):
     COPPER_SCRAPE_OXIDATION = Int(3005)
 
 
-class MapIconType(Enum):
+class MapIconType(Varint, ReprEnum):
     WHITE_ARROW = Varint(0)
     GREEN_ARROW = Varint(1)
     RED_ARROW = Varint(2)
@@ -360,18 +360,18 @@ class MapIconType(Enum):
     TREASURE_MARKER = Varint(26)
 
 
-class Hand(Enum):
+class Hand(Varint, ReprEnum):
     MAIN_HAND = Varint(0)
     OFF_HAND = Varint(1)
 
 
-class FilterType(Enum):
+class FilterType(Varint, ReprEnum):
     PASS_THROUGH = Varint(0)
     FULLY_FILTERED = Varint(1)
     PARTIALLY_FILTERED = Varint(2)
 
 
-class PlayerInfoUpdateActionBits(Enum):
+class PlayerInfoUpdateActionBits(int, ReprEnum):
     ADD_PLAYER = 0x01
     INITIALIZE_CHAT = 0x02
     UPDATE_GAMEMODE = 0x04
@@ -380,12 +380,12 @@ class PlayerInfoUpdateActionBits(Enum):
     UPDATE_DISPLAY_NAME = 0x32
 
 
-class FeetEyes(Enum):
+class FeetEyes(Varint, ReprEnum):
     FEET = Varint(0)
     EYES = Varint(1)
 
 
-class RecipeBookActionType(Enum):
+class RecipeBookActionType(Varint, ReprEnum):
     INIT = Varint(0)
     ADD = Varint(1)
     REMOVE = Varint(2)
