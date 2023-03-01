@@ -383,3 +383,9 @@ class PlayerInfoUpdateActionBits(Enum):
 class FeetEyes(Enum):
     FEET = Varint(0)
     EYES = Varint(1)
+
+
+class RecipeBookActionType(Enum):
+    INIT = Varint(0)
+    ADD = Varint(1)
+    REMOVE = Varint(2)
