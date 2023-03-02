@@ -1,31 +1,37 @@
-"""
-Copyright (c) 2023, plun1331
+#  Copyright (c) 2023, plun1331
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  1. Redistributions of source code must retain the above copyright notice, this
+#     list of conditions and the following disclaimer.
+#
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+#  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+#  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+#  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+#  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#
+#
+#
 import json
 import struct
 import uuid
@@ -35,7 +41,13 @@ from typing import Any
 from nbt import nbt
 
 from .command_parsers import parsers as cmd_parsers
-from .enums import CommandParser, MapIconType, PlayerInfoUpdateActionBits, StatCategory, StatID
+from .enums import (
+    CommandParser,
+    MapIconType,
+    PlayerInfoUpdateActionBits,
+    StatCategory,
+    StatID,
+)
 
 try:
     from typing import Self
@@ -216,7 +228,9 @@ class String(DataType):
     def from_bytes(cls, data: BytesIO, *, max_length: int = None) -> Self:
         length = UnsignedShort.from_bytes(data)
         if max_length is not None and length.value > (max_length * 4) + 3:
-            raise ValueError(f"String length {length.value} exceeds max length {max_length}")
+            raise ValueError(
+                f"String length {length.value} exceeds max length {max_length}"
+            )
         return cls(data.read(length.value).decode("utf-8"))
 
 
@@ -264,7 +278,9 @@ class Varint(DataType):
 
             num_read += 1
             if num_read > max_size:
-                raise ValueError(f"Varint is too big (exceeded max size of {max_size} bytes)")
+                raise ValueError(
+                    f"Varint is too big (exceeded max size of {max_size} bytes)"
+                )
 
             if (read & 0b10000000) == 0:
                 break
@@ -330,7 +346,9 @@ class Rotation(DataType):
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        return cls(Float.from_bytes(data), Float.from_bytes(data), Float.from_bytes(data))
+        return cls(
+            Float.from_bytes(data), Float.from_bytes(data), Float.from_bytes(data)
+        )
 
 
 class Particle(DataType):
@@ -370,7 +388,7 @@ class VillagerData(DataType):
 
 
 class GlobalPos(DataType):
-    def __init__(self, dimension: Identifier, position: 'Position'):
+    def __init__(self, dimension: Identifier, position: "Position"):
         self.dimension = dimension
         self.position = position
 
@@ -393,7 +411,7 @@ class EntityMetadata(DataType):
         out = bytearray()
         for entry in self.entries:
             out += bytes(entry)
-        out += bytes(UnsignedByte(0xff))
+        out += bytes(UnsignedByte(0xFF))
         return bytes(out)
 
     @classmethod
@@ -401,7 +419,7 @@ class EntityMetadata(DataType):
         entries = []
         while True:
             index = UnsignedByte.from_bytes(data)
-            if index.value == 0xff:
+            if index.value == 0xFF:
                 break
             entries.append(EntityMetadataEntry.from_bytes(data, index))
         return cls(entries)
@@ -426,8 +444,11 @@ class NBT(DataType):
 
 class Slot(DataType):
     def __init__(
-        self, present: Boolean, item_id: Varint | None = None,
-        count: UnsignedByte | None = None, _nbt: NBT | None = None
+        self,
+        present: Boolean,
+        item_id: Varint | None = None,
+        count: UnsignedByte | None = None,
+        _nbt: NBT | None = None,
     ):
         self.present = present
         self.item_id = item_id
@@ -464,9 +485,9 @@ class Position(DataType):
 
     def __bytes__(self) -> bytes:
         return bytes(
-            ((self.x.value & 0x3FFFFFF) << 38) |
-            ((self.z.value & 0x3FFFFFF) << 12) |
-            (self.y.value & 0xFFF)
+            ((self.x.value & 0x3FFFFFF) << 38)
+            | ((self.z.value & 0x3FFFFFF) << 12)
+            | (self.y.value & 0xFFF)
         )
 
     @classmethod
@@ -581,9 +602,7 @@ class Statistic(DataType):
 
     def __bytes__(self) -> bytes:
         return (
-                bytes(self.category.value) +
-                bytes(self.stat_id.value) +
-                bytes(self.value)
+            bytes(self.category.value) + bytes(self.stat_id.value) + bytes(self.value)
         )
 
     @classmethod
@@ -605,9 +624,9 @@ class CommandSuggestionMatch(DataType):
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.match) +
-            bytes(Boolean(self.has_tooltip)) +
-            bytes(self.tooltip) if self.has_tooltip else b''
+            bytes(self.match) + bytes(Boolean(self.has_tooltip)) + bytes(self.tooltip)
+            if self.has_tooltip
+            else b""
         )
 
     @classmethod
@@ -642,14 +661,16 @@ class CommandNode(DataType):
 
     def __bytes__(self) -> bytes:
         return (
-                bytes(self.flags) +
-                bytes(Varint(len(self.children))) +
-                b''.join(bytes(child) for child in self.children) +
-                (bytes(self.redirect) if self.flags.value & 0x08 else b'') +
-                (bytes(self.name) if self.flags.value & 0x03 != 0 else b'') +
-                (bytes(self.parser.value) if self.flags.value & 0x03 == 2 else b'') +  # type: ignore
-                (bytes(self.properties) if self.flags.value & 0x03 == 2 else b'') +
-                (bytes(self.suggestions) if self.flags.value & 0x10 else b'')
+            bytes(self.flags)
+            + bytes(Varint(len(self.children)))
+            + b"".join(bytes(child) for child in self.children)
+            + (bytes(self.redirect) if self.flags.value & 0x08 else b"")
+            + (bytes(self.name) if self.flags.value & 0x03 != 0 else b"")
+            + (bytes(self.parser.value) if self.flags.value & 0x03 == 2 else b"")
+            + (  # type: ignore
+                bytes(self.properties) if self.flags.value & 0x03 == 2 else b""
+            )
+            + (bytes(self.suggestions) if self.flags.value & 0x10 else b"")
         )
 
     @classmethod
@@ -670,8 +691,10 @@ class CommandNode(DataType):
         return cls(flags, children, redirect, name, parser, properties, suggestions)
 
     def __repr__(self):
-        return f'CommandNode({self.flags}, {self.children}, {self.redirect}, ' \
-               f'{self.name}, {self.parser}, {self.properties}, {self.suggestions})'
+        return (
+            f"CommandNode({self.flags}, {self.children}, {self.redirect}, "
+            f"{self.name}, {self.parser}, {self.properties}, {self.suggestions})"
+        )
 
 
 class BlockEntity(DataType):
@@ -690,12 +713,7 @@ class BlockEntity(DataType):
         return self.xz.value & 15
 
     def __bytes__(self) -> bytes:
-        return (
-                bytes(self.xz) +
-                bytes(self.y) +
-                bytes(self.type) +
-                bytes(self.data)
-        )
+        return bytes(self.xz) + bytes(self.y) + bytes(self.type) + bytes(self.data)
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
@@ -711,7 +729,9 @@ class BitSet(DataType):
         self.longs: list[Long] = longs
 
     def __bytes__(self) -> bytes:
-        return bytes(Varint(len(self.longs))) + b''.join(bytes(long) for long in self.longs)
+        return bytes(Varint(len(self.longs))) + b"".join(
+            bytes(long) for long in self.longs
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
@@ -722,11 +742,18 @@ class BitSet(DataType):
         return cls(longs)
 
     def __repr__(self):
-        return f'BitSet({self.longs})'
+        return f"BitSet({self.longs})"
 
 
 class MapIcon(DataType):
-    def __init__(self, type: MapIconType, x: Byte, y: Byte, direction: Byte, display_name: Chat | None):
+    def __init__(
+        self,
+        type: MapIconType,
+        x: Byte,
+        y: Byte,
+        direction: Byte,
+        display_name: Chat | None,
+    ):
         self.type: MapIconType = type
         self.x: Byte = x
         self.y: Byte = y
@@ -735,12 +762,14 @@ class MapIcon(DataType):
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.type.value) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.direction) +
-            bytes(Boolean(self.display_name is not None)) +
-            bytes(self.display_name) if self.display_name else b''
+            bytes(self.type.value)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.direction)
+            + bytes(Boolean(self.display_name is not None))
+            + bytes(self.display_name)
+            if self.display_name
+            else b""
         )
 
     @classmethod
@@ -756,17 +785,17 @@ class MapIcon(DataType):
 
 class Trade(DataType):
     def __init__(
-            self, 
-            input_item_1: Slot, 
-            output_item: Slot, 
-            input_item_2: Slot, 
-            trade_disabled: Boolean,
-            trade_uses: Int, 
-            max_trade_uses: Int, 
-            xp: Int, 
-            special_price: Int, 
-            price_multiplier: Float, 
-            demand: Int,
+        self,
+        input_item_1: Slot,
+        output_item: Slot,
+        input_item_2: Slot,
+        trade_disabled: Boolean,
+        trade_uses: Int,
+        max_trade_uses: Int,
+        xp: Int,
+        special_price: Int,
+        price_multiplier: Float,
+        demand: Int,
     ):
         self.input_item_1: Slot = input_item_1
         self.output_item: Slot = output_item
@@ -781,16 +810,16 @@ class Trade(DataType):
 
     def __bytes__(self) -> bytes:
         return (
-                bytes(self.input_item_1) +
-                bytes(self.output_item) +
-                bytes(self.input_item_2) +
-                bytes(self.trade_disabled) +
-                bytes(self.trade_uses) +
-                bytes(self.max_trade_uses) +
-                bytes(self.xp) +
-                bytes(self.special_price) +
-                bytes(self.price_multiplier) +
-                bytes(self.demand)
+            bytes(self.input_item_1)
+            + bytes(self.output_item)
+            + bytes(self.input_item_2)
+            + bytes(self.trade_disabled)
+            + bytes(self.trade_uses)
+            + bytes(self.max_trade_uses)
+            + bytes(self.xp)
+            + bytes(self.special_price)
+            + bytes(self.price_multiplier)
+            + bytes(self.demand)
         )
 
     @classmethod
@@ -806,8 +835,16 @@ class Trade(DataType):
         price_multiplier = Float.from_bytes(data)
         demand = Int.from_bytes(data)
         return cls(
-            input_item_1, output_item, input_item_2, trade_disabled, trade_uses, max_trade_uses, xp, special_price,
-            price_multiplier, demand
+            input_item_1,
+            output_item,
+            input_item_2,
+            trade_disabled,
+            trade_uses,
+            max_trade_uses,
+            xp,
+            special_price,
+            price_multiplier,
+            demand,
         )
 
 
@@ -820,18 +857,18 @@ class _DataProxy(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
-    
+
 
 class PlayerInfoUpdatePlayer(DataType):
     def __init__(
-            self,
-            uuid: UUID,
-            add_player: _DataProxy | None = None,
-            initialize_chat: _DataProxy | None = None,
-            update_gamemode: _DataProxy | None = None,
-            update_listed: _DataProxy | None = None,
-            update_latency: _DataProxy | None = None,
-            update_display_name: _DataProxy | None = None,
+        self,
+        uuid: UUID,
+        add_player: _DataProxy | None = None,
+        initialize_chat: _DataProxy | None = None,
+        update_gamemode: _DataProxy | None = None,
+        update_listed: _DataProxy | None = None,
+        update_latency: _DataProxy | None = None,
+        update_display_name: _DataProxy | None = None,
     ):
         self.uuid: UUID = uuid
         self.add_player: _DataProxy | None = add_player

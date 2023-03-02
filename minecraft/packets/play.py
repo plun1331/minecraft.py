@@ -1,31 +1,37 @@
-"""
-Copyright (c) 2023, plun1331
+#  Copyright (c) 2023, plun1331
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  1. Redistributions of source code must retain the above copyright notice, this
+#     list of conditions and the following disclaimer.
+#
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+#  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+#  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+#  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+#  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#
+#
+#
 from .base import Packet
 from ..datatypes import *
 from ..enums import (
@@ -54,8 +60,20 @@ class SpawnEntity(Packet):
     packet_id = 0x00
 
     def __init__(
-        self, entity_id: Varint, entity_uuid: UUID, entity_type: Varint, x: Double, y: Double, z: Double, pitch: Angle,
-        yaw: Angle, head_yaw: Angle, data: Varint, velocity_x: Short, velocity_y: Short, velocity_z: Short
+        self,
+        entity_id: Varint,
+        entity_uuid: UUID,
+        entity_type: Varint,
+        x: Double,
+        y: Double,
+        z: Double,
+        pitch: Angle,
+        yaw: Angle,
+        head_yaw: Angle,
+        data: Varint,
+        velocity_x: Short,
+        velocity_y: Short,
+        velocity_z: Short,
     ):
         self.entity_id = entity_id
         self.entity_uuid = entity_uuid
@@ -73,20 +91,20 @@ class SpawnEntity(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.entity_uuid) +
-            bytes(self.entity_type) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.pitch) +
-            bytes(self.yaw) +
-            bytes(self.head_yaw) +
-            bytes(self.data) +
-            bytes(self.velocity_x) +
-            bytes(self.velocity_y) +
-            bytes(self.velocity_z)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.entity_uuid)
+            + bytes(self.entity_type)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.pitch)
+            + bytes(self.yaw)
+            + bytes(self.head_yaw)
+            + bytes(self.data)
+            + bytes(self.velocity_x)
+            + bytes(self.velocity_y)
+            + bytes(self.velocity_z)
         )
 
     @classmethod
@@ -119,8 +137,19 @@ class SpawnEntity(Packet):
         # velocity_z
         velocity_z = Short.from_bytes(data)
         return cls(
-            entity_id, entity_uuid, entity_type, x, y, z, pitch, yaw, head_yaw,
-            _data, velocity_x, velocity_y, velocity_z
+            entity_id,
+            entity_uuid,
+            entity_type,
+            x,
+            y,
+            z,
+            pitch,
+            yaw,
+            head_yaw,
+            _data,
+            velocity_x,
+            velocity_y,
+            velocity_z,
         )
 
 
@@ -135,7 +164,9 @@ class SpawnExperienceOrb(Packet):
 
     packet_id = 0x01
 
-    def __init__(self, entity_id: Varint, x: Double, y: Double, z: Double, count: Short):
+    def __init__(
+        self, entity_id: Varint, x: Double, y: Double, z: Double, count: Short
+    ):
         self.entity_id = entity_id
         self.x = x
         self.y = y
@@ -144,12 +175,12 @@ class SpawnExperienceOrb(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.count)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.count)
         )
 
     @classmethod
@@ -179,7 +210,16 @@ class SpawnPlayer(Packet):
 
     packet_id = 0x02
 
-    def __init__(self, entity_id: Varint, player_uuid: UUID, x: Double, y: Double, z: Double, yaw: Angle, pitch: Angle):
+    def __init__(
+        self,
+        entity_id: Varint,
+        player_uuid: UUID,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Angle,
+        pitch: Angle,
+    ):
         self.entity_id = entity_id
         self.player_uuid = player_uuid
         self.x = x
@@ -190,14 +230,14 @@ class SpawnPlayer(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.player_uuid) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.yaw) +
-            bytes(self.pitch)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.player_uuid)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
         )
 
     @classmethod
@@ -241,9 +281,9 @@ class EntityAnimation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.animation_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.animation_id)
         )
 
     @classmethod
@@ -302,10 +342,7 @@ class AcknowledgeBlockChange(Packet):
         self.sequence_id: Varint = sequence_id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.sequence_id)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.sequence_id)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -334,10 +371,10 @@ class SetBlockDestroyStage(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.location) +
-            bytes(self.destroy_stage)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.location)
+            + bytes(self.destroy_stage)
         )
 
     @classmethod
@@ -370,10 +407,10 @@ class BlockEntityData(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location) +
-            bytes(self.type) +
-            bytes(self.nbt_data)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.location)
+            + bytes(self.type)
+            + bytes(self.nbt_data)
         )
 
     @classmethod
@@ -402,7 +439,13 @@ class BlockAction(Packet):
 
     packet_id = 0x08
 
-    def __init__(self, location: Position, action_id: UnsignedByte, action_param: UnsignedByte, block_type: Varint):
+    def __init__(
+        self,
+        location: Position,
+        action_id: UnsignedByte,
+        action_param: UnsignedByte,
+        block_type: Varint,
+    ):
         self.location: Position = location
         self.action_id: UnsignedByte = action_id
         self.action_param: UnsignedByte = action_param
@@ -410,11 +453,11 @@ class BlockAction(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location) +
-            bytes(self.action_id) +
-            bytes(self.action_param) +
-            bytes(self.block_type)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.location)
+            + bytes(self.action_id)
+            + bytes(self.action_param)
+            + bytes(self.block_type)
         )
 
     @classmethod
@@ -448,9 +491,9 @@ class BlockUpdate(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location) +
-            bytes(self.block_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.location)
+            + bytes(self.block_id)
         )
 
     @classmethod
@@ -493,19 +536,15 @@ class BossBar(Packet):
         self.flags: UnsignedByte | None = flags
 
     def __bytes__(self):
-        res = (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.uuid) +
-            bytes(self.action)
-        )
+        res = self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.action)
         match self.action.value:
             case 0:
                 res += (
-                    bytes(self.title) +
-                    bytes(self.health) +
-                    bytes(self.color.value) +  # type: ignore
-                    bytes(self.division.value) +  # type: ignore
-                    bytes(self.flags)
+                    bytes(self.title)
+                    + bytes(self.health)
+                    + bytes(self.color.value)
+                    + bytes(self.division.value)  # type: ignore
+                    + bytes(self.flags)  # type: ignore
                 )
             case 1:
                 pass
@@ -514,8 +553,9 @@ class BossBar(Packet):
             case 3:
                 res += bytes(self.title)
             case 4:
-                res += bytes(self.color.value) + \
-                    bytes(self.division.value)  # type: ignore
+                res += bytes(self.color.value) + bytes(
+                    self.division.value
+                )  # type: ignore
             case 5:
                 res += bytes(self.flags)
             case _:
@@ -572,10 +612,7 @@ class ChangeDifficulty(Packet):
         self.locked: Boolean = locked
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.difficulty)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.difficulty)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -603,10 +640,7 @@ class ClearTitles(Packet):
         self.reset: Boolean = reset
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.reset)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.reset)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -627,7 +661,13 @@ class CommandSuggestionsResponse(Packet):
 
     packet_id = 0x0D
 
-    def __init__(self, transaction_id: Varint, start: Varint, length: Varint, matches: list[CommandSuggestionMatch]):
+    def __init__(
+        self,
+        transaction_id: Varint,
+        start: Varint,
+        length: Varint,
+        matches: list[CommandSuggestionMatch],
+    ):
         self.transaction_id: Varint = transaction_id
         self.start: Varint = start
         self.length: Varint = length
@@ -635,10 +675,10 @@ class CommandSuggestionsResponse(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.transaction_id) +
-            bytes(Varint(len(self.matches))) +
-            b"".join(bytes(match) for match in self.matches)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.transaction_id)
+            + bytes(Varint(len(self.matches)))
+            + b"".join(bytes(match) for match in self.matches)
         )
 
     @classmethod
@@ -675,10 +715,10 @@ class Commands(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Varint(len(self.nodes))) +
-            b"".join(bytes(node) for node in self.nodes) +
-            bytes(self.root_index)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.nodes)))
+            + b"".join(bytes(node) for node in self.nodes)
+            + bytes(self.root_index)
         )
 
     @classmethod
@@ -710,10 +750,7 @@ class CloseContainer(Packet):
         self.window_id: UnsignedByte = window_id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.window_id)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -737,7 +774,13 @@ class SetContainerContents(Packet):
 
     packet_id = 0x10
 
-    def __init__(self, window_id: UnsignedByte, state_id: Varint, contents: list[Slot], carried_item: Slot):
+    def __init__(
+        self,
+        window_id: UnsignedByte,
+        state_id: Varint,
+        contents: list[Slot],
+        carried_item: Slot,
+    ):
         self.window_id: UnsignedByte = window_id
         self.state_id: Varint = state_id
         self.contents: list[Slot] = contents
@@ -745,12 +788,12 @@ class SetContainerContents(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.state_id) +
-            bytes(Varint(len(self.contents))) +
-            b"".join(bytes(slot) for slot in self.contents) +
-            bytes(self.carried_item)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.state_id)
+            + bytes(Varint(len(self.contents)))
+            + b"".join(bytes(slot) for slot in self.contents)
+            + bytes(self.carried_item)
         )
 
     @classmethod
@@ -788,10 +831,10 @@ class SetContainerProperty(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.property) +
-            bytes(self.value)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.property)
+            + bytes(self.value)
         )
 
     @classmethod
@@ -825,11 +868,11 @@ class SetContainerSlot(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.state_id) +
-            bytes(self.slot) +
-            bytes(self.item)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.state_id)
+            + bytes(self.slot)
+            + bytes(self.item)
         )
 
     @classmethod
@@ -863,9 +906,9 @@ class SetCooldown(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.item_id) +
-            bytes(self.cooldown)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.item_id)
+            + bytes(self.cooldown)
         )
 
     @classmethod
@@ -896,10 +939,10 @@ class ChatSuggestions(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.action.value) +  # type: ignore
-            bytes(Varint(len(self.entries))) +
-            b"".join(bytes(entry) for entry in self.entries)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.action.value)
+            + bytes(Varint(len(self.entries)))  # type: ignore
+            + b"".join(bytes(entry) for entry in self.entries)
         )
 
     @classmethod
@@ -934,9 +977,7 @@ class PluginMessage(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.channel) +
-            bytes(self.data)
+            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -965,9 +1006,9 @@ class DeleteMessage(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            len(self.signature).to_bytes(1, "big") +
-            bytes(self.signature)
+            self.packet_id.to_bytes(1, "big")
+            + len(self.signature).to_bytes(1, "big")
+            + bytes(self.signature)
         )
 
     @classmethod
@@ -996,10 +1037,7 @@ class DisconnectPlay(Packet):
         self.reason: Chat = reason
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.reason)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.reason)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -1024,10 +1062,7 @@ class DisguisedChatMessage(Packet):
         self.message: String = message
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.message)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.message)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -1054,9 +1089,9 @@ class EntityEvent(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.entity_status.value)  # type: ignore
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.entity_status.value)  # type: ignore
         )
 
     @classmethod
@@ -1081,9 +1116,15 @@ class Explosion(Packet):
     packet_id = 0x1A
 
     def __init__(
-        self, x: Double, y: Double, z: Double,
-        strength: Float, records: list[tuple[Byte, Byte, Byte]],
-        player_motion_x: Float, player_motion_y: Float, player_motion_z: Float
+        self,
+        x: Double,
+        y: Double,
+        z: Double,
+        strength: Float,
+        records: list[tuple[Byte, Byte, Byte]],
+        player_motion_x: Float,
+        player_motion_y: Float,
+        player_motion_z: Float,
     ):
         self.x: Double = x
         self.y: Double = y
@@ -1096,16 +1137,18 @@ class Explosion(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.strength) +
-            len(self.records).to_bytes(1, "big") +
-            b"".join(b"".join(bytes(block) for block in record) for record in self.records) +
-            bytes(self.player_motion_x) +
-            bytes(self.player_motion_y) +
-            bytes(self.player_motion_z)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.strength)
+            + len(self.records).to_bytes(1, "big")
+            + b"".join(
+                b"".join(bytes(block) for block in record) for record in self.records
+            )
+            + bytes(self.player_motion_x)
+            + bytes(self.player_motion_y)
+            + bytes(self.player_motion_z)
         )
 
     @classmethod
@@ -1126,11 +1169,7 @@ class Explosion(Packet):
         records = []
         for _ in range(count):
             records.append(
-                (
-                    Byte.from_bytes(data),
-                    Byte.from_bytes(data),
-                    Byte.from_bytes(data)
-                )
+                (Byte.from_bytes(data), Byte.from_bytes(data), Byte.from_bytes(data))
             )
         # player_motion_x
         player_motion_x = Float.from_bytes(data)
@@ -1139,8 +1178,14 @@ class Explosion(Packet):
         # player_motion_z
         player_motion_z = Float.from_bytes(data)
         return cls(
-            x, y, z, strength, records,
-            player_motion_x, player_motion_y, player_motion_z
+            x,
+            y,
+            z,
+            strength,
+            records,
+            player_motion_x,
+            player_motion_y,
+            player_motion_z,
         )
 
 
@@ -1160,11 +1205,7 @@ class UnloadChunk(Packet):
         self.z: Int = z
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.x) +
-            bytes(self.z)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.x) + bytes(self.z)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -1193,9 +1234,9 @@ class GameEvent(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.event.value) +
-            bytes(self.value)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.event.value)
+            + bytes(self.value)
         )
 
     @classmethod
@@ -1226,10 +1267,10 @@ class OpenHorseScreen(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.slot_count) +
-            bytes(self.entity_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.slot_count)
+            + bytes(self.entity_id)
         )
 
     @classmethod
@@ -1256,9 +1297,15 @@ class InitializeWorldBorder(Packet):
     packet_id = 0x1E
 
     def __init__(
-        self, x: Double, z: Double, old_diameter: Double, new_diameter: Double,
-        speed: Varlong, portal_teleport_boundary: Varint, warning_blocks: Varint,
-        warning_time: Varint
+        self,
+        x: Double,
+        z: Double,
+        old_diameter: Double,
+        new_diameter: Double,
+        speed: Varlong,
+        portal_teleport_boundary: Varint,
+        warning_blocks: Varint,
+        warning_time: Varint,
     ):
         self.x: Double = x
         self.z: Double = z
@@ -1271,15 +1318,15 @@ class InitializeWorldBorder(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.x) +
-            bytes(self.z) +
-            bytes(self.old_diameter) +
-            bytes(self.new_diameter) +
-            bytes(self.speed) +
-            bytes(self.portal_teleport_boundary) +
-            bytes(self.warning_time) +
-            bytes(self.warning_blocks)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.x)
+            + bytes(self.z)
+            + bytes(self.old_diameter)
+            + bytes(self.new_diameter)
+            + bytes(self.speed)
+            + bytes(self.portal_teleport_boundary)
+            + bytes(self.warning_time)
+            + bytes(self.warning_blocks)
         )
 
     @classmethod
@@ -1304,18 +1351,24 @@ class InitializeWorldBorder(Packet):
         # warning_blocks
         warning_blocks = Varint.from_bytes(data)
         return cls(
-            x, z, old_diameter, new_diameter, speed, portal_teleport_boundary,
-            warning_time, warning_blocks
+            x,
+            z,
+            old_diameter,
+            new_diameter,
+            speed,
+            portal_teleport_boundary,
+            warning_time,
+            warning_blocks,
         )
 
 
 class KeepAliveServer(Packet):
     """
-    The server will frequently send out a keep-alive, each containing a random ID. 
-    The client must respond with the same payload (see serverbound Keep Alive). 
-    If the client does not respond to them for over 30 seconds, 
-    the server kicks the client. 
-    Vice versa, if the server does not send any keep-alives for 20 seconds, 
+    The server will frequently send out a keep-alive, each containing a random ID.
+    The client must respond with the same payload (see serverbound Keep Alive).
+    If the client does not respond to them for over 30 seconds,
+    the server kicks the client.
+    Vice versa, if the server does not send any keep-alives for 20 seconds,
     the client will disconnect and yields a "Timed out" exception.
 
     Packet ID: 0x1F
@@ -1329,10 +1382,7 @@ class KeepAliveServer(Packet):
         self.keep_alive_id: Long = keep_alive_id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.keep_alive_id)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.keep_alive_id)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -1354,11 +1404,19 @@ class ChunkDataAndUpdateLight(Packet):
     packet_id = 0x20
 
     def __init__(
-        self, chunk_x: Int, chunk_z: Int, heightmaps: NBT, data: ByteArray,
-        block_entities: list[BlockEntity], trust_edges: Boolean,
-        sky_light_mask: BitSet, block_light_mask: BitSet,
-        empty_sky_light_mask: BitSet, empty_block_light_mask: BitSet,
-        sky_light: list[ByteArray], block_light: list[ByteArray]
+        self,
+        chunk_x: Int,
+        chunk_z: Int,
+        heightmaps: NBT,
+        data: ByteArray,
+        block_entities: list[BlockEntity],
+        trust_edges: Boolean,
+        sky_light_mask: BitSet,
+        block_light_mask: BitSet,
+        empty_sky_light_mask: BitSet,
+        empty_block_light_mask: BitSet,
+        sky_light: list[ByteArray],
+        block_light: list[ByteArray],
     ):
         self.chunk_x: Int = chunk_x
         self.chunk_z: Int = chunk_z
@@ -1375,23 +1433,22 @@ class ChunkDataAndUpdateLight(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.chunk_x) +
-            bytes(self.chunk_z) +
-            bytes(self.heightmaps) +
-            bytes(self.data) +
-            bytes(Varint(len(self.block_entities))) +
-            b"".join([bytes(i) for i in self.block_entities]) +
-            bytes(self.trust_edges) +
-            bytes(self.sky_light_mask) +
-            bytes(self.block_light_mask) +
-            bytes(self.empty_sky_light_mask) +
-            bytes(self.empty_block_light_mask) +
-            bytes(Varint(len(self.sky_light))) +
-            b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light]) +
-            bytes(Varint(len(self.block_light))) +
-            b"".join([bytes(Varint(len(i))) + bytes(i)
-                      for i in self.block_light])
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.chunk_x)
+            + bytes(self.chunk_z)
+            + bytes(self.heightmaps)
+            + bytes(self.data)
+            + bytes(Varint(len(self.block_entities)))
+            + b"".join([bytes(i) for i in self.block_entities])
+            + bytes(self.trust_edges)
+            + bytes(self.sky_light_mask)
+            + bytes(self.block_light_mask)
+            + bytes(self.empty_sky_light_mask)
+            + bytes(self.empty_block_light_mask)
+            + bytes(Varint(len(self.sky_light)))
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + bytes(Varint(len(self.block_light)))
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
         )
 
     @classmethod
@@ -1438,9 +1495,18 @@ class ChunkDataAndUpdateLight(Packet):
             arr_length = Varint.from_bytes(data).value
             block_light.append(ByteArray.from_bytes(data, length=arr_length))
         return cls(
-            chunk_x, chunk_z, heightmaps, _data, block_entities, trust_edges,
-            sky_light_mask, block_light_mask, empty_sky_light_mask,
-            empty_block_light_mask, sky_light, block_light
+            chunk_x,
+            chunk_z,
+            heightmaps,
+            _data,
+            block_entities,
+            trust_edges,
+            sky_light_mask,
+            block_light_mask,
+            empty_sky_light_mask,
+            empty_block_light_mask,
+            sky_light,
+            block_light,
         )
 
 
@@ -1456,8 +1522,11 @@ class WorldEvent(Packet):
     packet_id = 0x21
 
     def __init__(
-        self, event: WorldEvents, location: Position,
-        data: Int, disable_relative_volume: Boolean,
+        self,
+        event: WorldEvents,
+        location: Position,
+        data: Int,
+        disable_relative_volume: Boolean,
     ):
         self.event: WorldEvents = event
         self.location: Position = location
@@ -1466,11 +1535,11 @@ class WorldEvent(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.event.value) +
-            bytes(self.location) +
-            bytes(self.data) +
-            bytes(self.disable_relative_volume)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.event.value)
+            + bytes(self.location)
+            + bytes(self.data)
+            + bytes(self.disable_relative_volume)
         )
 
     @classmethod
@@ -1500,9 +1569,18 @@ class Particle(Packet):
     packet_id = 0x22
 
     def __init__(
-        self, particle_id: Varint, long_distance: Boolean, x: Double, y: Double,
-        z: Double, offset_x: Float, offset_y: Float, offset_z: Float,
-        max_speed: Float, particle_count: Int, particle_data: bytes,
+        self,
+        particle_id: Varint,
+        long_distance: Boolean,
+        x: Double,
+        y: Double,
+        z: Double,
+        offset_x: Float,
+        offset_y: Float,
+        offset_z: Float,
+        max_speed: Float,
+        particle_count: Int,
+        particle_data: bytes,
     ):
         self.particle_id: Varint = particle_id
         self.long_distance: Boolean = long_distance
@@ -1518,18 +1596,18 @@ class Particle(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.particle_id) +
-            bytes(self.long_distance) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.offset_x) +
-            bytes(self.offset_y) +
-            bytes(self.offset_z) +
-            bytes(self.max_speed) +
-            bytes(self.particle_count) +
-            bytes(self.particle_data)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.particle_id)
+            + bytes(self.long_distance)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.offset_x)
+            + bytes(self.offset_y)
+            + bytes(self.offset_z)
+            + bytes(self.max_speed)
+            + bytes(self.particle_count)
+            + bytes(self.particle_data)
         )
 
     @classmethod
@@ -1561,8 +1639,17 @@ class Particle(Packet):
         # particle_data
         particle_data = data.read()
         return cls(
-            particle_id, long_distance, x, y, z, offset_x, offset_y, offset_z,
-            max_speed, particle_count, particle_data
+            particle_id,
+            long_distance,
+            x,
+            y,
+            z,
+            offset_x,
+            offset_y,
+            offset_z,
+            max_speed,
+            particle_count,
+            particle_data,
         )
 
 
@@ -1578,10 +1665,16 @@ class UpdateLight(Packet):
     packet_id = 0x23
 
     def __init__(
-        self, chunk_x: Int, chunk_z: Int, trust_edges: Boolean,
-        sky_light_mask: BitSet, block_light_mask: BitSet,
-        empty_sky_light_mask: BitSet, empty_block_light_mask: BitSet,
-        sky_light: list[ByteArray], block_light: list[ByteArray]
+        self,
+        chunk_x: Int,
+        chunk_z: Int,
+        trust_edges: Boolean,
+        sky_light_mask: BitSet,
+        block_light_mask: BitSet,
+        empty_sky_light_mask: BitSet,
+        empty_block_light_mask: BitSet,
+        sky_light: list[ByteArray],
+        block_light: list[ByteArray],
     ):
         self.chunk_x: Int = chunk_x
         self.chunk_z: Int = chunk_z
@@ -1595,19 +1688,18 @@ class UpdateLight(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.chunk_x) +
-            bytes(self.chunk_z) +
-            bytes(self.trust_edges) +
-            bytes(self.sky_light_mask) +
-            bytes(self.block_light_mask) +
-            bytes(self.empty_sky_light_mask) +
-            bytes(self.empty_block_light_mask) +
-            bytes(Varint(len(self.sky_light))) +
-            b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light]) +
-            bytes(Varint(len(self.block_light))) +
-            b"".join([bytes(Varint(len(i))) + bytes(i)
-                     for i in self.block_light])
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.chunk_x)
+            + bytes(self.chunk_z)
+            + bytes(self.trust_edges)
+            + bytes(self.sky_light_mask)
+            + bytes(self.block_light_mask)
+            + bytes(self.empty_sky_light_mask)
+            + bytes(self.empty_block_light_mask)
+            + bytes(Varint(len(self.sky_light)))
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + bytes(Varint(len(self.block_light)))
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
         )
 
     @classmethod
@@ -1643,9 +1735,15 @@ class UpdateLight(Packet):
             arr_length = Varint.from_bytes(data).value
             block_light.append(ByteArray.from_bytes(data, length=arr_length))
         return cls(
-            chunk_x, chunk_z, trust_edges,
-            sky_light_mask, block_light_mask, empty_sky_light_mask,
-            empty_block_light_mask, sky_light, block_light
+            chunk_x,
+            chunk_z,
+            trust_edges,
+            sky_light_mask,
+            block_light_mask,
+            empty_sky_light_mask,
+            empty_block_light_mask,
+            sky_light,
+            block_light,
         )
 
 
@@ -1661,16 +1759,25 @@ class LoginPlay(Packet):
     packet_id = 0x24
 
     def __init__(
-        self, entity_id: Int, is_hardcore: Boolean, gamemode: UnsignedByte,
-        previous_gamemode: Byte, dimensions: list[Identifier],
-        registry_codec: NBT, dimension_type: Identifier,
+        self,
+        entity_id: Int,
+        is_hardcore: Boolean,
+        gamemode: UnsignedByte,
+        previous_gamemode: Byte,
+        dimensions: list[Identifier],
+        registry_codec: NBT,
+        dimension_type: Identifier,
         dimension_name: Identifier,
-        hashed_seed: Long, max_players: Varint,
-        view_distance: Varint, simulation_distance: Varint,
-        reduced_debug_info: Boolean, enable_respawn_screen: Boolean,
-        is_debug: Boolean, is_flat: Boolean,
+        hashed_seed: Long,
+        max_players: Varint,
+        view_distance: Varint,
+        simulation_distance: Varint,
+        reduced_debug_info: Boolean,
+        enable_respawn_screen: Boolean,
+        is_debug: Boolean,
+        is_flat: Boolean,
         death_dimension_name: Identifier | None = None,
-        death_location: Position | None = None
+        death_location: Position | None = None,
     ):
         self.entity_id: Int = entity_id
         self.is_hardcore: Boolean = is_hardcore
@@ -1697,27 +1804,27 @@ class LoginPlay(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.is_hardcore) +
-            bytes(self.gamemode) +
-            bytes(self.previous_gamemode) +
-            bytes(Varint(len(self.dimensions))) +
-            b"".join([bytes(i) for i in self.dimensions]) +
-            bytes(self.registry_codec) +
-            bytes(self.dimension_type) +
-            bytes(self.dimension_name) +
-            bytes(self.hashed_seed) +
-            bytes(self.max_players) +
-            bytes(self.view_distance) +
-            bytes(self.simulation_distance) +
-            bytes(self.reduced_debug_info) +
-            bytes(self.enable_respawn_screen) +
-            bytes(self.is_debug) +
-            bytes(self.is_flat) +
-            bytes(Boolean(self.has_death_location)) +
-            (bytes(self.death_dimension_name) if self.has_death_location else b"") +
-            (bytes(self.death_location) if self.has_death_location else b"")
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.is_hardcore)
+            + bytes(self.gamemode)
+            + bytes(self.previous_gamemode)
+            + bytes(Varint(len(self.dimensions)))
+            + b"".join([bytes(i) for i in self.dimensions])
+            + bytes(self.registry_codec)
+            + bytes(self.dimension_type)
+            + bytes(self.dimension_name)
+            + bytes(self.hashed_seed)
+            + bytes(self.max_players)
+            + bytes(self.view_distance)
+            + bytes(self.simulation_distance)
+            + bytes(self.reduced_debug_info)
+            + bytes(self.enable_respawn_screen)
+            + bytes(self.is_debug)
+            + bytes(self.is_flat)
+            + bytes(Boolean(self.has_death_location))
+            + (bytes(self.death_dimension_name) if self.has_death_location else b"")
+            + (bytes(self.death_location) if self.has_death_location else b"")
         )
 
     @classmethod
@@ -1767,16 +1874,29 @@ class LoginPlay(Packet):
         is_flat = Boolean.from_bytes(data)
         # death_dimension_name
         has_death_location = Boolean.from_bytes(data).value
-        death_dimension_name = Identifier.from_bytes(
-            data) if has_death_location else None
+        death_dimension_name = (
+            Identifier.from_bytes(data) if has_death_location else None
+        )
         # death_location
-        death_location = Position.from_bytes(
-            data) if has_death_location else None
+        death_location = Position.from_bytes(data) if has_death_location else None
         return cls(
-            entity_id, is_hardcore, gamemode, previous_gamemode, dimensions,
-            registry_codec, dimension_type, dimension_name, hashed_seed,
-            max_players, view_distance, simulation_distance, reduced_debug_info,
-            enable_respawn_screen, is_debug, is_flat, death_dimension_name,
+            entity_id,
+            is_hardcore,
+            gamemode,
+            previous_gamemode,
+            dimensions,
+            registry_codec,
+            dimension_type,
+            dimension_name,
+            hashed_seed,
+            max_players,
+            view_distance,
+            simulation_distance,
+            reduced_debug_info,
+            enable_respawn_screen,
+            is_debug,
+            is_flat,
+            death_dimension_name,
             death_location,
         )
 
@@ -1793,11 +1913,16 @@ class MapDataPacket(Packet):
     packet_id = 0x25
 
     def __init__(
-        self, map_id: Varint, scale: Byte, locked: Boolean,
-        icons: list[MapIcon], updated_columns: UnsignedByte,
+        self,
+        map_id: Varint,
+        scale: Byte,
+        locked: Boolean,
+        icons: list[MapIcon],
+        updated_columns: UnsignedByte,
         updated_rows: UnsignedByte | None = None,
-        x: Byte | None = None, z: Byte | None = None,
-        data: list[UnsignedByte] | None = None
+        x: Byte | None = None,
+        z: Byte | None = None,
+        data: list[UnsignedByte] | None = None,
     ):
         self.map_id = map_id
         self.scale = scale
@@ -1811,13 +1936,13 @@ class MapDataPacket(Packet):
 
     def __bytes__(self):
         res = (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.map_id) +
-            bytes(self.scale) +
-            bytes(self.locked) +
-            bytes(Varint(len(self.icons))) +
-            b"".join([bytes(i) for i in self.icons]) +
-            bytes(self.updated_columns)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.map_id)
+            + bytes(self.scale)
+            + bytes(self.locked)
+            + bytes(Varint(len(self.icons)))
+            + b"".join([bytes(i) for i in self.icons])
+            + bytes(self.updated_columns)
         )
         if self.updated_columns.value > 0:
             res += bytes(self.updated_rows)
@@ -1864,8 +1989,7 @@ class MapDataPacket(Packet):
             z = None
             data = None
         return cls(
-            map_id, scale, locked, icons, updated_columns,
-            updated_rows, x, z, data
+            map_id, scale, locked, icons, updated_columns, updated_rows, x, z, data
         )
 
 
@@ -1877,11 +2001,17 @@ class MerchantOffers(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x26
 
     def __init__(
-        self, window_id: Varint, trades: list[Trade], villager_level: Varint,
-        experience: Varint, is_regular_villager: Boolean, can_restock: Boolean
+        self,
+        window_id: Varint,
+        trades: list[Trade],
+        villager_level: Varint,
+        experience: Varint,
+        is_regular_villager: Boolean,
+        can_restock: Boolean,
     ):
         self.window_id = window_id
         self.trades = trades
@@ -1892,14 +2022,14 @@ class MerchantOffers(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(Varint(len(self.trades))) +
-            b"".join([bytes(i) for i in self.trades]) +
-            bytes(self.villager_level) +
-            bytes(self.experience) +
-            bytes(self.is_regular_villager) +
-            bytes(self.can_restock)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(Varint(len(self.trades)))
+            + b"".join([bytes(i) for i in self.trades])
+            + bytes(self.villager_level)
+            + bytes(self.experience)
+            + bytes(self.is_regular_villager)
+            + bytes(self.can_restock)
         )
 
     @classmethod
@@ -1923,25 +2053,34 @@ class MerchantOffers(Packet):
         # can_restock
         can_restock = Boolean.from_bytes(data)
         return cls(
-            window_id, trades, villager_level, experience,
-            is_regular_villager, can_restock
+            window_id,
+            trades,
+            villager_level,
+            experience,
+            is_regular_villager,
+            can_restock,
         )
 
 
 class UpdateEntityPosition(Packet):
     """
-    This packet is sent by the server when an entity moves less then 8 blocks; 
+    This packet is sent by the server when an entity moves less then 8 blocks;
     if an entity moves more than 8 blocks Teleport Entity should be sent instead.
 
     Packet ID: 0x27
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x27
 
     def __init__(
-        self, entity_id: Varint, delta_x: Short, delta_y: Short, delta_z: Short,
-        on_ground: Boolean
+        self,
+        entity_id: Varint,
+        delta_x: Short,
+        delta_y: Short,
+        delta_z: Short,
+        on_ground: Boolean,
     ):
         self.entity_id = entity_id
         self.delta_x = delta_x
@@ -1959,12 +2098,12 @@ class UpdateEntityPosition(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.delta_x) +
-            bytes(self.delta_y) +
-            bytes(self.delta_z) +
-            bytes(self.on_ground)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.delta_x)
+            + bytes(self.delta_y)
+            + bytes(self.delta_z)
+            + bytes(self.on_ground)
         )
 
     @classmethod
@@ -1986,18 +2125,25 @@ class UpdateEntityPosition(Packet):
 
 class UpdateEntityPositionAndRotation(Packet):
     """
-    This packet is sent by the server when an entity rotates and moves. 
+    This packet is sent by the server when an entity rotates and moves.
     A maximum of 8 blocks can be moved.
 
     Packet ID: 0x28
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x28
 
     def __init__(
-        self, entity_id: Varint, delta_x: Short, delta_y: Short, delta_z: Short,
-        yaw: Angle, pitch: Angle, on_ground: Boolean
+        self,
+        entity_id: Varint,
+        delta_x: Short,
+        delta_y: Short,
+        delta_z: Short,
+        yaw: Angle,
+        pitch: Angle,
+        on_ground: Boolean,
     ):
         self.entity_id = entity_id
         self.delta_x = delta_x
@@ -2017,14 +2163,14 @@ class UpdateEntityPositionAndRotation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.delta_x) +
-            bytes(self.delta_y) +
-            bytes(self.delta_z) +
-            bytes(self.yaw) +
-            bytes(self.pitch) +
-            bytes(self.on_ground)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.delta_x)
+            + bytes(self.delta_y)
+            + bytes(self.delta_z)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
+            + bytes(self.on_ground)
         )
 
     @classmethod
@@ -2045,9 +2191,7 @@ class UpdateEntityPositionAndRotation(Packet):
         pitch = Angle.from_bytes(data)
         # on_ground
         on_ground = Boolean.from_bytes(data)
-        return cls(
-            entity_id, delta_x, delta_y, delta_z, yaw, pitch, on_ground
-        )
+        return cls(entity_id, delta_x, delta_y, delta_z, yaw, pitch, on_ground)
 
 
 class UpdateEntityRotation(Packet):
@@ -2058,11 +2202,10 @@ class UpdateEntityRotation(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x29
 
-    def __init__(
-        self, entity_id: Varint, yaw: Angle, pitch: Angle, on_ground: Boolean
-    ):
+    def __init__(self, entity_id: Varint, yaw: Angle, pitch: Angle, on_ground: Boolean):
         self.entity_id = entity_id
         self.yaw = yaw
         self.pitch = pitch
@@ -2070,11 +2213,11 @@ class UpdateEntityRotation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.yaw) +
-            bytes(self.pitch) +
-            bytes(self.on_ground)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
+            + bytes(self.on_ground)
         )
 
     @classmethod
@@ -2100,11 +2243,17 @@ class MoveVehicle(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2A
 
     def __init__(
-        self, entity_id: Varint, x: Double, y: Double, z: Double, yaw: Angle,
-        pitch: Angle
+        self,
+        entity_id: Varint,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Angle,
+        pitch: Angle,
     ):
         self.entity_id = entity_id
         self.x = x
@@ -2115,13 +2264,13 @@ class MoveVehicle(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.yaw) +
-            bytes(self.pitch)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
         )
 
     @classmethod
@@ -2145,23 +2294,21 @@ class MoveVehicle(Packet):
 
 class OpenBook(Packet):
     """
-    Sent when a player right clicks with a signed book. 
+    Sent when a player right clicks with a signed book.
     This tells the client to open the book GUI.
 
     Packet ID: 0x2B
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2B
 
     def __init__(self, hand: Hand):
         self.hand = hand
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.hand)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.hand)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -2173,17 +2320,21 @@ class OpenBook(Packet):
 
 class OpenScreen(Packet):
     """
-    This is sent to the client when it should open an inventory, 
+    This is sent to the client when it should open an inventory,
     such as a chest, workbench, furnace, or other container.
 
     Packet ID: 0x2C
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2C
 
     def __init__(
-        self, window_id: Varint, window_type: Varint, window_title: Chat,
+        self,
+        window_id: Varint,
+        window_type: Varint,
+        window_title: Chat,
     ):
         self.window_id = window_id
         self.window_type = window_type
@@ -2191,10 +2342,10 @@ class OpenScreen(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.window_type) +
-            bytes(self.window_title)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.window_type)
+            + bytes(self.window_title)
         )
 
     @classmethod
@@ -2218,18 +2369,14 @@ class OpenSignEditor(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2D
 
-    def __init__(
-        self, location: Position
-    ):
+    def __init__(self, location: Position):
         self.location: Position = location
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.location)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -2241,23 +2388,21 @@ class OpenSignEditor(Packet):
 
 class Ping(Packet):
     """
-    An unused packet by the default server. 
+    An unused packet by the default server.
     The client should respond with a Pong when recieved.
 
     Packet ID: 0x2E
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2E
 
     def __init__(self, id: Int):
         self.id = id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.id)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.id)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -2275,19 +2420,18 @@ class PlaceGhostRecipe(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x2F
 
-    def __init__(
-        self, window_id: Varint, recipe: Identifier
-    ):
+    def __init__(self, window_id: Varint, recipe_id: Identifier):
         self.window_id = window_id
-        self.recipe = recipe
+        self.recipe_id = recipe_id
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.window_id) +
-            bytes(self.recipe_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.window_id)
+            + bytes(self.recipe_id)
         )
 
     @classmethod
@@ -2302,18 +2446,17 @@ class PlaceGhostRecipe(Packet):
 
 class PlayerAbilities(Packet):
     """
-    This packet is sent by the server to update the client's 
+    This packet is sent by the server to update the client's
     abilities and flags.
 
     Packet ID: 0x30
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x30
 
-    def __init__(
-        self, flags: Byte, flying_speed: Float, field_of_view_modifier: Float
-    ):
+    def __init__(self, flags: Byte, flying_speed: Float, field_of_view_modifier: Float):
         self.flags = flags
         self.flying_speed = flying_speed
         self.field_of_view_modifier = field_of_view_modifier
@@ -2336,10 +2479,10 @@ class PlayerAbilities(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.flags) +
-            bytes(self.flying_speed) +
-            bytes(self.field_of_view_modifier)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.flags)
+            + bytes(self.flying_speed)
+            + bytes(self.field_of_view_modifier)
         )
 
     @classmethod
@@ -2363,6 +2506,7 @@ class PlayerChatMessage(Packet):
     State: Play
     Bound To: Server
     """
+
     packet_id = 0x31
 
     def __init__(
@@ -2381,24 +2525,35 @@ class PlayerChatMessage(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.header.sender) +
-            bytes(self.header.index) +
-            bytes(Boolean(self.header.message_signature is not None)) +
-            (bytes(self.header.message_signature) if self.header.message_signature is not None else b"") +
-            bytes(self.body.body) +
-            bytes(self.body.timestamp) +
-            bytes(self.body.salt) +
-            bytes(Varint(len(self.previous_messages))) +
-            b"".join(bytes(msg) for msg in self.previous_messages) +
-            bytes(self.other.unsigned_content) +
-            bytes(Varint(self.other.filter_type.value)) +
-            (bytes(self.other.filter_bits) if self.other.filter_bits is not None else b"") +
-            bytes(Varint(self.network_target.chat_type.value)) +
-            bytes(self.network_target.network_name) +
-            bytes(Boolean(self.network_target.network_target_name is not None)) +
-            (bytes(self.network_target.network_target_name)
-             if self.network_target.network_target_name is not None else b"")
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.header.sender)
+            + bytes(self.header.index)
+            + bytes(Boolean(self.header.message_signature is not None))
+            + (
+                bytes(self.header.message_signature)
+                if self.header.message_signature is not None
+                else b""
+            )
+            + bytes(self.body.body)
+            + bytes(self.body.timestamp)
+            + bytes(self.body.salt)
+            + bytes(Varint(len(self.previous_messages)))
+            + b"".join(bytes(msg) for msg in self.previous_messages)
+            + bytes(self.other.unsigned_content)
+            + bytes(Varint(self.other.filter_type.value))
+            + (
+                bytes(self.other.filter_bits)
+                if self.other.filter_bits is not None
+                else b""
+            )
+            + bytes(Varint(self.network_target.chat_type.value))
+            + bytes(self.network_target.network_name)
+            + bytes(Boolean(self.network_target.network_target_name is not None))
+            + (
+                bytes(self.network_target.network_target_name)
+                if self.network_target.network_target_name is not None
+                else b""
+            )
         )
 
     sig_len = 256
@@ -2425,7 +2580,9 @@ class PlayerChatMessage(Packet):
         index = Varint.from_bytes(data)
         # message_signature
         sig_present = Boolean.from_bytes(data)
-        message_signature = ByteArray.from_bytes(data, length=256)
+        message_signature = None
+        if sig_present:
+            message_signature = ByteArray.from_bytes(data, length=256)
         header_section = _DataProxy(
             sender=sender,
             index=index,
@@ -2450,32 +2607,34 @@ class PlayerChatMessage(Packet):
         for _ in range(prev_count):
             prev_id = Varint.from_bytes(data).value
             prev_sig = ByteArray.from_bytes(data, length=256)
-            previous_messages.append(_DataProxy(
-                id=prev_id, signature=prev_sig))
+            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
         # - Other
         # unsigned_content
         unsigned_content_present = Boolean.from_bytes(data)
-        unsigned_content = Chat.from_bytes(
-            data) if unsigned_content_present else None
+        unsigned_content = Chat.from_bytes(data) if unsigned_content_present else None
         # filter_type
         filter_type = FilterType(Varint.from_bytes(data))
         # filter_bits
-        filter_bits = BitSet.from_bytes(
-            data) if filter_type is FilterType.PARTIALLY_FILTERED else None
+        filter_bits = (
+            BitSet.from_bytes(data)
+            if filter_type is FilterType.PARTIALLY_FILTERED
+            else None
+        )
         other_section = _DataProxy(
             unsigned_content=unsigned_content,
             filter_type=filter_type,
             filter_bits=filter_bits,
         )
         # - Network Target
-        # chat_type
+        # chat_types
         chat_type = Varint.from_bytes(data)
         # network_name
         network_name = Chat.from_bytes(data)
         # network_target_name
         network_target_name_present = Boolean.from_bytes(data)
-        network_target_name = Chat.from_bytes(
-            data) if network_target_name_present else None
+        network_target_name = (
+            Chat.from_bytes(data) if network_target_name_present else None
+        )
         network_target_section = _DataProxy(
             chat_type=chat_type,
             network_name=network_name,
@@ -2498,6 +2657,7 @@ class EndCombat(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x32
 
     def __init__(self, duration: Int, entity_id: Varint):
@@ -2506,9 +2666,9 @@ class EndCombat(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.duration) +
-            bytes(self.entity_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.duration)
+            + bytes(self.entity_id)
         )
 
     @classmethod
@@ -2529,21 +2689,8 @@ class EnterCombat(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x33
-
-    def __init__(self):
-        pass
-
-    def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id)
-        )
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO):
-        # No fields
-        return cls()
 
 
 class CombatDeath(Packet):
@@ -2554,6 +2701,7 @@ class CombatDeath(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x34
 
     def __init__(self, player_id: Varint, entity_id: Int, message: Chat):
@@ -2563,10 +2711,10 @@ class CombatDeath(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.player_id) +
-            bytes(self.entity_id) +
-            bytes(self.message)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.player_id)
+            + bytes(self.entity_id)
+            + bytes(self.message)
         )
 
     @classmethod
@@ -2589,6 +2737,7 @@ class PlayerInfoRemove(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x35
 
     def __init__(self, players: list[UUID]):
@@ -2596,9 +2745,9 @@ class PlayerInfoRemove(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Varint(len(self.players))) +
-            bytes(self.players)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.players)))
+            + b"".join([bytes(p) for p in self.players])
         )
 
     @classmethod
@@ -2620,6 +2769,7 @@ class PlayerInfoUpdate(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x36
 
     def __init__(self, actions: Byte, players: list[PlayerInfoUpdatePlayer]):
@@ -2628,10 +2778,10 @@ class PlayerInfoUpdate(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.actions) +
-            bytes(Varint(len(self.players))) +
-            b"".join(bytes(player) for player in self.players)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.actions)
+            + bytes(Varint(len(self.players)))
+            + b"".join(bytes(player) for player in self.players)
         )
 
     @classmethod
@@ -2644,7 +2794,7 @@ class PlayerInfoUpdate(Packet):
         players = []
         for _ in range(player_count):
             players.append(PlayerInfoUpdatePlayer.from_bytes(data, actions))
-        return cls(players)
+        return cls(actions, players)
 
 
 class LookAt(Packet):
@@ -2655,17 +2805,18 @@ class LookAt(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x37
 
     def __init__(
-            self,
-            feet_eyes: FeetEyes,
-            target_x: Double,
-            target_y: Double,
-            target_z: Double,
-            is_entity: Boolean,
-            entity_id: Varint | None,
-            entity_feet_eyes: FeetEyes | None,
+        self,
+        feet_eyes: FeetEyes,
+        target_x: Double,
+        target_y: Double,
+        target_z: Double,
+        is_entity: Boolean,
+        entity_id: Varint | None,
+        entity_feet_eyes: FeetEyes | None,
     ):
         self.feet_eyes = feet_eyes
         self.target_x = target_x
@@ -2677,9 +2828,14 @@ class LookAt(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.position) +
-            bytes(self.flags)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.feet_eyes)
+            + bytes(self.target_x)
+            + bytes(self.target_y)
+            + bytes(self.target_z)
+            + bytes(self.is_entity)
+            + bytes(self.entity_id)
+            + bytes(self.entity_feet_eyes)
         )
 
     @classmethod
@@ -2699,9 +2855,16 @@ class LookAt(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data) if is_entity else None
         # entity_feet_eyes
-        entity_feet_eyes = FeetEyes(
-            Varint.from_bytes(data)) if is_entity else None
-        return cls(feet_eyes, target_x, target_y, target_z, is_entity, entity_id, entity_feet_eyes)
+        entity_feet_eyes = FeetEyes(Varint.from_bytes(data)) if is_entity else None
+        return cls(
+            feet_eyes,
+            target_x,
+            target_y,
+            target_z,
+            is_entity,
+            entity_id,
+            entity_feet_eyes,
+        )
 
 
 class SynchronizePlayerPosition(Packet):
@@ -2712,17 +2875,18 @@ class SynchronizePlayerPosition(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x38
 
     def __init__(
-            self,
-            x: Double,
-            y: Double,
-            z: Double,
-            feet_eyes: FeetEyes,
-            flags: Byte,
-            teleport_id: Varint,
-            dismount_vehicle: Boolean
+        self,
+        x: Double,
+        y: Double,
+        z: Double,
+        feet_eyes: FeetEyes,
+        flags: Byte,
+        teleport_id: Varint,
+        dismount_vehicle: Boolean,
     ):
         self.x = x
         self.y = y
@@ -2734,14 +2898,14 @@ class SynchronizePlayerPosition(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.feet_eyes) +
-            bytes(self.flags) +
-            bytes(self.teleport_id) +
-            bytes(self.dismount_vehicle)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.feet_eyes)
+            + bytes(self.flags)
+            + bytes(self.teleport_id)
+            + bytes(self.dismount_vehicle)
         )
 
     @classmethod
@@ -2773,21 +2937,22 @@ class UpdateRecipeBook(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x39
 
     def __init__(
-            self,
-            action: RecipeBookActionType,
-            crafting_recipe_book_open: Boolean,
-            crafting_recipe_book_filter_active: Boolean,
-            smelting_recipe_book_open: Boolean,
-            smelting_recipe_book_filter_active: Boolean,
-            blast_furnace_recipe_book_open: Boolean,
-            blast_furnace_recipe_book_filter_active: Boolean,
-            smoker_recipe_book_open: Boolean,
-            smoker_recipe_book_filter_active: Boolean,
-            array_1: list[Identifier],
-            array_2: list[Identifier],
+        self,
+        action: RecipeBookActionType,
+        crafting_recipe_book_open: Boolean,
+        crafting_recipe_book_filter_active: Boolean,
+        smelting_recipe_book_open: Boolean,
+        smelting_recipe_book_filter_active: Boolean,
+        blast_furnace_recipe_book_open: Boolean,
+        blast_furnace_recipe_book_filter_active: Boolean,
+        smoker_recipe_book_open: Boolean,
+        smoker_recipe_book_filter_active: Boolean,
+        array_1: list[Identifier],
+        array_2: list[Identifier],
     ):
         self.action = action
         self.crafting_recipe_book_open = crafting_recipe_book_open
@@ -2795,7 +2960,9 @@ class UpdateRecipeBook(Packet):
         self.smelting_recipe_book_open = smelting_recipe_book_open
         self.smelting_recipe_book_filter_active = smelting_recipe_book_filter_active
         self.blast_furnace_recipe_book_open = blast_furnace_recipe_book_open
-        self.blast_furnace_recipe_book_filter_active = blast_furnace_recipe_book_filter_active
+        self.blast_furnace_recipe_book_filter_active = (
+            blast_furnace_recipe_book_filter_active
+        )
         self.smoker_recipe_book_open = smoker_recipe_book_open
         self.smoker_recipe_book_filter_active = smoker_recipe_book_filter_active
         self.array_1 = array_1
@@ -2803,21 +2970,23 @@ class UpdateRecipeBook(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.action) +
-            bytes(self.crafting_recipe_book_open) +
-            bytes(self.crafting_recipe_book_filter_active) +
-            bytes(self.smelting_recipe_book_open) +
-            bytes(self.smelting_recipe_book_filter_active) +
-            bytes(self.blast_furnace_recipe_book_open) +
-            bytes(self.blast_furnace_recipe_book_filter_active) +
-            bytes(self.smoker_recipe_book_open) +
-            bytes(self.smoker_recipe_book_filter_active) +
-            bytes(Varint(len(self.array_1))) +
-            b"".join(bytes(x) for x in self.array_1) +
-            bytes(Varint(len(self.array_2))) if self.array_2 is not None else b"" +
-            b"".join(bytes(x)
-                     for x in self.array_2) if self.array_2 is not None else b""
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.action)
+            + bytes(self.crafting_recipe_book_open)
+            + bytes(self.crafting_recipe_book_filter_active)
+            + bytes(self.smelting_recipe_book_open)
+            + bytes(self.smelting_recipe_book_filter_active)
+            + bytes(self.blast_furnace_recipe_book_open)
+            + bytes(self.blast_furnace_recipe_book_filter_active)
+            + bytes(self.smoker_recipe_book_open)
+            + bytes(self.smoker_recipe_book_filter_active)
+            + bytes(Varint(len(self.array_1)))
+            + b"".join(bytes(x) for x in self.array_1)
+            + bytes(Varint(len(self.array_2)))
+            if self.array_2 is not None
+            else b"" + b"".join(bytes(x) for x in self.array_2)
+            if self.array_2 is not None
+            else b""
         )
 
     @classmethod
@@ -2856,10 +3025,19 @@ class UpdateRecipeBook(Packet):
             array_2 = []
             for _ in range(Varint.from_bytes(data).value):
                 array_2.append(Identifier.from_bytes(data))
-        return cls(action, crafting_recipe_book_open, crafting_recipe_book_filter_active,
-                   smelting_recipe_book_open, smelting_recipe_book_filter_active,
-                   blast_furnace_recipe_book_open, blast_furnace_recipe_book_filter_active,
-                   smoker_recipe_book_open, smoker_recipe_book_filter_active, array_1, array_2)
+        return cls(
+            action,
+            crafting_recipe_book_open,
+            crafting_recipe_book_filter_active,
+            smelting_recipe_book_open,
+            smelting_recipe_book_filter_active,
+            blast_furnace_recipe_book_open,
+            blast_furnace_recipe_book_filter_active,
+            smoker_recipe_book_open,
+            smoker_recipe_book_filter_active,
+            array_1,
+            array_2,
+        )
 
 
 class RemoveEntities(Packet):
@@ -2870,19 +3048,20 @@ class RemoveEntities(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3A
 
     def __init__(
-            self,
-            entity_ids: list[Varint],
+        self,
+        entity_ids: list[Varint],
     ):
         self.entity_ids = entity_ids
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Varint(len(self.entity_ids))) +
-            b"".join(bytes(x) for x in self.entity_ids)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.entity_ids)))
+            + b"".join(bytes(x) for x in self.entity_ids)
         )
 
     @classmethod
@@ -2893,7 +3072,7 @@ class RemoveEntities(Packet):
         for _ in range(Varint.from_bytes(data).value):
             entity_ids.append(Varint.from_bytes(data))
         return cls(entity_ids)
-    
+
 
 class RemoveEntityEffect(Packet):
     """
@@ -2903,21 +3082,22 @@ class RemoveEntityEffect(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3B
 
     def __init__(
-            self,
-            entity_id: Varint,
-            effect_id: Varint,
+        self,
+        entity_id: Varint,
+        effect_id: Varint,
     ):
         self.entity_id = entity_id
         self.effect_id = effect_id
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.effect_id)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.effect_id)
         )
 
     @classmethod
@@ -2938,14 +3118,15 @@ class ResourcePack(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3C
 
     def __init__(
-            self,
-            url: String,
-            hash: String,
-            forced: Boolean,
-            prompt_message: String | None,
+        self,
+        url: String,
+        hash: String,
+        forced: Boolean,
+        prompt_message: String | None,
     ):
         self.url = url
         self.hash = hash
@@ -2954,12 +3135,12 @@ class ResourcePack(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.url) +
-            bytes(self.hash) +
-            bytes(self.forced) +
-            bytes(Boolean(self.prompt_message is not None)) +
-            (bytes(self.prompt_message) if self.prompt_message is not None else b"")
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.url)
+            + bytes(self.hash)
+            + bytes(self.forced)
+            + bytes(Boolean(self.prompt_message is not None))
+            + (bytes(self.prompt_message) if self.prompt_message is not None else b"")
         )
 
     @classmethod
@@ -2977,35 +3158,36 @@ class ResourcePack(Packet):
         if Boolean.from_bytes(data):
             prompt_message = String.from_bytes(data)
         return cls(url, hash, forced, prompt_message)
-    
+
 
 class Respawn(Packet):
     """
-    To change the player's dimension (overworld/nether/end), 
-    send them a respawn packet with the appropriate dimension, 
-    followed by prechunks/chunks for the new dimension, 
-    and finally a position and look packet. 
+    To change the player's dimension (overworld/nether/end),
+    send them a respawn packet with the appropriate dimension,
+    followed by prechunks/chunks for the new dimension,
+    and finally a position and look packet.
     You do not need to unload chunks, the client will do it automatically.
 
     Packet ID: 0x3D
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3D
 
     def __init__(
-            self,
-            dimension_type: Identifier,
-            dimension_name: Identifier,
-            hashed_seed: Long,
-            gamemode: UnsignedByte,
-            previous_gamemode: Byte,
-            is_debug: Boolean,
-            is_flat: Boolean,
-            copy_metadata: Boolean,
-            has_death_location: Boolean,
-            death_dimension: Identifier | None,
-            death_location: Position | None,
+        self,
+        dimension_type: Identifier,
+        dimension_name: Identifier,
+        hashed_seed: Long,
+        gamemode: UnsignedByte,
+        previous_gamemode: Byte,
+        is_debug: Boolean,
+        is_flat: Boolean,
+        copy_metadata: Boolean,
+        has_death_location: Boolean,
+        death_dimension: Identifier | None,
+        death_location: Position | None,
     ):
         self.dimension_type = dimension_type
         self.dimension_name = dimension_name
@@ -3021,18 +3203,18 @@ class Respawn(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.dimension_type) +
-            bytes(self.dimension_name) +
-            bytes(self.hashed_seed) +
-            bytes(self.gamemode) +
-            bytes(self.previous_gamemode) +
-            bytes(self.is_debug) +
-            bytes(self.is_flat) +
-            bytes(self.copy_metadata) +
-            bytes(self.has_death_location) +
-            (bytes(self.death_dimension) if self.has_death_location else b"") +
-            (bytes(self.death_location) if self.has_death_location else b"")
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.dimension_type)
+            + bytes(self.dimension_name)
+            + bytes(self.hashed_seed)
+            + bytes(self.gamemode)
+            + bytes(self.previous_gamemode)
+            + bytes(self.is_debug)
+            + bytes(self.is_flat)
+            + bytes(self.copy_metadata)
+            + bytes(self.has_death_location)
+            + (bytes(self.death_dimension) if self.has_death_location else b"")
+            + (bytes(self.death_location) if self.has_death_location else b"")
         )
 
     @classmethod
@@ -3068,10 +3250,20 @@ class Respawn(Packet):
         death_location = None
         if has_death_location:
             death_location = Position.from_bytes(data)
-        return cls(dimension_type, dimension_name, hashed_seed, gamemode, previous_gamemode,
-                   is_debug, is_flat, copy_metadata, has_death_location, death_dimension,
-                   death_location)
-    
+        return cls(
+            dimension_type,
+            dimension_name,
+            hashed_seed,
+            gamemode,
+            previous_gamemode,
+            is_debug,
+            is_flat,
+            copy_metadata,
+            has_death_location,
+            death_dimension,
+            death_location,
+        )
+
 
 class SetHeadRotation(Packet):
     """
@@ -3081,21 +3273,22 @@ class SetHeadRotation(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3E
 
     def __init__(
-            self,
-            entity_id: Varint,
-            head_yaw: Angle,
+        self,
+        entity_id: Varint,
+        head_yaw: Angle,
     ):
         self.entity_id = entity_id
         self.head_yaw = head_yaw
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.head_yaw)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.head_yaw)
         )
 
     @classmethod
@@ -3106,3 +3299,7 @@ class SetHeadRotation(Packet):
         # head_yaw
         head_yaw = Angle.from_bytes(data)
         return cls(entity_id, head_yaw)
+
+
+class e:
+    ...

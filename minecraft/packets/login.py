@@ -1,32 +1,37 @@
-"""
-Copyright (c) 2023, plun1331
+#  Copyright (c) 2023, plun1331
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  1. Redistributions of source code must retain the above copyright notice, this
+#     list of conditions and the following disclaimer.
+#
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+#  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+#  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+#  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+#  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
-
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#
+#
+#
 from .base import Packet
 from ..datatypes import *
 
@@ -34,11 +39,12 @@ from ..datatypes import *
 class DisconnectLogin(Packet):
     """
     Sent by the server when the client is disconnected.
-    
+
     Packet ID: 0x00
     State: Login
     Bound To: Client
     """
+
     id = 0x00
 
     def __init__(self, reason: String) -> None:
@@ -59,14 +65,17 @@ class DisconnectLogin(Packet):
 class EncryptionRequest(Packet):
     """
     Sent by the server to request encryption.
-    
+
     Packet ID: 0x01
     State: Login
     Bound To: Client
     """
+
     packet_id = 0x01
 
-    def __init__(self, server_id: String, public_key: ByteArray, verify_token: ByteArray) -> None:
+    def __init__(
+        self, server_id: String, public_key: ByteArray, verify_token: ByteArray
+    ) -> None:
         self.server_id = server_id
         self.public_key = public_key
         self.verify_token = verify_token
@@ -75,12 +84,12 @@ class EncryptionRequest(Packet):
         public_key_length = Varint(len(self.public_key))
         verify_token_length = Varint(len(self.verify_token))
         return (
-                self.packet_id.to_bytes(1, "big") +
-                bytes(self.server_id) +
-                bytes(public_key_length) +
-                bytes(self.public_key) +
-                bytes(verify_token_length) +
-                bytes(self.verify_token)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.server_id)
+            + bytes(public_key_length)
+            + bytes(self.public_key)
+            + bytes(verify_token_length)
+            + bytes(self.verify_token)
         )
 
     @classmethod
@@ -103,14 +112,17 @@ class EncryptionRequest(Packet):
 class LoginSuccess(Packet):
     """
     Sent by the server to indicate that the client has successfully logged in.
-    
+
     Packet ID: 0x02
     State: Login
     Bound To: Client
     """
+
     id = 0x02
 
-    def __init__(self, uuid: UUID, username: String, properties: list[Property]) -> None:
+    def __init__(
+        self, uuid: UUID, username: String, properties: list[Property]
+    ) -> None:
         self.uuid = uuid
         self.username = username
         self.properties = properties
@@ -137,11 +149,12 @@ class LoginSuccess(Packet):
 class SetCompression(Packet):
     """
     Sent by the server to indicate that the client should use compression.
-    
+
     Packet ID: 0x03
     State: Login
     Bound To: Client
     """
+
     id = 0x03
 
     def __init__(self, threshold: Varint) -> None:
@@ -162,11 +175,12 @@ class LoginPluginRequest(Packet):
     """
     Used to implement a custom handshaking flow together with Login Plugin Response.
     Our client should always respond that it hasn't understood the request.
-    
+
     Packet ID: 0x04
     State: Login
     Bound To: Client
     """
+
     packet_id = 0x04
 
     def __init__(self, message_id: Varint, channel: String, data: ByteArray) -> None:
@@ -176,10 +190,10 @@ class LoginPluginRequest(Packet):
 
     def __bytes__(self) -> bytes:
         return (
-                self.packet_id.to_bytes(1, "big") +
-                bytes(self.message_id) +
-                bytes(self.channel) +
-                bytes(self.data)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.message_id)
+            + bytes(self.channel)
+            + bytes(self.data)
         )
 
     @classmethod
@@ -202,6 +216,7 @@ class LoginStart(Packet):
     State: Login
     Bound To: Server
     """
+
     id = 0x00
 
     def __init__(self, username: String, uuid: UUID | None) -> None:
@@ -235,11 +250,12 @@ class LoginStart(Packet):
 class EncryptionResponse(Packet):
     """
     Sent by the client to respond to the encryption request.
-    
+
     Packet ID: 0x01
     State: Login
     Bound To: Server
     """
+
     packet_id = 0x01
 
     def __init__(self, shared_secret: ByteArray, verify_token: ByteArray) -> None:
@@ -250,11 +266,11 @@ class EncryptionResponse(Packet):
         shared_secret_length = len(self.shared_secret)
         verify_token_length = len(self.verify_token)
         return (
-                self.packet_id.to_bytes(1, "big") +
-                bytes(Varint(shared_secret_length)) +
-                bytes(self.shared_secret) +
-                bytes(Varint(verify_token_length)) +
-                bytes(self.verify_token)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(shared_secret_length))
+            + bytes(self.shared_secret)
+            + bytes(Varint(verify_token_length))
+            + bytes(self.verify_token)
         )
 
     @classmethod
@@ -276,20 +292,27 @@ class LoginPluginResponse(Packet):
     """
     Sent in response to a plugin message request.
     Our client should always respond with a `successful=False` with no further payload.
-    
+
     Packet ID: 0x02
     State: Login
     Bound To: Server
     """
+
     packet_id = 0x02
 
-    def __init__(self, message_id: Varint, successful: Boolean, data: ByteArray | None = None) -> None:
+    def __init__(
+        self, message_id: Varint, successful: Boolean, data: ByteArray | None = None
+    ) -> None:
         self.message_id: Varint = message_id
         self.successful: Boolean = successful
         self.data: ByteArray | None = data
 
     def __bytes__(self) -> bytes:
-        res = self.packet_id.to_bytes(1, "big") + bytes(self.message_id) + bytes(self.successful)
+        res = (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.message_id)
+            + bytes(self.successful)
+        )
         if self.successful:
             res += bytes(self.data)
         return res
