@@ -26,6 +26,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from typing import Generator
 from .base import Packet
 from ..datatypes import *
 from ..enums import (
@@ -3108,4 +3109,478 @@ class SetHeadRotation(Packet):
         return cls(entity_id, head_yaw)
     
 
+class UpdateSectionBlocks(Packet):
+    """
+    Sent whenever 2 or more blocks are changed within the same chunk on the same tick.
 
+    Packet ID: 0x3F
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x3F
+
+    def __init__(
+            self,
+            chunk_section_position: Long,
+            suppress_light_updates: Boolean,
+            blocks: list[Varlong],
+    ):
+        self.chunk_section_position = chunk_section_position
+        self.suppress_light_updates = suppress_light_updates
+        self.blocks = blocks
+
+    @property
+    def chunk_x(self):
+        return self.chunk_section_position >> 42
+    
+    @property
+    def chunk_y(self):
+        return self.chunk_section_position << 44 >> 44
+
+    @property
+    def chunk_z(self):
+        return self.chunk_section_position << 22 >> 42
+    
+    def parse_blocks(self) -> Generator[tuple[int, int, int, int], None, None]:
+        for block in self.blocks:
+            block_state_id = block >> 12
+            block_local_x = block << 52 >> 56
+            block_local_z = block << 48 >> 60
+            block_local_y = block << 44 >> 60
+            yield block_state_id, block_local_x, block_local_y, block_local_z
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.chunk_section_position) +
+            bytes(self.suppress_light_updates) +
+            bytes(Varint(len(self.blocks))) +
+            b"".join(bytes(block) for block in self.blocks)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: chunk_section_position (long), suppress_light_updates (boolean),
+        # blocks (varlong[])
+        # chunk_section_position
+        chunk_section_position = Long.from_bytes(data)
+        # suppress_light_updates
+        suppress_light_updates = Boolean.from_bytes(data)
+        # blocks
+        blocks = []
+        for _ in range(Varint.from_bytes(data).value):
+            blocks.append(Varlong.from_bytes(data))
+        return cls(chunk_section_position, suppress_light_updates, blocks)
+    
+
+class SelectAdvancementsTab(Packet):
+    """
+    Sent by the server to indicate that the client should switch advancement tab. 
+    Sent either when the client switches tab in the GUI or when an advancement in another tab is made.
+
+    Packet ID: 0x40
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x40
+
+    def __init__(
+            self,
+            has_tab: Boolean,
+            tab_id: Identifier,
+    ):
+        self.has_tab = has_tab
+        self.tab_id = tab_id
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.has_tab) +
+            (bytes(self.tab_id) if self.has_tab else b"")
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: has_tab (boolean), tab_id (identifier)
+        # has_tab
+        has_tab = Boolean.from_bytes(data)
+        # tab_id
+        tab_id = None
+        if has_tab:
+            tab_id = Identifier.from_bytes(data)
+        return cls(has_tab, tab_id)
+
+
+class ServerData(Packet):
+    """
+    Sent by the server to the client to send information about the server.
+
+    Packet ID: 0x41
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x41
+
+    def __init__(
+            self,
+            motd: Chat | None = None,
+            icon: String | None = None,
+            enforces_secure_chat: Boolean = Boolean(False),
+    ):
+        self.motd = motd
+        self.icon = icon
+        self.enforces_secure_chat = enforces_secure_chat
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(Boolean(self.motd is not None)) +
+            (bytes(self.motd) if self.motd is not None else b"") +
+            bytes(Boolean(self.icon is not None)) +
+            (bytes(self.icon) if self.icon is not None else b"") +
+            bytes(self.enforces_secure_chat)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: motd (chat), icon (string), enforces_secure_chat (boolean)
+        # motd
+        motd = None
+        if Boolean.from_bytes(data).value:
+            motd = Chat.from_bytes(data)
+        # icon
+        icon = None
+        if Boolean.from_bytes(data).value:
+            icon = String.from_bytes(data, max_length=32767)
+        # enforces_secure_chat
+        enforces_secure_chat = Boolean.from_bytes(data)
+        return cls(motd, icon, enforces_secure_chat)
+
+
+class SetActionBarText(Packet):
+    """
+    Sent by the server to the client to set the action bar text. 
+    The action bar text is displayed as a message above the hotbar.
+
+    Packet ID: 0x42
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x42
+
+    def __init__(
+            self,
+            text: Chat,
+    ):
+        self.text = text
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.text)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: text (chat)
+        # text
+        text = Chat.from_bytes(data)
+        return cls(text)
+
+
+class SetBorderCenter(Packet):
+    """
+    Sent by the server to the client to set the center of the world border.
+
+    Packet ID: 0x43
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x43
+
+    def __init__(
+            self,
+            x: Double,
+            z: Double,
+    ):
+        self.x = x
+        self.z = z
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.x) +
+            bytes(self.z)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: x (double), z (double)
+        # x
+        x = Double.from_bytes(data)
+        # z
+        z = Double.from_bytes(data)
+        return cls(x, z)
+    
+
+class SetBorderLerpSize(Packet):
+    """
+    Sent by the server to the client to set the size of the world border.
+
+    Packet ID: 0x44
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x44
+
+    def __init__(
+            self,
+            old_diameter: Double,
+            new_diameter: Double,
+            speed: Varlong,
+    ):
+        self.old_diameter = old_diameter
+        self.new_diameter = new_diameter
+        self.speed = speed
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.old_diameter) +
+            bytes(self.new_diameter) +
+            bytes(self.speed)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: old_diameter (double), new_diameter (double), speed (varlong)
+        # old_diameter
+        old_diameter = Double.from_bytes(data)
+        # new_diameter
+        new_diameter = Double.from_bytes(data)
+        # speed
+        speed = Varlong.from_bytes(data)
+        return cls(old_diameter, new_diameter, speed)
+
+
+class SetBorderSize(Packet):
+    """
+    Sent by the server to the client to set the size of the world border.
+
+    Packet ID: 0x45
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x45
+
+    def __init__(
+            self,
+            diameter: Double,
+    ):
+        self.diameter = diameter
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.diameter)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: diameter (double)
+        # diameter
+        diameter = Double.from_bytes(data)
+        return cls(diameter)
+
+
+class SetBorderWarningDelay(Packet):
+    """
+    Sent by the server to the client to set the warning delay of the world border.
+
+    Packet ID: 0x46
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x46
+
+    def __init__(
+            self,
+            delay: Varint,
+    ):
+        self.delay = delay
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.delay)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: delay (varint)
+        # delay
+        delay = Varint.from_bytes(data)
+        return cls(delay)
+
+
+class SetBorderWarningDistance(Packet): 
+    """
+    Sent by the server to the client to set the warning distance of the world border.
+
+    Packet ID: 0x47
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x47
+
+    def __init__(
+            self,
+            distance: Varint,
+    ):
+        self.distance = distance
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.distance)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: distance (varint)
+        # distance
+        distance = Varint.from_bytes(data)
+        return cls(distance)
+
+
+class SetCamera(Packet):
+    """
+    Sets the entity that the player renders from. 
+    This is normally used when the player left-clicks an entity while in spectator mode.
+
+    Packet ID: 0x48
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x48
+
+    def __init__(
+            self,
+            entity_id: Varint,
+    ):
+        self.entity_id = entity_id
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        return cls(entity_id)
+    
+
+class SetHeldItem(Packet):
+    """
+    Sent by the server to the client to set the held item of the player.
+
+    Packet ID: 0x49
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x49
+
+    def __init__(
+            self,
+            slot: Byte,
+    ):
+        self.slot = slot
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.slot)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: slot (byte)
+        # slot
+        slot = Byte.from_bytes(data)
+        return cls(slot)
+
+
+class SetCenterChunk(Packet):
+    """
+    Updates the client's location. 
+    This is used to determine what chunks should remain loaded and if a 
+    chunk load should be ignored; chunks outside of the view distance may be unloaded.
+
+    Sent whenever the player moves across a chunk border horizontally, 
+    and also (according to testing) for any integer change in the vertical axis, 
+    even if it doesn't go across a chunk section border.
+
+    Packet ID: 0x4A
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4A
+
+    def __init__(
+            self,
+            chunk_x: Varint,
+            chunk_z: Varint,
+    ):
+        self.chunk_x = chunk_x
+        self.chunk_z = chunk_z
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.chunk_x) +
+            bytes(self.chunk_z)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: chunk_x (varint), chunk_z (varint)
+        # chunk_x
+        chunk_x = Varint.from_bytes(data)
+        # chunk_z
+        chunk_z = Varint.from_bytes(data)
+        return cls(chunk_x, chunk_z)
+
+
+class SetRenderDistance(Packet):
+    """
+    Sent by the integrated singleplayer server when changing render distance. 
+    This packet is sent by the server when the client reappears in the overworld after leaving the end.
+
+    Packet ID: 0x4B
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4B
+
+    def __init__(
+            self,
+            distance: Varint,
+    ):
+        self.distance = distance
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.distance)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: distance (varint)
+        # distance
+        distance = Varint.from_bytes(data)
+        return cls(distance)
