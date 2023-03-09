@@ -27,7 +27,7 @@
 
 from enum import ReprEnum
 
-from .datatypes import Int, UnsignedByte, Varint
+from .datatypes import Byte, Int, String, UnsignedByte, Varint
 
 
 class NextState(Varint, ReprEnum):
@@ -394,3 +394,97 @@ class RecipeBookActionType(Varint, ReprEnum):
     INIT = Varint(0)
     ADD = Varint(1)
     REMOVE = Varint(2)
+
+
+class ChatColor(Varint, ReprEnum):
+    BLACK = Varint(0)
+    DARK_BLUE = Varint(1)
+    DARK_GREEN = Varint(2)
+    DARK_AQUA = Varint(3)
+    DARK_RED = Varint(4)
+    DARK_PURPLE = Varint(5)
+    GOLD = Varint(6)
+    GRAY = Varint(7)
+    DARK_GRAY = Varint(8)
+    BLUE = Varint(9)
+    GREEN = Varint(10)
+    AQUA = Varint(11)
+    RED = Varint(12)
+    LIGHT_PURPLE = Varint(13)
+    YELLOW = Varint(14)
+    WHITE = Varint(15)
+    OBFUSCATED = Varint(16)
+    BOLD = Varint(17)
+    STRIKETHROUGH = Varint(18)
+    UNDERLINE = Varint(19)
+    ITALIC = Varint(20)
+    RESET = Varint(21)
+
+
+class ScoreboardPosition(Byte, ReprEnum):
+    LIST = Byte(0)
+    SIDEBAR = Byte(1)
+    BELOW_NAME = Byte(2)
+    TEAM_SPECIFIC_BLACK = Byte(3)
+    TEAM_SPECIFIC_DARK_BLUE = Byte(4)
+    TEAM_SPECIFIC_DARK_GREEN = Byte(5)
+    TEAM_SPECIFIC_DARK_AQUA = Byte(6)
+    TEAM_SPECIFIC_DARK_RED = Byte(7)
+    TEAM_SPECIFIC_PURPLE = Byte(8)
+    TEAM_SPECIFIC_GOLD = Byte(9)
+    TEAM_SPECIFIC_GRAY = Byte(10)
+    TEAM_SPECIFIC_DARK_GRAY = Byte(11)
+    TEAM_SPECIFIC_BLUE = Byte(12)
+    TEAM_SPECIFIC_GREEN = Byte(13)
+    TEAM_SPECIFIC_AQUA = Byte(14)
+    TEAM_SPECIFIC_RED = Byte(15)
+    TEAM_SPECIFIC_LIGHT_PURPLE = Byte(16)
+    TEAM_SPECIFIC_YELLOW = Byte(17)
+    TEAM_SPECIFIC_WHITE = Byte(18)
+
+
+class EquipmentSlot(Byte, ReprEnum):
+    MAINHAND = Byte(0)
+    OFFHAND = Byte(1)
+    BOOTS = Byte(2)
+    LEGGINGS = Byte(3)
+    CHESTPLATE = Byte(4)
+    HELMET = Byte(5)
+
+
+class UpdateObjectiveModes(Byte, ReprEnum):
+    CREATE = Byte(0)
+    REMOVE = Byte(1)
+    UPDATE = Byte(2)
+
+
+class UpdateObjectiveType(Varint, ReprEnum):
+    INTEGER = Varint(0)
+    HEARTS = Varint(1)
+
+
+class UpdateTeamModes(Byte, ReprEnum):
+    CREATE = Byte(0)
+    REMOVE = Byte(1)
+    UPDATE = Byte(2)
+    ADD_ENTITIES = Byte(3)
+    REMOVE_ENTITIES = Byte(4)
+
+
+class NameTagVisibility(String, ReprEnum):
+    ALWAYS = String("always")
+    HIDE_FOR_OTHER_TEAMS = String("hideForOtherTeams")
+    HIDE_FOR_OWN_TEAM = String("hideForOwnTeam")
+    NEVER = String("never")
+
+
+class CollisionRule(String, ReprEnum):
+    ALWAYS = String("always")
+    PUSH_OTHER_TEAMS = String("pushOtherTeams")
+    PUSH_OWN_TEAM = String("pushOwnTeam")
+    NEVER = String("never")
+
+
+class UpdateScoreAction(Varint, ReprEnum):
+    CREATE_OR_UPDATE = Varint(0)
+    REMOVE = Varint(1)

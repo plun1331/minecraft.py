@@ -32,12 +32,20 @@ from ..enums import (
     Animation,
     BossBarColor,
     BossBarDivision,
+    ChatColor,
     ChatSuggestionAction,
+    CollisionRule,
     FeetEyes,
     FilterType,
     GameEvents,
     Hand,
+    NameTagVisibility,
     RecipeBookActionType,
+    ScoreboardPosition,
+    UpdateObjectiveModes,
+    UpdateObjectiveType,
+    UpdateScoreAction,
+    UpdateTeamModes,
     WorldEvents,
 )
 
@@ -3770,3 +3778,721 @@ class SetRenderDistance(Packet):
         # distance
         distance = Varint.from_bytes(data)
         return cls(distance)
+
+
+class SetDefaultSpawnLocation(Packet):
+    """
+    Sent by the server after login to specify the coordinates of the spawn point 
+    (the point at which players spawn at, and which the compass points to). 
+    It can be sent at any time to update the point compasses point at.
+
+    Packet ID: 0x4C
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4C
+
+    def __init__(
+            self,
+            location: Position,
+            angle: Float
+    ):
+        self.location = location
+        self.angle = angle
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.location) +
+            bytes(self.angle)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: location (position), angle (float)
+        # location
+        location = Position.from_bytes(data)
+        # angle
+        angle = Float.from_bytes(data)
+        return cls(location, angle)
+
+
+class DisplayObjective(Packet):
+    """
+    Sent by the server to the client to display an objective on the scoreboard.
+
+    Packet ID: 0x4D
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4D
+
+    def __init__(
+            self,
+            position: ScoreboardPosition,
+            objective_name: String,
+    ):
+        self.position = position
+        self.objective_name = objective_name
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.position.value) +
+            bytes(self.objective_name)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: position (scoreboard_position), objective_name (string)
+        # position
+        position = ScoreboardPosition(Byte.from_bytes(data))
+        # objective_name
+        objective_name = String.from_bytes(data)
+        return cls(position, objective_name)
+    
+
+class SetEntityMetadata(Packet):
+    """
+    Sent by the server to the client to update the metadata of an entity.
+    Any properties not included in the Metadata field are left unchanged.
+
+    Packet ID: 0x4E
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4E
+
+    def __init__(
+            self,
+            entity_id: Varint,
+            metadata: EntityMetadata,
+    ):
+        self.entity_id = entity_id
+        self.metadata = metadata
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(self.metadata)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), metadata (metadata)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # metadata
+        metadata = EntityMetadata.from_bytes(data)
+        return cls(entity_id, metadata)
+
+
+class LinkEntities(Packet):
+    """
+    Sent by the server to the client to link two entities together. 
+    This is used to link a leash to a mob and the player holding it.
+
+    Packet ID: 0x4F
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x4F
+
+    def __init__(
+            self,
+            attached_entity_id: Int,
+            holding_entity_id: Int,
+    ):
+        self.attached_entity_id = attached_entity_id
+        self.holding_entity_id = holding_entity_id
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.attached_entity) +
+            bytes(self.holding_entity) +
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: attached_entity_id (int), holding_entity_id (int)
+        # attached_entity_id
+        attached_entity_id = Int.from_bytes(data)
+        # holding_entity_id
+        holding_entity_id = Int.from_bytes(data)
+        return cls(attached_entity_id, holding_entity_id)
+    
+
+class SetEntityVelocity(Packet):
+    """
+    Sent by the server to the client to update the velocity of an entity.
+
+    Velocity is believed to be in units of 1/8000 of a block per server tick (50ms); 
+    for example, -1343 would move (-1343 / 8000) = ~0.167875 blocks per tick (or ~3.3575 blocks per second).
+
+
+
+    Packet ID: 0x50
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x50
+
+    def __init__(
+            self,
+            entity_id: Varint,
+            velocity_x: Short,
+            velocity_y: Short,
+            velocity_z: Short,
+    ):
+        self.entity_id = entity_id
+        self.velocity_x = velocity_x
+        self.velocity_y = velocity_y
+        self.velocity_z = velocity_z
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(self.velocity_x) +
+            bytes(self.velocity_y) +
+            bytes(self.velocity_z)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), velocity_x (short), velocity_y (short), velocity_z (short)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # velocity_x
+        velocity_x = Short.from_bytes(data)
+        # velocity_y
+        velocity_y = Short.from_bytes(data)
+        # velocity_z
+        velocity_z = Short.from_bytes(data)
+        return cls(entity_id, velocity_x, velocity_y, velocity_z)
+    
+
+class SetEquipment(Packet):
+    """
+    Sent by the server to the client to update the equipment of an entity.
+
+    Packet ID: 0x51
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x51
+
+    def __init__(
+            self,
+            entity_id: Varint,
+            slot: Slot,
+            item: Slot,
+            nbt_data: NBT,
+    ):
+        self.entity_id = entity_id
+        self.slot = slot
+        self.item = item
+        self.nbt_data = nbt_data
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(self.slot) +
+            bytes(self.item) +
+            bytes(self.nbt_data)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), equipment (Array[(slot byte), (item slot)])
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # equipment
+        equipment = []
+        for _ in range(5):
+            slot = Byte.from_bytes(data)
+            item = Slot.from_bytes(data)
+            equipment.append((slot, item))
+            if slot & 0x80 == 0:
+                break
+        return cls(entity_id, equipment)
+
+
+class SetExperience(Packet):
+    """
+    Sent by the server when the client should change XP levels.
+
+    Packet ID: 0x52
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x52
+
+    def __init__(
+            self,
+            experience_bar: Float,
+            total_experience: Varint,
+            level: Varint,
+    ):
+        self.experience_bar = experience_bar
+        self.total_experience = total_experience
+        self.level = level
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.experience_bar) +
+            bytes(self.level) +
+            bytes(self.total_experience)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: experience_bar (float), total_experience (varint), level (varint)
+        # experience_bar
+        experience_bar = Float.from_bytes(data)
+        # total_experience
+        total_experience = Varint.from_bytes(data)
+        # level
+        level = Varint.from_bytes(data)
+        return cls(experience_bar, level, total_experience)
+
+
+class SetHealth(Packet):
+    """
+    Sent by the server when the client should change their health.
+
+    Packet ID: 0x53
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x53
+
+    def __init__(
+            self,
+            health: Float,
+            food: Varint,
+            food_saturation: Float,
+    ):
+        self.health = health
+        self.food = food
+        self.food_saturation = food_saturation
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.health) +
+            bytes(self.food) +
+            bytes(self.food_saturation)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: health (float), food (varint), food_saturation (float)
+        # health
+        health = Float.from_bytes(data)
+        # food
+        food = Varint.from_bytes(data)
+        # food_saturation
+        food_saturation = Float.from_bytes(data)
+        return cls(health, food, food_saturation)
+
+
+class UpdateObjectives(Packet):
+    """
+    Sent by the server to the client to update the scoreboard objectives.
+
+    Packet ID: 0x54
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x54
+
+    def __init__(
+            self,
+            objective_name: String,
+            mode: UpdateObjectiveModes,
+            objective_value: Chat | None = None,
+            objective_type: UpdateObjectiveType | None = None,
+    ):
+        self.objective_name = objective_name
+        self.mode = mode
+        self.objective_value = objective_value
+        self.objective_type = objective_type
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.objective_name) +
+            bytes(self.mode) +
+            bytes(self.objective_value) +
+            bytes(self.objective_type)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: objective_name (string), mode (byte), objective_value (chat), objective_type (varint)
+        # objective_name
+        objective_name = String.from_bytes(data)
+        # mode
+        mode = UpdateObjectiveModes(Byte.from_bytes(data))
+        # objective_value
+        objective_value = Chat.from_bytes(data) if mode in (
+            UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE
+        ) else None
+        # objective_type
+        objective_type = UpdateObjectiveType(Varint.from_bytes(data)) if mode in (
+            UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE
+        ) else None
+        return cls(objective_name, mode, objective_value, objective_type)
+    
+
+class SetPassengers(Packet):
+    """
+    Sent by the server to the client to set the passengers of an entity.
+
+    Packet ID: 0x55
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x55
+
+    def __init__(
+            self,
+            entity_id: Varint,
+            passengers: list[Varint],
+    ):
+        self.entity_id = entity_id
+        self.passengers = passengers
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(Varint(len(self.passengers))) +
+            bytes(self.passengers)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), passengers (array of varints)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # passengers
+        passengers = []
+        for _ in range(Varint.from_bytes(data).value):
+            passengers.append(Varint.from_bytes(data))
+        return cls(entity_id, passengers)
+
+
+class UpdateTeams(Packet):
+    """
+    Sent by the server to the client to update the scoreboard teams.
+
+    Packet ID: 0x56
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x56
+
+    def __init__(
+            self,
+            team_name: String,
+            mode: UpdateTeamModes,
+            data: _DataProxy,
+    ):
+        self.team_name = team_name
+        self.mode = mode
+        self.data = data
+
+    def __bytes__(self):
+        res = (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.team_name) +
+            bytes(self.mode.value)
+        )
+        if self.mode is UpdateTeamModes.CREATE:
+            res += (
+                bytes(self.data.display_name) + 
+                bytes(self.data.friendly_flags) + 
+                bytes(self.data.name_tag_visibility) + 
+                bytes(self.data.collision_rule) + 
+                bytes(self.data.color) + 
+                bytes(self.data.prefix) + 
+                bytes(self.data.suffix) + 
+                bytes(Varint(len(self.data.entities))) + 
+                b"".join([bytes(e) for e in self.data.entities])
+            )
+        elif self.mode is UpdateTeamModes.REMOVE:
+            pass
+        elif self.mode is UpdateTeamModes.UPDATE:
+            res += (
+                bytes(self.data.friendly_flags) + 
+                bytes(self.data.name_tag_visibility) + 
+                bytes(self.data.collision_rule) + 
+                bytes(self.data.color) + 
+                bytes(self.data.prefix) + 
+                bytes(self.data.suffix)
+            )
+        elif self.mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
+            res += bytes(Varint(len(self.data.entities))) + b"".join([bytes(e) for e in self.data.entities])
+        return res
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: team_name (string), mode (byte), *data
+        # team_name
+        team_name = String.from_bytes(data, max_length=16)
+        # mode
+        mode = UpdateTeamModes(Byte.from_bytes(data))
+        # data
+        if mode is UpdateTeamModes.CREATE:
+            data = _DataProxy(
+                display_name=Chat.from_bytes(data),
+                friendly_flags=Byte.from_bytes(data),
+                name_tag_visibility=NameTagVisibility(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                color=ChatColor(Varint.from_bytes(data)),
+                prefix=Chat.from_bytes(data),
+                suffix=Chat.from_bytes(data),
+                entities=[String.from_bytes(data, max_length=40) for _ in range(Varint.from_bytes(data).value)]
+            )
+        elif mode is UpdateTeamModes.REMOVE:
+            data = _DataProxy()
+        elif mode is UpdateTeamModes.UPDATE:
+            data = _DataProxy(
+                display_name=Chat.from_bytes(data),
+                friendly_flags=Byte.from_bytes(data),
+                name_tag_visibility=NameTagVisibility(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                color=ChatColor(Varint.from_bytes(data)),
+                prefix=Chat.from_bytes(data),
+                suffix=Chat.from_bytes(data),
+            )
+        elif mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
+            data = _DataProxy(
+                entities=[String.from_bytes(data, max_length=40) for _ in range(Varint.from_bytes(data).value)]
+            )
+        else:
+            raise ValueError("Invalid mode")
+        return cls(team_name, mode, data)
+
+
+class UpdateScore(Packet):
+    """
+    Sent by the server to the client to update the scoreboard scores.
+
+    Packet ID: 0x57
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x57
+
+    def __init__(
+            self,
+            entity_name: String,
+            action: UpdateScoreAction,
+            objective_name: String,
+            value: Varint | None = None,
+    ):
+        self.entity_name = entity_name
+        self.action = action
+        self.objective_name = objective_name
+        self.value = value
+
+    def __bytes__(self):
+        res = (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_name) +
+            bytes(self.action.value) +
+            bytes(self.objective_name)
+        )
+        if self.action is UpdateScoreAction.CHANGE:
+            res += bytes(self.value)
+        return res
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_name (string), action (byte), objective_name (string), value (varint)
+        # entity_name
+        entity_name = String.from_bytes(data, max_length=40)
+        # action
+        action = UpdateScoreAction(Varint.from_bytes(data))
+        # objective_name
+        objective_name = String.from_bytes(data, max_length=16)
+        # value
+        value = Varint.from_bytes(data) if action is UpdateScoreAction.CREATE_OR_UPDATE else None
+        return cls(entity_name, action, objective_name, value)
+
+
+class SetSimulationDistance(Packet):
+    """
+    Sent by the server to the client to set the distance at 
+    which the client will receive simulation updates.
+
+    Packet ID: 0x58
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x58
+
+    def __init__(
+            self,
+            distance: Varint,
+    ):
+        self.distance = distance
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.distance)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: distance (varint)
+        # distance
+        distance = Varint.from_bytes(data)
+        return cls(distance)
+
+
+class SetSubtitleText(Packet):
+    """
+    Sent by the server to the client to set the subtitle text.
+
+    Packet ID: 0x59
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x59
+
+    def __init__(
+            self,
+            subtitle: Chat,
+    ):
+        self.subtitle = subtitle
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.subtitle)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: subtitle (chat)
+        # subtitle
+        subtitle = Chat.from_bytes(data)
+        return cls(subtitle)
+    
+
+class UpdateTime(Packet):
+    """
+    Time is based on ticks, where 20 ticks happen every second. 
+    There are 24000 ticks in a day, making Minecraft days exactly 20 minutes long.
+
+    The time of day is based on the timestamp modulo 24000. 
+    0 is sunrise, 6000 is noon, 12000 is sunset, and 18000 is midnight.
+
+    Packet ID: 0x5A
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5A
+
+    def __init__(
+            self,
+            world_age: Long,
+            time_of_day: Long,
+    ):
+        self.world_age = world_age
+        self.time_of_day = time_of_day
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.world_age) +
+            bytes(self.time_of_day)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: world_age (long), time_of_day (long)
+        # world_age
+        world_age = Long.from_bytes(data)
+        # time_of_day
+        time_of_day = Long.from_bytes(data)
+        return cls(world_age, time_of_day)
+    
+
+class SetTitleText(Packet):
+    """
+    Sent by the server to the client to set the title text.
+
+    Packet ID: 0x5B
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5B
+
+    def __init__(
+            self,
+            title: Chat,
+    ):
+        self.title = title
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.title)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: title (chat)
+        # title
+        title = Chat.from_bytes(data)
+        return cls(title)
+
+
+class SetTitleAnimationTimes(Packet):
+    """
+    Sent by the server to the client to set the title animation times.
+
+    Packet ID: 0x5C
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5C
+
+    def __init__(
+            self,
+            fade_in: Int,
+            stay: Int,
+            fade_out: Int,
+    ):
+        self.fade_in = fade_in
+        self.stay = stay
+        self.fade_out = fade_out
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.fade_in) +
+            bytes(self.stay) +
+            bytes(self.fade_out)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: fade_in (int), stay (int), fade_out (int)
+        # fade_in
+        fade_in = Int.from_bytes(data)
+        # stay
+        stay = Int.from_bytes(data)
+        # fade_out
+        fade_out = Int.from_bytes(data)
+        return cls(fade_in, stay, fade_out)
