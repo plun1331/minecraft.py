@@ -4496,3 +4496,372 @@ class SetTitleAnimationTimes(Packet):
         # fade_out
         fade_out = Int.from_bytes(data)
         return cls(fade_in, stay, fade_out)
+
+
+class EntitySoundEffect(Packet):
+    """
+    Sent by the server to the client to play a sound effect 
+    for an entity.
+
+    Packet ID: 0x5D
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5D
+
+    def __init__(
+            self,
+            sound_id: Varint,
+            sound_category: Varint,
+            entity_id: Varint,
+            volume: Float,
+            pitch: Float,
+            seed: Long,
+    ):
+        self.sound_id = sound_id
+        self.sound_category = sound_category
+        self.entity_id = entity_id
+        self.volume = volume
+        self.pitch = pitch
+        self.seed = seed
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.sound_id) +
+            bytes(self.sound_category) +
+            bytes(self.entity_id) +
+            bytes(self.volume) +
+            bytes(self.pitch) +
+            bytes(self.seed)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: sound_id (varint), sound_category (varint), entity_id (varint), volume (float), pitch (float)
+        # sound_id
+        sound_id = Varint.from_bytes(data)
+        # sound_category
+        sound_category = Varint.from_bytes(data)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # volume
+        volume = Float.from_bytes(data)
+        # pitch
+        pitch = Float.from_bytes(data)
+        # seed
+        seed = Long.from_bytes(data)
+        return cls(sound_id, sound_category, entity_id, volume, pitch, seed)
+
+
+class SoundEffect(Packet):
+    """
+    Sent by the server to the client to play a sound effect.
+
+    Packet ID: 0x5E
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5E
+
+    def __init__(
+            self,
+            sound_id: Varint,
+            sound_category: Varint,
+            x: Int,
+            y: Int,
+            z: Int,
+            volume: Float,
+            pitch: Float,
+            seed: Long,
+    ):
+        self.sound_id = sound_id
+        self.sound_category = sound_category
+        self.x = x
+        self.y = y
+        self.z = z
+        self.volume = volume
+        self.pitch = pitch
+        self.seed = seed
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.sound_id) +
+            bytes(self.sound_category) +
+            bytes(self.x) +
+            bytes(self.y) +
+            bytes(self.z) +
+            bytes(self.volume) +
+            bytes(self.pitch) + 
+            bytes(self.seed)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: sound_id (varint), sound_category (varint), x (int), y (int), z (int), volume (float), pitch (float)
+        # sound_id
+        sound_id = Varint.from_bytes(data)
+        # sound_category
+        sound_category = Varint.from_bytes(data)
+        # x
+        x = Int.from_bytes(data)
+        # y
+        y = Int.from_bytes(data)
+        # z
+        z = Int.from_bytes(data)
+        # volume
+        volume = Float.from_bytes(data)
+        # pitch
+        pitch = Float.from_bytes(data)
+        # seed
+        seed = Long.from_bytes(data)
+        return cls(sound_id, sound_category, x, y, z, volume, pitch, seed)
+
+
+class StopSound(Packet):
+    """
+    Sent by the server to the client to stop a sound effect.
+
+    Packet ID: 0x5F
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x5F
+
+    def __init__(
+            self,
+            flags: Byte,
+            source: Varint | None,
+            sound: Identifier | None,
+    ):
+        self.flags = flags
+        self.source = source
+        self.sound = sound
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.flags) +
+            bytes(self.source) +
+            bytes(self.sound)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: flags (byte), source (varint), sound (identifier)
+        # flags
+        flags = Byte.from_bytes(data)
+        # source
+        source = Varint.from_bytes(data)
+        # sound
+        sound = Identifier.from_bytes(data)
+        return cls(flags, source, sound)
+    
+
+class SystemChatMessage(Packet):
+    """
+    Sent by the server to the client to send a chat message.
+
+    Packet ID: 0x60
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x60
+
+    def __init__(
+            self,
+            content: Chat,
+            overlay: Boolean,
+    ):
+        self.content = content
+        self.overlay = overlay
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.content) +
+            bytes(self.overlay)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: content (chat), overlay (boolean)
+        # content
+        content = Chat.from_bytes(data)
+        # overlay
+        overlay = Boolean.from_bytes(data)
+        return cls(content, overlay)
+
+
+class SetTabListHeaderAndFooter(Packet):
+    """
+    Sent by the server to the client to set the header and footer of the tab list.
+
+    Packet ID: 0x61
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x61
+
+    def __init__(
+            self,
+            header: Chat | None,
+            footer: Chat | None,
+    ):
+        self.header = header
+        self.footer = footer
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.header) +
+            bytes(self.footer)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: header (chat), footer (chat)
+        # header
+        header = Chat.from_bytes(data)
+        # footer
+        footer = Chat.from_bytes(data)
+        return cls(header, footer)
+
+
+class TagQueryResponse(Packet):
+    """
+    Sent in response to Query Block Entity Tag or Query Entity Tag.
+
+    Packet ID: 0x62
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x62
+
+    def __init__(
+            self,
+            transaction_id: Varint,
+            nbt: NBT,
+    ):
+        self.transaction_id = transaction_id
+        self.nbt = nbt
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.transaction_id) +
+            bytes(self.nbt)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: transaction_id (varint), nbt (nbt)
+        # transaction_id
+        transaction_id = Varint.from_bytes(data)
+        # nbt
+        nbt = NBT.from_bytes(data)
+        return cls(transaction_id, nbt)
+
+
+class PickupItem(Packet):
+    """
+    Sent by the server to the client to spawn a pickup item.
+
+    Packet ID: 0x63
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x63
+
+    def __init__(
+            self,
+            collected_entity_id: Varint,
+            collector_entity_id: Varint,
+            pickup_item_count: Varint,
+    ):
+        self.collected_entity_id = collected_entity_id
+        self.collector_entity_id = collector_entity_id
+        self.pickup_item_count = pickup_item_count
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.collected_entity_id) +
+            bytes(self.collector_entity_id) +
+            bytes(self.pickup_item_count)
+        )
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: collected_entity_id (varint), collector_entity_id (varint), pickup_item_count (varint)
+        # collected_entity_id
+        collected_entity_id = Varint.from_bytes(data)
+        # collector_entity_id
+        collector_entity_id = Varint.from_bytes(data)
+        # pickup_item_count
+        pickup_item_count = Varint.from_bytes(data)
+        return cls(collected_entity_id, collector_entity_id, pickup_item_count)
+    
+
+class TeleportEntity(Packet):
+    """
+    Sent by the server to the client to teleport an entity.
+
+    Packet ID: 0x64
+    State: Play
+    Bound To: Client
+    """
+    packet_id = 0x64
+
+    def __init__(
+            self,
+            entity_id: Varint,
+            x: Double,
+            y: Double,
+            z: Double,
+            yaw: Angle,
+            pitch: Angle,
+            on_ground: Boolean,
+    ):
+        self.entity_id = entity_id
+        self.x = x
+        self.y = y
+        self.z = z
+        self.yaw = yaw
+        self.pitch = pitch
+        self.on_ground = on_ground
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(self.x) +
+            bytes(self.y) +
+            bytes(self.z) +
+            bytes(self.yaw) +
+            bytes(self.pitch) +
+            bytes(self.on_ground)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), x (double), y (double), z (double), yaw (angle), pitch (angle), on_ground (boolean)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # x
+        x = Double.from_bytes(data)
+        # y
+        y = Double.from_bytes(data)
+        # z
+        z = Double.from_bytes(data)
+        # yaw
+        yaw = Angle.from_bytes(data)
+        # pitch
+        pitch = Angle.from_bytes(data)
+        # on_ground
+        on_ground = Boolean.from_bytes(data)
+        return cls(entity_id, x, y, z, yaw, pitch, on_ground)
+
+
+
