@@ -1,0 +1,36 @@
+name: Check
+
+on: [ push, workflow_dispatch ]
+
+permissions: write-all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.11" ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
+          pip install -r requirements.txt
+          
+      - name: Analyze code with pylint
+        run: |
+          pylint $(git ls-files '*.py') --max-line-length=240 \
+          --disable=missing-function-docstring,fixme,\
+          too-many-ancestors,too-many-instance-attributes,arguments-differ,\
+          redefined-argument-from-local,too-many-public-methods,missing-module-docstring,\
+          missing-class-docstring,too-many-locals,broad-exception-raised,no-member,\
+          too-few-public-methods,too-many-return-statements,protected-access,too-many-arguments,\
+          too-many-branches,too-many-lines,duplicate-code,too-many-statements,too-many-nested-blocks
