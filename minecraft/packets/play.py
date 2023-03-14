@@ -3911,7 +3911,7 @@ class LinkEntities(Packet):
         return (
             self.packet_id.to_bytes(1, "big") +
             bytes(self.attached_entity) +
-            bytes(self.holding_entity) +
+            bytes(self.holding_entity)
         )
 
     @classmethod
