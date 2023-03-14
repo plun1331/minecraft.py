@@ -3311,13 +3311,14 @@ class UpdateSectionBlocks(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x3F
 
     def __init__(
-            self,
-            chunk_section_position: Long,
-            suppress_light_updates: Boolean,
-            blocks: list[Varlong],
+        self,
+        chunk_section_position: Long,
+        suppress_light_updates: Boolean,
+        blocks: list[Varlong],
     ):
         self.chunk_section_position = chunk_section_position
         self.suppress_light_updates = suppress_light_updates
@@ -3326,7 +3327,7 @@ class UpdateSectionBlocks(Packet):
     @property
     def chunk_x(self):
         return self.chunk_section_position >> 42
-    
+
     @property
     def chunk_y(self):
         return self.chunk_section_position << 44 >> 44
@@ -3334,7 +3335,7 @@ class UpdateSectionBlocks(Packet):
     @property
     def chunk_z(self):
         return self.chunk_section_position << 22 >> 42
-    
+
     def parse_blocks(self) -> Generator[tuple[int, int, int, int], None, None]:
         for block in self.blocks:
             block_state_id = block >> 12
@@ -3345,11 +3346,11 @@ class UpdateSectionBlocks(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.chunk_section_position) +
-            bytes(self.suppress_light_updates) +
-            bytes(Varint(len(self.blocks))) +
-            b"".join(bytes(block) for block in self.blocks)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.chunk_section_position)
+            + bytes(self.suppress_light_updates)
+            + bytes(Varint(len(self.blocks)))
+            + b"".join(bytes(block) for block in self.blocks)
         )
 
     @classmethod
@@ -3365,32 +3366,33 @@ class UpdateSectionBlocks(Packet):
         for _ in range(Varint.from_bytes(data).value):
             blocks.append(Varlong.from_bytes(data))
         return cls(chunk_section_position, suppress_light_updates, blocks)
-    
+
 
 class SelectAdvancementsTab(Packet):
     """
-    Sent by the server to indicate that the client should switch advancement tab. 
+    Sent by the server to indicate that the client should switch advancement tab.
     Sent either when the client switches tab in the GUI or when an advancement in another tab is made.
 
     Packet ID: 0x40
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x40
 
     def __init__(
-            self,
-            has_tab: Boolean,
-            tab_id: Identifier,
+        self,
+        has_tab: Boolean,
+        tab_id: Identifier,
     ):
         self.has_tab = has_tab
         self.tab_id = tab_id
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.has_tab) +
-            (bytes(self.tab_id) if self.has_tab else b"")
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.has_tab)
+            + (bytes(self.tab_id) if self.has_tab else b"")
         )
 
     @classmethod
@@ -3413,13 +3415,14 @@ class ServerData(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x41
 
     def __init__(
-            self,
-            motd: Chat | None = None,
-            icon: String | None = None,
-            enforces_secure_chat: Boolean = Boolean(False),
+        self,
+        motd: Chat | None = None,
+        icon: String | None = None,
+        enforces_secure_chat: Boolean = Boolean(False),
     ):
         self.motd = motd
         self.icon = icon
@@ -3427,12 +3430,12 @@ class ServerData(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Boolean(self.motd is not None)) +
-            (bytes(self.motd) if self.motd is not None else b"") +
-            bytes(Boolean(self.icon is not None)) +
-            (bytes(self.icon) if self.icon is not None else b"") +
-            bytes(self.enforces_secure_chat)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Boolean(self.motd is not None))
+            + (bytes(self.motd) if self.motd is not None else b"")
+            + bytes(Boolean(self.icon is not None))
+            + (bytes(self.icon) if self.icon is not None else b"")
+            + bytes(self.enforces_secure_chat)
         )
 
     @classmethod
@@ -3453,26 +3456,24 @@ class ServerData(Packet):
 
 class SetActionBarText(Packet):
     """
-    Sent by the server to the client to set the action bar text. 
+    Sent by the server to the client to set the action bar text.
     The action bar text is displayed as a message above the hotbar.
 
     Packet ID: 0x42
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x42
 
     def __init__(
-            self,
-            text: Chat,
+        self,
+        text: Chat,
     ):
         self.text = text
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.text)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.text)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3490,22 +3491,19 @@ class SetBorderCenter(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x43
 
     def __init__(
-            self,
-            x: Double,
-            z: Double,
+        self,
+        x: Double,
+        z: Double,
     ):
         self.x = x
         self.z = z
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.x) +
-            bytes(self.z)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.x) + bytes(self.z)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3515,7 +3513,7 @@ class SetBorderCenter(Packet):
         # z
         z = Double.from_bytes(data)
         return cls(x, z)
-    
+
 
 class SetBorderLerpSize(Packet):
     """
@@ -3525,13 +3523,14 @@ class SetBorderLerpSize(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x44
 
     def __init__(
-            self,
-            old_diameter: Double,
-            new_diameter: Double,
-            speed: Varlong,
+        self,
+        old_diameter: Double,
+        new_diameter: Double,
+        speed: Varlong,
     ):
         self.old_diameter = old_diameter
         self.new_diameter = new_diameter
@@ -3539,10 +3538,10 @@ class SetBorderLerpSize(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.old_diameter) +
-            bytes(self.new_diameter) +
-            bytes(self.speed)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.old_diameter)
+            + bytes(self.new_diameter)
+            + bytes(self.speed)
         )
 
     @classmethod
@@ -3565,19 +3564,17 @@ class SetBorderSize(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x45
 
     def __init__(
-            self,
-            diameter: Double,
+        self,
+        diameter: Double,
     ):
         self.diameter = diameter
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.diameter)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.diameter)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3595,19 +3592,17 @@ class SetBorderWarningDelay(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x46
 
     def __init__(
-            self,
-            delay: Varint,
+        self,
+        delay: Varint,
     ):
         self.delay = delay
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.delay)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.delay)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3617,7 +3612,7 @@ class SetBorderWarningDelay(Packet):
         return cls(delay)
 
 
-class SetBorderWarningDistance(Packet): 
+class SetBorderWarningDistance(Packet):
     """
     Sent by the server to the client to set the warning distance of the world border.
 
@@ -3625,19 +3620,17 @@ class SetBorderWarningDistance(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x47
 
     def __init__(
-            self,
-            distance: Varint,
+        self,
+        distance: Varint,
     ):
         self.distance = distance
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.distance)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.distance)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3649,26 +3642,24 @@ class SetBorderWarningDistance(Packet):
 
 class SetCamera(Packet):
     """
-    Sets the entity that the player renders from. 
+    Sets the entity that the player renders from.
     This is normally used when the player left-clicks an entity while in spectator mode.
 
     Packet ID: 0x48
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x48
 
     def __init__(
-            self,
-            entity_id: Varint,
+        self,
+        entity_id: Varint,
     ):
         self.entity_id = entity_id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.entity_id)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3676,7 +3667,7 @@ class SetCamera(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data)
         return cls(entity_id)
-    
+
 
 class SetHeldItem(Packet):
     """
@@ -3686,19 +3677,17 @@ class SetHeldItem(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x49
 
     def __init__(
-            self,
-            slot: Byte,
+        self,
+        slot: Byte,
     ):
         self.slot = slot
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.slot)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.slot)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3710,33 +3699,34 @@ class SetHeldItem(Packet):
 
 class SetCenterChunk(Packet):
     """
-    Updates the client's location. 
-    This is used to determine what chunks should remain loaded and if a 
+    Updates the client's location.
+    This is used to determine what chunks should remain loaded and if a
     chunk load should be ignored; chunks outside of the view distance may be unloaded.
 
-    Sent whenever the player moves across a chunk border horizontally, 
-    and also (according to testing) for any integer change in the vertical axis, 
+    Sent whenever the player moves across a chunk border horizontally,
+    and also (according to testing) for any integer change in the vertical axis,
     even if it doesn't go across a chunk section border.
 
     Packet ID: 0x4A
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4A
 
     def __init__(
-            self,
-            chunk_x: Varint,
-            chunk_z: Varint,
+        self,
+        chunk_x: Varint,
+        chunk_z: Varint,
     ):
         self.chunk_x = chunk_x
         self.chunk_z = chunk_z
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.chunk_x) +
-            bytes(self.chunk_z)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.chunk_x)
+            + bytes(self.chunk_z)
         )
 
     @classmethod
@@ -3751,26 +3741,24 @@ class SetCenterChunk(Packet):
 
 class SetRenderDistance(Packet):
     """
-    Sent by the integrated singleplayer server when changing render distance. 
+    Sent by the integrated singleplayer server when changing render distance.
     This packet is sent by the server when the client reappears in the overworld after leaving the end.
 
     Packet ID: 0x4B
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4B
 
     def __init__(
-            self,
-            distance: Varint,
+        self,
+        distance: Varint,
     ):
         self.distance = distance
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.distance)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.distance)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -3782,29 +3770,24 @@ class SetRenderDistance(Packet):
 
 class SetDefaultSpawnLocation(Packet):
     """
-    Sent by the server after login to specify the coordinates of the spawn point 
-    (the point at which players spawn at, and which the compass points to). 
+    Sent by the server after login to specify the coordinates of the spawn point
+    (the point at which players spawn at, and which the compass points to).
     It can be sent at any time to update the point compasses point at.
 
     Packet ID: 0x4C
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4C
 
-    def __init__(
-            self,
-            location: Position,
-            angle: Float
-    ):
+    def __init__(self, location: Position, angle: Float):
         self.location = location
         self.angle = angle
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location) +
-            bytes(self.angle)
+            self.packet_id.to_bytes(1, "big") + bytes(self.location) + bytes(self.angle)
         )
 
     @classmethod
@@ -3825,21 +3808,22 @@ class DisplayObjective(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4D
 
     def __init__(
-            self,
-            position: ScoreboardPosition,
-            objective_name: String,
+        self,
+        position: ScoreboardPosition,
+        objective_name: String,
     ):
         self.position = position
         self.objective_name = objective_name
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.position.value) +
-            bytes(self.objective_name)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.position.value)
+            + bytes(self.objective_name)
         )
 
     @classmethod
@@ -3850,7 +3834,7 @@ class DisplayObjective(Packet):
         # objective_name
         objective_name = String.from_bytes(data)
         return cls(position, objective_name)
-    
+
 
 class SetEntityMetadata(Packet):
     """
@@ -3861,21 +3845,22 @@ class SetEntityMetadata(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4E
 
     def __init__(
-            self,
-            entity_id: Varint,
-            metadata: EntityMetadata,
+        self,
+        entity_id: Varint,
+        metadata: EntityMetadata,
     ):
         self.entity_id = entity_id
         self.metadata = metadata
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.metadata)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.metadata)
         )
 
     @classmethod
@@ -3890,28 +3875,29 @@ class SetEntityMetadata(Packet):
 
 class LinkEntities(Packet):
     """
-    Sent by the server to the client to link two entities together. 
+    Sent by the server to the client to link two entities together.
     This is used to link a leash to a mob and the player holding it.
 
     Packet ID: 0x4F
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x4F
 
     def __init__(
-            self,
-            attached_entity_id: Int,
-            holding_entity_id: Int,
+        self,
+        attached_entity_id: Int,
+        holding_entity_id: Int,
     ):
         self.attached_entity_id = attached_entity_id
         self.holding_entity_id = holding_entity_id
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.attached_entity) +
-            bytes(self.holding_entity)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.attached_entity)
+            + bytes(self.holding_entity)
         )
 
     @classmethod
@@ -3927,7 +3913,7 @@ class SetEntityVelocity(Packet):
     """
     Sent by the server to the client to update the velocity of an entity.
 
-    Velocity is believed to be in units of 1/8000 of a block per server tick (50ms); 
+    Velocity is believed to be in units of 1/8000 of a block per server tick (50ms);
     for example, -1343 would move (-1343 / 8000) = ~0.167875 blocks per tick (or ~3.3575 blocks per second).
 
 
@@ -3936,14 +3922,15 @@ class SetEntityVelocity(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x50
 
     def __init__(
-            self,
-            entity_id: Varint,
-            velocity_x: Short,
-            velocity_y: Short,
-            velocity_z: Short,
+        self,
+        entity_id: Varint,
+        velocity_x: Short,
+        velocity_y: Short,
+        velocity_z: Short,
     ):
         self.entity_id = entity_id
         self.velocity_x = velocity_x
@@ -3952,11 +3939,11 @@ class SetEntityVelocity(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.velocity_x) +
-            bytes(self.velocity_y) +
-            bytes(self.velocity_z)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.velocity_x)
+            + bytes(self.velocity_y)
+            + bytes(self.velocity_z)
         )
 
     @classmethod
@@ -3971,7 +3958,7 @@ class SetEntityVelocity(Packet):
         # velocity_z
         velocity_z = Short.from_bytes(data)
         return cls(entity_id, velocity_x, velocity_y, velocity_z)
-    
+
 
 class SetEquipment(Packet):
     """
@@ -3981,14 +3968,15 @@ class SetEquipment(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x51
 
     def __init__(
-            self,
-            entity_id: Varint,
-            slot: Slot,
-            item: Slot,
-            nbt_data: NBT,
+        self,
+        entity_id: Varint,
+        slot: Slot,
+        item: Slot,
+        nbt_data: NBT,
     ):
         self.entity_id = entity_id
         self.slot = slot
@@ -3997,11 +3985,11 @@ class SetEquipment(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.slot) +
-            bytes(self.item) +
-            bytes(self.nbt_data)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.slot)
+            + bytes(self.item)
+            + bytes(self.nbt_data)
         )
 
     @classmethod
@@ -4028,13 +4016,14 @@ class SetExperience(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x52
 
     def __init__(
-            self,
-            experience_bar: Float,
-            total_experience: Varint,
-            level: Varint,
+        self,
+        experience_bar: Float,
+        total_experience: Varint,
+        level: Varint,
     ):
         self.experience_bar = experience_bar
         self.total_experience = total_experience
@@ -4042,10 +4031,10 @@ class SetExperience(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.experience_bar) +
-            bytes(self.level) +
-            bytes(self.total_experience)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.experience_bar)
+            + bytes(self.level)
+            + bytes(self.total_experience)
         )
 
     @classmethod
@@ -4068,13 +4057,14 @@ class SetHealth(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x53
 
     def __init__(
-            self,
-            health: Float,
-            food: Varint,
-            food_saturation: Float,
+        self,
+        health: Float,
+        food: Varint,
+        food_saturation: Float,
     ):
         self.health = health
         self.food = food
@@ -4082,10 +4072,10 @@ class SetHealth(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.health) +
-            bytes(self.food) +
-            bytes(self.food_saturation)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.health)
+            + bytes(self.food)
+            + bytes(self.food_saturation)
         )
 
     @classmethod
@@ -4108,14 +4098,15 @@ class UpdateObjectives(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x54
 
     def __init__(
-            self,
-            objective_name: String,
-            mode: UpdateObjectiveModes,
-            objective_value: Chat | None = None,
-            objective_type: UpdateObjectiveType | None = None,
+        self,
+        objective_name: String,
+        mode: UpdateObjectiveModes,
+        objective_value: Chat | None = None,
+        objective_type: UpdateObjectiveType | None = None,
     ):
         self.objective_name = objective_name
         self.mode = mode
@@ -4124,11 +4115,11 @@ class UpdateObjectives(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.objective_name) +
-            bytes(self.mode) +
-            bytes(self.objective_value) +
-            bytes(self.objective_type)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.objective_name)
+            + bytes(self.mode)
+            + bytes(self.objective_value)
+            + bytes(self.objective_type)
         )
 
     @classmethod
@@ -4139,15 +4130,19 @@ class UpdateObjectives(Packet):
         # mode
         mode = UpdateObjectiveModes(Byte.from_bytes(data))
         # objective_value
-        objective_value = Chat.from_bytes(data) if mode in (
-            UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE
-        ) else None
+        objective_value = (
+            Chat.from_bytes(data)
+            if mode in (UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE)
+            else None
+        )
         # objective_type
-        objective_type = UpdateObjectiveType(Varint.from_bytes(data)) if mode in (
-            UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE
-        ) else None
+        objective_type = (
+            UpdateObjectiveType(Varint.from_bytes(data))
+            if mode in (UpdateObjectiveModes.CREATE, UpdateObjectiveModes.UPDATE)
+            else None
+        )
         return cls(objective_name, mode, objective_value, objective_type)
-    
+
 
 class SetPassengers(Packet):
     """
@@ -4157,22 +4152,23 @@ class SetPassengers(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x55
 
     def __init__(
-            self,
-            entity_id: Varint,
-            passengers: list[Varint],
+        self,
+        entity_id: Varint,
+        passengers: list[Varint],
     ):
         self.entity_id = entity_id
         self.passengers = passengers
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(Varint(len(self.passengers))) +
-            bytes(self.passengers)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(Varint(len(self.passengers)))
+            + bytes(self.passengers)
         )
 
     @classmethod
@@ -4195,13 +4191,14 @@ class UpdateTeams(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x56
 
     def __init__(
-            self,
-            team_name: String,
-            mode: UpdateTeamModes,
-            data: _DataProxy,
+        self,
+        team_name: String,
+        mode: UpdateTeamModes,
+        data: _DataProxy,
     ):
         self.team_name = team_name
         self.mode = mode
@@ -4209,35 +4206,37 @@ class UpdateTeams(Packet):
 
     def __bytes__(self):
         res = (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.team_name) +
-            bytes(self.mode.value)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.team_name)
+            + bytes(self.mode.value)
         )
         if self.mode is UpdateTeamModes.CREATE:
             res += (
-                bytes(self.data.display_name) + 
-                bytes(self.data.friendly_flags) + 
-                bytes(self.data.name_tag_visibility) + 
-                bytes(self.data.collision_rule) + 
-                bytes(self.data.color) + 
-                bytes(self.data.prefix) + 
-                bytes(self.data.suffix) + 
-                bytes(Varint(len(self.data.entities))) + 
-                b"".join([bytes(e) for e in self.data.entities])
+                bytes(self.data.display_name)
+                + bytes(self.data.friendly_flags)
+                + bytes(self.data.name_tag_visibility)
+                + bytes(self.data.collision_rule)
+                + bytes(self.data.color)
+                + bytes(self.data.prefix)
+                + bytes(self.data.suffix)
+                + bytes(Varint(len(self.data.entities)))
+                + b"".join([bytes(e) for e in self.data.entities])
             )
         elif self.mode is UpdateTeamModes.REMOVE:
             pass
         elif self.mode is UpdateTeamModes.UPDATE:
             res += (
-                bytes(self.data.friendly_flags) + 
-                bytes(self.data.name_tag_visibility) + 
-                bytes(self.data.collision_rule) + 
-                bytes(self.data.color) + 
-                bytes(self.data.prefix) + 
-                bytes(self.data.suffix)
+                bytes(self.data.friendly_flags)
+                + bytes(self.data.name_tag_visibility)
+                + bytes(self.data.collision_rule)
+                + bytes(self.data.color)
+                + bytes(self.data.prefix)
+                + bytes(self.data.suffix)
             )
         elif self.mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
-            res += bytes(Varint(len(self.data.entities))) + b"".join([bytes(e) for e in self.data.entities])
+            res += bytes(Varint(len(self.data.entities))) + b"".join(
+                [bytes(e) for e in self.data.entities]
+            )
         return res
 
     @classmethod
@@ -4252,12 +4251,17 @@ class UpdateTeams(Packet):
             data = _DataProxy(
                 display_name=Chat.from_bytes(data),
                 friendly_flags=Byte.from_bytes(data),
-                name_tag_visibility=NameTagVisibility(String.from_bytes(data, max_length=32)),
+                name_tag_visibility=NameTagVisibility(
+                    String.from_bytes(data, max_length=32)
+                ),
                 collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
-                entities=[String.from_bytes(data, max_length=40) for _ in range(Varint.from_bytes(data).value)]
+                entities=[
+                    String.from_bytes(data, max_length=40)
+                    for _ in range(Varint.from_bytes(data).value)
+                ],
             )
         elif mode is UpdateTeamModes.REMOVE:
             data = _DataProxy()
@@ -4265,7 +4269,9 @@ class UpdateTeams(Packet):
             data = _DataProxy(
                 display_name=Chat.from_bytes(data),
                 friendly_flags=Byte.from_bytes(data),
-                name_tag_visibility=NameTagVisibility(String.from_bytes(data, max_length=32)),
+                name_tag_visibility=NameTagVisibility(
+                    String.from_bytes(data, max_length=32)
+                ),
                 collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
@@ -4273,7 +4279,10 @@ class UpdateTeams(Packet):
             )
         elif mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
             data = _DataProxy(
-                entities=[String.from_bytes(data, max_length=40) for _ in range(Varint.from_bytes(data).value)]
+                entities=[
+                    String.from_bytes(data, max_length=40)
+                    for _ in range(Varint.from_bytes(data).value)
+                ]
             )
         else:
             raise ValueError("Invalid mode")
@@ -4288,14 +4297,15 @@ class UpdateScore(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x57
 
     def __init__(
-            self,
-            entity_name: String,
-            action: UpdateScoreAction,
-            objective_name: String,
-            value: Varint | None = None,
+        self,
+        entity_name: String,
+        action: UpdateScoreAction,
+        objective_name: String,
+        value: Varint | None = None,
     ):
         self.entity_name = entity_name
         self.action = action
@@ -4304,10 +4314,10 @@ class UpdateScore(Packet):
 
     def __bytes__(self):
         res = (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_name) +
-            bytes(self.action.value) +
-            bytes(self.objective_name)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_name)
+            + bytes(self.action.value)
+            + bytes(self.objective_name)
         )
         if self.action is UpdateScoreAction.CHANGE:
             res += bytes(self.value)
@@ -4323,32 +4333,34 @@ class UpdateScore(Packet):
         # objective_name
         objective_name = String.from_bytes(data, max_length=16)
         # value
-        value = Varint.from_bytes(data) if action is UpdateScoreAction.CREATE_OR_UPDATE else None
+        value = (
+            Varint.from_bytes(data)
+            if action is UpdateScoreAction.CREATE_OR_UPDATE
+            else None
+        )
         return cls(entity_name, action, objective_name, value)
 
 
 class SetSimulationDistance(Packet):
     """
-    Sent by the server to the client to set the distance at 
+    Sent by the server to the client to set the distance at
     which the client will receive simulation updates.
 
     Packet ID: 0x58
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x58
 
     def __init__(
-            self,
-            distance: Varint,
+        self,
+        distance: Varint,
     ):
         self.distance = distance
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.distance)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.distance)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -4366,19 +4378,17 @@ class SetSubtitleText(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x59
 
     def __init__(
-            self,
-            subtitle: Chat,
+        self,
+        subtitle: Chat,
     ):
         self.subtitle = subtitle
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.subtitle)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.subtitle)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -4386,35 +4396,36 @@ class SetSubtitleText(Packet):
         # subtitle
         subtitle = Chat.from_bytes(data)
         return cls(subtitle)
-    
+
 
 class UpdateTime(Packet):
     """
-    Time is based on ticks, where 20 ticks happen every second. 
+    Time is based on ticks, where 20 ticks happen every second.
     There are 24000 ticks in a day, making Minecraft days exactly 20 minutes long.
 
-    The time of day is based on the timestamp modulo 24000. 
+    The time of day is based on the timestamp modulo 24000.
     0 is sunrise, 6000 is noon, 12000 is sunset, and 18000 is midnight.
 
     Packet ID: 0x5A
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5A
 
     def __init__(
-            self,
-            world_age: Long,
-            time_of_day: Long,
+        self,
+        world_age: Long,
+        time_of_day: Long,
     ):
         self.world_age = world_age
         self.time_of_day = time_of_day
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.world_age) +
-            bytes(self.time_of_day)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.world_age)
+            + bytes(self.time_of_day)
         )
 
     @classmethod
@@ -4425,7 +4436,7 @@ class UpdateTime(Packet):
         # time_of_day
         time_of_day = Long.from_bytes(data)
         return cls(world_age, time_of_day)
-    
+
 
 class SetTitleText(Packet):
     """
@@ -4435,19 +4446,17 @@ class SetTitleText(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5B
 
     def __init__(
-            self,
-            title: Chat,
+        self,
+        title: Chat,
     ):
         self.title = title
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.title)
-        )
+        return self.packet_id.to_bytes(1, "big") + bytes(self.title)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -4465,13 +4474,14 @@ class SetTitleAnimationTimes(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5C
 
     def __init__(
-            self,
-            fade_in: Int,
-            stay: Int,
-            fade_out: Int,
+        self,
+        fade_in: Int,
+        stay: Int,
+        fade_out: Int,
     ):
         self.fade_in = fade_in
         self.stay = stay
@@ -4479,10 +4489,10 @@ class SetTitleAnimationTimes(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.fade_in) +
-            bytes(self.stay) +
-            bytes(self.fade_out)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.fade_in)
+            + bytes(self.stay)
+            + bytes(self.fade_out)
         )
 
     @classmethod
@@ -4499,23 +4509,24 @@ class SetTitleAnimationTimes(Packet):
 
 class EntitySoundEffect(Packet):
     """
-    Sent by the server to the client to play a sound effect 
+    Sent by the server to the client to play a sound effect
     for an entity.
 
     Packet ID: 0x5D
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5D
 
     def __init__(
-            self,
-            sound_id: Varint,
-            sound_category: Varint,
-            entity_id: Varint,
-            volume: Float,
-            pitch: Float,
-            seed: Long,
+        self,
+        sound_id: Varint,
+        sound_category: Varint,
+        entity_id: Varint,
+        volume: Float,
+        pitch: Float,
+        seed: Long,
     ):
         self.sound_id = sound_id
         self.sound_category = sound_category
@@ -4526,13 +4537,13 @@ class EntitySoundEffect(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.sound_id) +
-            bytes(self.sound_category) +
-            bytes(self.entity_id) +
-            bytes(self.volume) +
-            bytes(self.pitch) +
-            bytes(self.seed)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.sound_id)
+            + bytes(self.sound_category)
+            + bytes(self.entity_id)
+            + bytes(self.volume)
+            + bytes(self.pitch)
+            + bytes(self.seed)
         )
 
     @classmethod
@@ -4561,18 +4572,19 @@ class SoundEffect(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5E
 
     def __init__(
-            self,
-            sound_id: Varint,
-            sound_category: Varint,
-            x: Int,
-            y: Int,
-            z: Int,
-            volume: Float,
-            pitch: Float,
-            seed: Long,
+        self,
+        sound_id: Varint,
+        sound_category: Varint,
+        x: Int,
+        y: Int,
+        z: Int,
+        volume: Float,
+        pitch: Float,
+        seed: Long,
     ):
         self.sound_id = sound_id
         self.sound_category = sound_category
@@ -4585,15 +4597,15 @@ class SoundEffect(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.sound_id) +
-            bytes(self.sound_category) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.volume) +
-            bytes(self.pitch) + 
-            bytes(self.seed)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.sound_id)
+            + bytes(self.sound_category)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.volume)
+            + bytes(self.pitch)
+            + bytes(self.seed)
         )
 
     @classmethod
@@ -4626,13 +4638,14 @@ class StopSound(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x5F
 
     def __init__(
-            self,
-            flags: Byte,
-            source: Varint | None,
-            sound: Identifier | None,
+        self,
+        flags: Byte,
+        source: Varint | None,
+        sound: Identifier | None,
     ):
         self.flags = flags
         self.source = source
@@ -4640,10 +4653,10 @@ class StopSound(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.flags) +
-            bytes(self.source) +
-            bytes(self.sound)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.flags)
+            + bytes(self.source)
+            + bytes(self.sound)
         )
 
     @classmethod
@@ -4656,7 +4669,7 @@ class StopSound(Packet):
         # sound
         sound = Identifier.from_bytes(data)
         return cls(flags, source, sound)
-    
+
 
 class SystemChatMessage(Packet):
     """
@@ -4666,21 +4679,22 @@ class SystemChatMessage(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x60
 
     def __init__(
-            self,
-            content: Chat,
-            overlay: Boolean,
+        self,
+        content: Chat,
+        overlay: Boolean,
     ):
         self.content = content
         self.overlay = overlay
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.content) +
-            bytes(self.overlay)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.content)
+            + bytes(self.overlay)
         )
 
     @classmethod
@@ -4701,21 +4715,20 @@ class SetTabListHeaderAndFooter(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x61
 
     def __init__(
-            self,
-            header: Chat | None,
-            footer: Chat | None,
+        self,
+        header: Chat | None,
+        footer: Chat | None,
     ):
         self.header = header
         self.footer = footer
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.header) +
-            bytes(self.footer)
+            self.packet_id.to_bytes(1, "big") + bytes(self.header) + bytes(self.footer)
         )
 
     @classmethod
@@ -4736,21 +4749,22 @@ class TagQueryResponse(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x62
 
     def __init__(
-            self,
-            transaction_id: Varint,
-            nbt: NBT,
+        self,
+        transaction_id: Varint,
+        nbt: NBT,
     ):
         self.transaction_id = transaction_id
         self.nbt = nbt
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.transaction_id) +
-            bytes(self.nbt)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.transaction_id)
+            + bytes(self.nbt)
         )
 
     @classmethod
@@ -4771,13 +4785,14 @@ class PickupItem(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x63
 
     def __init__(
-            self,
-            collected_entity_id: Varint,
-            collector_entity_id: Varint,
-            pickup_item_count: Varint,
+        self,
+        collected_entity_id: Varint,
+        collector_entity_id: Varint,
+        pickup_item_count: Varint,
     ):
         self.collected_entity_id = collected_entity_id
         self.collector_entity_id = collector_entity_id
@@ -4785,12 +4800,12 @@ class PickupItem(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.collected_entity_id) +
-            bytes(self.collector_entity_id) +
-            bytes(self.pickup_item_count)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.collected_entity_id)
+            + bytes(self.collector_entity_id)
+            + bytes(self.pickup_item_count)
         )
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: collected_entity_id (varint), collector_entity_id (varint), pickup_item_count (varint)
@@ -4801,7 +4816,7 @@ class PickupItem(Packet):
         # pickup_item_count
         pickup_item_count = Varint.from_bytes(data)
         return cls(collected_entity_id, collector_entity_id, pickup_item_count)
-    
+
 
 class TeleportEntity(Packet):
     """
@@ -4811,17 +4826,18 @@ class TeleportEntity(Packet):
     State: Play
     Bound To: Client
     """
+
     packet_id = 0x64
 
     def __init__(
-            self,
-            entity_id: Varint,
-            x: Double,
-            y: Double,
-            z: Double,
-            yaw: Angle,
-            pitch: Angle,
-            on_ground: Boolean,
+        self,
+        entity_id: Varint,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Angle,
+        pitch: Angle,
+        on_ground: Boolean,
     ):
         self.entity_id = entity_id
         self.x = x
@@ -4833,14 +4849,14 @@ class TeleportEntity(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.x) +
-            bytes(self.y) +
-            bytes(self.z) +
-            bytes(self.yaw) +
-            bytes(self.pitch) +
-            bytes(self.on_ground)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.x)
+            + bytes(self.y)
+            + bytes(self.z)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
+            + bytes(self.on_ground)
         )
 
     @classmethod
@@ -4861,6 +4877,3 @@ class TeleportEntity(Packet):
         # on_ground
         on_ground = Boolean.from_bytes(data)
         return cls(entity_id, x, y, z, yaw, pitch, on_ground)
-
-
-
