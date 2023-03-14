@@ -3923,7 +3923,6 @@ class LinkEntities(Packet):
         holding_entity_id = Int.from_bytes(data)
         return cls(attached_entity_id, holding_entity_id)
     
-
 class SetEntityVelocity(Packet):
     """
     Sent by the server to the client to update the velocity of an entity.

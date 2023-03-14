@@ -34,3 +34,4 @@ jobs:
         with:
           message: 'refactor: format with black'
           remove: '-r --cached -f translations data ipc skin_rendering lore_rendering'
+          default_author: github_actions
