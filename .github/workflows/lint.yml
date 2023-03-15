@@ -1,11 +1,20 @@
-name: Lint
+name: Analyze Code with Pylint
 
-on: [ push, workflow_dispatch ]
+on:
+  push:
+    branches:
+      - 'main'
+      - 'release/**'
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - 'main'
+      - 'release/**'
 
 permissions: write-all
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,4 +43,5 @@ jobs:
           missing-class-docstring,too-many-locals,broad-exception-raised,no-member,\
           too-few-public-methods,too-many-return-statements,protected-access,too-many-arguments,\
           too-many-branches,too-many-lines,duplicate-code,too-many-statements,too-many-nested-blocks,\
-          invalid-name
+          invalid-name,unused-wildcard-import,wildcard-import,cyclic-import,redefined-builtin,\
+          redefined-outer-name,undefined-variable
