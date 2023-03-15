@@ -27,7 +27,6 @@
 
 import json
 import struct
-from types import FrameType
 import uuid
 from io import BytesIO
 from typing import Any
@@ -70,6 +69,7 @@ __all__ = (
     "UUID",
     "NBT",
     "Slot",
+    "Particle",
     "ByteArray",
     "EntityMetadataEntry",
     "VillagerData",
@@ -84,12 +84,6 @@ __all__ = (
     "Trade",
     "_DataProxy",
     "PlayerInfoUpdatePlayer",
-    "Advancement",
-    "AdvancementProgress",
-    "CriterionProgress",
-    "AdvancementDisplay",
-    "Recipe",
-    "ParticleType",
 )
 
 
@@ -322,7 +316,7 @@ class EntityMetadataEntry:
             13: UUID.from_bytes,
             14: Varint.from_bytes,
             15: NBT.from_bytes,
-            16: ParticleType.from_bytes,
+            16: Particle.from_bytes,
             17: VillagerData.from_bytes,
             18: Varint.from_bytes,
             19: Varint.from_bytes,
@@ -350,7 +344,7 @@ class Rotation(DataType):
         )
 
 
-class ParticleType(DataType):
+class Particle(DataType):
     def __init__(self, name: Identifier, id: Varint, data: bytes):
         self.name: Identifier = name
         self.id: Varint = id
@@ -976,316 +970,4 @@ class PlayerInfoUpdatePlayer(DataType):
             update_listed,
             update_latency,
             update_display_name,
-        )
-
-
-class Advancement(DataType):
-    def __init__(
-        self,
-        parent_id: str | None = None,
-        display_data: _DataProxy | None = None,
-        criteria: dict[Identifier, None] | None = None,
-        requirements: list[list[String]] | None = None,
-    ):
-        self.parent_id: str | None = parent_id
-        self.display_data: _DataProxy | None = display_data
-        self.criteria: dict[Identifier, None] = criteria or {}
-        self.requirements: list[list[String]] = requirements or []
-
-    def __bytes__(self) -> bytes:
-        res = bytes(Boolean(self.parent_id is not None))
-        if self.parent_id is not None:
-            res += bytes(String(self.parent_id))
-        res += bytes(Boolean(self.display_data is not None))
-        if self.display_data is not None:
-            res += bytes(self.display_data)
-        res += bytes(Varint(len(self.criteria)))
-        for criteria in self.criteria:
-            res += bytes(String(criteria))
-        res += bytes(Varint(len(self.requirements)))
-        for requirement in self.requirements:
-            res += bytes(Varint(len(requirement)))
-            for requirement_item in requirement:
-                res += bytes(requirement_item)
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        parent_id = None
-        if Boolean.from_bytes(data):
-            parent_id = String.from_bytes(data)
-        display_data = None
-        if Boolean.from_bytes(data):
-            display_data = _DataProxy.from_bytes(data)
-        criteria_count = Varint.from_bytes(data).value
-        criteria = {}
-        for _ in range(criteria_count):
-            criteria[String.from_bytes(data)] = None
-        requirements_count = Varint.from_bytes(data).value
-        requirements = []
-        for _ in range(requirements_count):
-            requirement_count = Varint.from_bytes(data).value
-            requirement = []
-            for _ in range(requirement_count):
-                requirement.append(String.from_bytes(data))
-            requirements.append(requirement)
-        return cls(
-            parent_id,
-            display_data,
-            criteria,
-            requirements,
-        )
-
-
-class AdvancementDisplay(DataType):
-    def __init__(
-        self,
-        title: Chat,
-        description: Chat,
-        icon: Identifier,
-        frame_type: FrameType,
-        flags: Int,
-        background_texture: Identifier | None,
-        x: float,
-        y: float,
-    ):
-        self.title: Chat = title
-        self.description: Chat = description
-        self.icon: Slot = icon
-        self.frame_type: FrameType = frame_type
-        self.flags: int = flags
-        self.background_texture: Identifier | None = background_texture
-        self.x: float = x
-        self.y: float = y
-
-    def __bytes__(self) -> bytes:
-        res = bytes(self.title)
-        res += bytes(self.description)
-        res += bytes(self.icon)
-        res += bytes(Varint(self.frame_type.value))
-        res += bytes(Varint(self.flags))
-        if self.flags.value & 0x01:
-            res += bytes(self.background_texture)
-        res += bytes(Float(self.x))
-        res += bytes(Float(self.y))
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        title = Chat.from_bytes(data)
-        description = Chat.from_bytes(data)
-        icon = Slot.from_bytes(data)
-        frame_type = FrameType(Varint.from_bytes(data).value)
-        flags = Varint.from_bytes(data).value
-        background_texture = None
-        if flags.value & 0x01:
-            background_texture = Identifier.from_bytes(data)
-        x = Float.from_bytes(data)
-        y = Float.from_bytes(data)
-        return cls(
-            title,
-            description,
-            icon,
-            frame_type,
-            flags,
-            background_texture,
-            x,
-            y,
-        )
-
-
-class CriterionProgress(DataType):
-    def __init__(
-        self,
-        achieved: Boolean,
-        date: Long | None = None,
-    ):
-        self.achieved: Boolean = achieved
-        self.date: Long | None = date
-
-    def __bytes__(self) -> bytes:
-        res = bytes(self.achieved)
-        if self.achieved:
-            res += bytes(self.date)
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        achieved = Boolean.from_bytes(data)
-        date = None
-        if achieved:
-            date = Long.from_bytes(data)
-        return cls(
-            achieved,
-            date,
-        )
-
-
-class AdvancementProgress(DataType):
-    def __init__(
-        self,
-        identifier: Identifier,
-        progress: CriterionProgress,
-    ):
-        self.identifier: Identifier = identifier
-        self.progress: CriterionProgress = progress
-
-    def __bytes__(self) -> bytes:
-        res = bytes(self.identifier)
-        res += bytes(self.progress)
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        identifier = Identifier.from_bytes(data)
-        progress = CriterionProgress.from_bytes(data)
-        return cls(
-            identifier,
-            progress,
-        )
-
-
-class Ingredient(DataType):
-    def __init__(
-        self,
-        items: list[Slot],
-    ):
-        self.items: list[Slot] = items
-
-    def __bytes__(self) -> bytes:
-        res = bytes(Varint(len(self.items)))
-        for item in self.items:
-            res += bytes(item)
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        items_count = Varint.from_bytes(data).value
-        items = []
-        for _ in range(items_count):
-            items.append(Slot.from_bytes(data))
-        return cls(
-            items,
-        )
-
-
-class Recipe(DataType):
-    def __init__(
-        self,
-        recipe_type: Identifier,
-        recipe_id: Identifier,
-        data: _DataProxy,
-    ):
-        self.recipe_type: Identifier = recipe_type
-        self.recipe_id: Identifier = recipe_id
-        self.data: _DataProxy = data
-
-    def __bytes__(self) -> bytes:
-        res = bytes(self.recipe_type)
-        res += bytes(self.recipe_id)
-        if self.recipe_type.value == "minecraft:crafting_shapeless":
-            res += bytes(self.data.group)
-            res += bytes(Varint(self.data.category))
-            res += bytes(Varint(len(self.data.ingredients)))
-            for ingredient in self.data.ingredients:
-                res += bytes(ingredient)
-            res += bytes(self.data.result)
-        elif self.recipe_type.value == "minecraft:crafting_shaped":
-            res += bytes(Varint(self.data.width))
-            res += bytes(Varint(self.data.height))
-            res += bytes(self.data.group)
-            res += bytes(Varint(self.data.category))
-            for ingredient in self.data.ingredients:
-                res += bytes(ingredient)
-            res += bytes(self.data.result)
-        elif self.recipe_type.value.startswith("minecraft:crafting_special_"):
-            res += bytes(Varint(self.data.category))
-        elif self.recipe_type.value in (
-            "minecraft:smelting",
-            "minecraft:blasting",
-            "minecraft:smoking",
-            "minecraft:campfire_cooking",
-            "minecraft:stonecutting",
-        ):
-            res += bytes(self.data.group)
-            res += bytes(Varint(self.data.category))
-            res += bytes(self.data.ingredient)
-            res += bytes(self.data.result)
-            res += bytes(Float(self.data.experience))
-            res += bytes(Varint(self.data.cooking_time))
-        elif self.recipe_type.value == "minecraft:stonecutting":
-            res += bytes(self.data.group)
-            res += bytes(Varint(self.data.category))
-            res += bytes(self.data.ingredient)
-            res += bytes(self.data.result)
-        elif self.recipe_type.value == "minecraft:smithing":
-            res += bytes(self.data.base)
-            res += bytes(self.data.addition)
-            res += bytes(self.data.result)
-        else:
-            raise ValueError(f"Unknown recipe type {self.recipe_type}")
-        return res
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        recipe_type = Identifier.from_bytes(data)
-        recipe_id = Identifier.from_bytes(data)
-        if recipe_type.value == "minecraft:crafting_shapeless":
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredients=[
-                    Ingredient.from_bytes(data)
-                    for _ in range(Varint.from_bytes(data).value)
-                ],
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:crafting_shaped":
-            data = _DataProxy(
-                width=Varint.from_bytes(data).value,
-                height=Varint.from_bytes(data).value,
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredients=[
-                    Ingredient.from_bytes(data)
-                    for _ in range(Varint.from_bytes(data).value)
-                ],
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value.startswith("minecraft:crafting_special_"):
-            data = _DataProxy(
-                category=Varint.from_bytes(data),
-            )
-        elif recipe_type.value in (
-            "minecraft:smelting",
-            "minecraft:blasting",
-            "minecraft:smoking",
-            "minecraft:campfire_cooking",
-        ):
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredient=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-                experience=Float.from_bytes(data),
-                cooking_time=Varint.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:stonecutting":
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                ingredient=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:smithing":
-            data = _DataProxy(
-                base=Ingredient.from_bytes(data),
-                addition=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-            )
-        else:
-            raise ValueError(f"Unknown recipe type: {recipe_type}")
-        return cls(
-            recipe_type,
-            recipe_id,
-            data,
         )

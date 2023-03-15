@@ -200,6 +200,12 @@ class CommandParser(Varint, ReprEnum):
     UUID = Varint(47)
 
 
+class BrigadierStringParser(Varint, ReprEnum):
+    SINGLE_WORD = Varint(0)
+    QUOTABLE_PHRASE = Varint(1)
+    GREEDY_PHRASE = Varint(2)
+
+
 class Enchant(Varint, ReprEnum):
     PROTECTION = Varint(0)
     FIRE_PROTECTION = Varint(1)
@@ -482,9 +488,3 @@ class CollisionRule(String, ReprEnum):
 class UpdateScoreAction(Varint, ReprEnum):
     CREATE_OR_UPDATE = Varint(0)
     REMOVE = Varint(1)
-
-
-class AdvancementFrameType(Varint, ReprEnum):
-    TASK = Varint(0)
-    CHALLENGE = Varint(1)
-    GOAL = Varint(2)
