@@ -4030,8 +4030,8 @@ class SetExperience(Packet):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.experience_bar)
-            + bytes(self.level)
             + bytes(self.total_experience)
+            + bytes(self.level)
         )
 
     @classmethod
@@ -4043,7 +4043,7 @@ class SetExperience(Packet):
         total_experience = Varint.from_bytes(data)
         # level
         level = Varint.from_bytes(data)
-        return cls(experience_bar, level, total_experience)
+        return cls(experience_bar, total_experience, level)
 
 
 class SetHealth(Packet):
