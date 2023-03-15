@@ -322,7 +322,7 @@ class EntityMetadataEntry:
             13: UUID.from_bytes,
             14: Varint.from_bytes,
             15: NBT.from_bytes,
-            16: Particle.from_bytes,
+            16: ParticleType.from_bytes,
             17: VillagerData.from_bytes,
             18: Varint.from_bytes,
             19: Varint.from_bytes,
