@@ -26,7 +26,7 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from io import BytesIO
-from typing_extensions import Self
+from typing import Self
 
 
 class Packet:
@@ -35,7 +35,7 @@ class Packet:
     packet_id: int = None
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
+    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
         return cls()
 
     @classmethod
