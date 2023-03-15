@@ -1,5 +1,5 @@
 """
-MCPy Packets
+minecraft.packets
 ~~~~~~~~~~~~~
 
 Contains all the packets used in the Minecraft protocol, as documented at https://wiki.vg/Protocol.
