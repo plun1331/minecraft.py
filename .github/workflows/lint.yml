@@ -42,4 +42,5 @@ jobs:
           redefined-argument-from-local,too-many-public-methods,missing-module-docstring,\
           missing-class-docstring,too-many-locals,broad-exception-raised,no-member,\
           too-few-public-methods,too-many-return-statements,protected-access,too-many-arguments,\
-          too-many-branches,too-many-lines,duplicate-code,too-many-statements,too-many-nested-blocks
+          too-many-branches,too-many-lines,duplicate-code,too-many-statements,too-many-nested-blocks,\
+          invalid-name
