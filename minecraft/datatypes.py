@@ -1008,7 +1008,7 @@ class Advancement(DataType):
             for requirement_item in requirement:
                 res += bytes(requirement_item)
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         parent_id = None
@@ -1108,7 +1108,7 @@ class CriterionProgress(DataType):
         if self.achieved:
             res += bytes(self.date)
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         achieved = Boolean.from_bytes(data)
@@ -1134,7 +1134,7 @@ class AdvancementProgress(DataType):
         res = bytes(self.identifier)
         res += bytes(self.progress)
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         identifier = Identifier.from_bytes(data)
