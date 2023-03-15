@@ -3975,14 +3975,10 @@ class SetEquipment(Packet):
     def __init__(
         self,
         entity_id: Varint,
-        slot: Slot,
-        item: Slot,
-        nbt_data: NBT,
+        equipment: list[tuple[Byte, Slot]],
     ):
         self.entity_id = entity_id
-        self.slot = slot
-        self.item = item
-        self.nbt_data = nbt_data
+        self.equipment = equipment
 
     def __bytes__(self):
         return (

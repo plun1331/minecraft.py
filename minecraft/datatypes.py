@@ -70,7 +70,6 @@ __all__ = (
     "UUID",
     "NBT",
     "Slot",
-    "Particle",
     "ByteArray",
     "EntityMetadataEntry",
     "VillagerData",
@@ -90,6 +89,7 @@ __all__ = (
     "CriterionProgress",
     "AdvancementDisplay",
     "Recipe",
+    "ParticleType",
 )
 
 
@@ -350,7 +350,7 @@ class Rotation(DataType):
         )
 
 
-class Particle(DataType):
+class ParticleType(DataType):
     def __init__(self, name: Identifier, id: Varint, data: bytes):
         self.name: Identifier = name
         self.id: Varint = id
