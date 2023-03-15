@@ -6,6 +6,8 @@ on:
       - reopened
       - edited
       - synchronize
+permissions:
+  pull-requests: read
 
 jobs:
   lint:
