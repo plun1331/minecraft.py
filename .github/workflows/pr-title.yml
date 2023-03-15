@@ -8,6 +8,7 @@ on:
       - synchronize
 permissions:
   pull-requests: read
+  contents: read
 
 jobs:
   lint:
