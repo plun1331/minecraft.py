@@ -26,7 +26,7 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from io import BytesIO
-from typing_extensions import Self
+from typing import Self
 
 
 class Packet:

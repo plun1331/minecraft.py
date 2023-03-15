@@ -27,6 +27,7 @@
 
 import json
 import struct
+from types import FrameType
 import uuid
 from io import BytesIO
 from typing import Any
@@ -84,6 +85,10 @@ __all__ = (
     "Trade",
     "_DataProxy",
     "PlayerInfoUpdatePlayer",
+    "Advancement",
+    "AdvancementProgress",
+    "CriterionProgress",
+    "AdvancementDisplay",
 )
 
 
@@ -970,4 +975,170 @@ class PlayerInfoUpdatePlayer(DataType):
             update_listed,
             update_latency,
             update_display_name,
+        )
+
+
+class Advancement(DataType):
+    def __init__(
+        self,
+        parent_id: str | None = None,
+        display_data: _DataProxy | None = None,
+        criteria: dict[Identifier, None] | None = None,
+        requirements: list[list[String]] | None = None,
+    ):
+        self.parent_id: str | None = parent_id
+        self.display_data: _DataProxy | None = display_data
+        self.criteria: dict[Identifier, None] = criteria or {}
+        self.requirements: list[list[String]] = requirements or []
+
+    def __bytes__(self) -> bytes:
+        res = bytes(Boolean(self.parent_id is not None))
+        if self.parent_id is not None:
+            res += bytes(String(self.parent_id))
+        res += bytes(Boolean(self.display_data is not None))
+        if self.display_data is not None:
+            res += bytes(self.display_data)
+        res += bytes(Varint(len(self.criteria)))
+        for criteria in self.criteria:
+            res += bytes(String(criteria))
+        res += bytes(Varint(len(self.requirements)))
+        for requirement in self.requirements:
+            res += bytes(Varint(len(requirement)))
+            for requirement_item in requirement:
+                res += bytes(requirement_item)
+        return res
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        parent_id = None
+        if Boolean.from_bytes(data):
+            parent_id = String.from_bytes(data)
+        display_data = None
+        if Boolean.from_bytes(data):
+            display_data = _DataProxy.from_bytes(data)
+        criteria_count = Varint.from_bytes(data).value
+        criteria = {}
+        for _ in range(criteria_count):
+            criteria[String.from_bytes(data)] = None
+        requirements_count = Varint.from_bytes(data).value
+        requirements = []
+        for _ in range(requirements_count):
+            requirement_count = Varint.from_bytes(data).value
+            requirement = []
+            for _ in range(requirement_count):
+                requirement.append(String.from_bytes(data))
+            requirements.append(requirement)
+        return cls(
+            parent_id,
+            display_data,
+            criteria,
+            requirements,
+        )
+
+
+class AdvancementDisplay(DataType):
+    def __init__(
+        self,
+        title: Chat,
+        description: Chat,
+        icon: Identifier,
+        frame_type: FrameType,
+        flags: Int,
+        background_texture: Identifier | None,
+        x: float,
+        y: float,
+    ):
+        self.title: Chat = title
+        self.description: Chat = description
+        self.icon: Slot = icon
+        self.frame_type: FrameType = frame_type
+        self.flags: int = flags
+        self.background_texture: Identifier | None = background_texture
+        self.x: float = x
+        self.y: float = y
+
+    def __bytes__(self) -> bytes:
+        res = bytes(self.title)
+        res += bytes(self.description)
+        res += bytes(self.icon)
+        res += bytes(Varint(self.frame_type.value))
+        res += bytes(Varint(self.flags))
+        if self.flags.value & 0x01:
+            res += bytes(self.background_texture)
+        res += bytes(Float(self.x))
+        res += bytes(Float(self.y))
+        return res
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        title = Chat.from_bytes(data)
+        description = Chat.from_bytes(data)
+        icon = Slot.from_bytes(data)
+        frame_type = FrameType(Varint.from_bytes(data).value)
+        flags = Varint.from_bytes(data).value
+        background_texture = None
+        if flags.value & 0x01:
+            background_texture = Identifier.from_bytes(data)
+        x = Float.from_bytes(data)
+        y = Float.from_bytes(data)
+        return cls(
+            title,
+            description,
+            icon,
+            frame_type,
+            flags,
+            background_texture,
+            x,
+            y,
+        )
+
+
+class CriterionProgress(DataType):
+    def __init__(
+        self,
+        achieved: Boolean,
+        date: Long | None = None,
+    ):
+        self.achieved: Boolean = achieved
+        self.date: Long | None = date
+
+    def __bytes__(self) -> bytes:
+        res = bytes(self.achieved)
+        if self.achieved:
+            res += bytes(self.date)
+        return res
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        achieved = Boolean.from_bytes(data)
+        date = None
+        if achieved:
+            date = Long.from_bytes(data)
+        return cls(
+            achieved,
+            date,
+        )
+
+
+class AdvancementProgress(DataType):
+    def __init__(
+        self,
+        identifier: Identifier,
+        progress: CriterionProgress,
+    ):
+        self.identifier: Identifier = identifier
+        self.progress: CriterionProgress = progress
+
+    def __bytes__(self) -> bytes:
+        res = bytes(self.identifier)
+        res += bytes(self.progress)
+        return res
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        identifier = Identifier.from_bytes(data)
+        progress = CriterionProgress.from_bytes(data)
+        return cls(
+            identifier,
+            progress,
         )

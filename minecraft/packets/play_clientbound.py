@@ -4878,3 +4878,155 @@ class TeleportEntity(Packet):
         # on_ground
         on_ground = Boolean.from_bytes(data)
         return cls(entity_id, x, y, z, yaw, pitch, on_ground)
+
+
+class UpdateAdvancements(Packet):
+    """
+    Sent by the server to the client to update the advancements.
+
+    Packet ID: 0x65
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x65
+
+    def __init__(
+        self,
+        reset: Boolean,
+        mapping: dict[Identifier, Advancement],
+        identifiers: list[Identifier],
+        progress: list[AdvancementProgress],
+    ):
+        self.reset = reset
+        self.mapping = mapping
+        self.identifiers = identifiers
+        self.progress = progress
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.reset) +
+            bytes(Varint(len(self.mapping))) +
+            b"".join(bytes(Identifier(key)) + bytes(value) for key, value in self.mapping.items()) +
+            bytes(Varint(len(self.identifiers))) +
+            b"".join(bytes(identifier) for identifier in self.identifiers) +
+            bytes(Varint(len(self.progress))) +
+            b"".join(bytes(progress) for progress in self.progress)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: reset (boolean), mapping (dictionary), identifiers (list), progress (list)
+        # reset
+        reset = Boolean.from_bytes(data)
+        # mapping
+        mapping = {}
+        for _ in range(Varint.from_bytes(data)):
+            key = Identifier.from_bytes(data)
+            value = Advancement.from_bytes(data)
+            mapping[key] = value
+        # identifiers
+        identifiers = []
+        for _ in range(Varint.from_bytes(data)):
+            identifiers.append(Identifier.from_bytes(data))
+        # progress
+        progress = []
+        for _ in range(Varint.from_bytes(data)):
+            progress.append(AdvancementProgress.from_bytes(data))
+        return cls(reset, mapping, identifiers, progress)
+
+
+class UpdateAttributes(Packet):
+    """
+    Sets attributes on the given entity.
+
+    Packet ID: 0x66
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x66
+
+    def __init__(
+        self,
+        entity_id: Varint,
+        attributes: list[_DataProxy],
+    ):
+        self.entity_id = entity_id
+        self.attributes = attributes
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(Varint(len(self.attributes)))
+            + b"".join(
+                bytes(attribute.key) + 
+                bytes(attribute.value) + 
+                bytes(Varint(len(attribute.modifiers))) +
+                b"".join(
+                    bytes(mod.uuid) + 
+                    bytes(mod.amount) + 
+                    bytes(mod.operation)
+                    for mod in attribute.modifiers
+                )
+                for attribute in self.attributes
+            )
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), attributes (list)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # attributes
+        attributes = []
+        for _ in range(Varint.from_bytes(data)):
+            key = Identifier.from_bytes(data)
+            value = Double.from_bytes(data)
+            modifiers = []
+            for _ in range(Varint.from_bytes(data)):
+                uuid = UUID.from_bytes(data)
+                amount = Double.from_bytes(data)
+                operation = Varint.from_bytes(data)
+                modifiers.append(_DataProxy(uuid=uuid, amount=amount, operation=operation))
+            attributes.append(_DataProxy(key=key, value=value, modifiers=modifiers))
+        return cls(entity_id, attributes)
+    
+
+class FeatureFlags(Packet):
+    """
+    Used to enable and disable features, generally experimental ones, on the client.
+
+    Packet ID: 0x67
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x67
+
+    def __init__(
+        self,
+        features: list[Identifier],
+    ):
+        self.features = features
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(Varint(len(self.features))) +
+            b"".join(bytes(feature) for feature in self.features)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: features (list)
+        # features
+        features = []
+        for _ in range(Varint.from_bytes(data)):
+            features.append(Identifier.from_bytes(data))
+        return cls(features)
+
+
+
