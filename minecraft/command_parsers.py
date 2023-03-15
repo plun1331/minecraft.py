@@ -25,8 +25,8 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from typing import Self
 from .datatypes import *
-from .enums import BrigadierStringParser
 
 
 class _Brigadier:
@@ -87,8 +87,8 @@ class BrigadierLong(_Brigadier):
 
 class BrigadierString:
     # brigadier:string
-    def __init__(self, value: BrigadierStringParser):
-        self.value: BrigadierStringParser = value
+    def __init__(self, value: Varint):
+        self.value: Varint = value
 
     def __repr__(self):
         return f"BrigadierString(value={self.value})"
@@ -101,7 +101,7 @@ class BrigadierString:
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        value = BrigadierStringParser(Varint.from_bytes(data))
+        value = Varint.from_bytes(data)
         return cls(value)
 
 
