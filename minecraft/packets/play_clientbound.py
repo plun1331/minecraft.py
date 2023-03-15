@@ -26,6 +26,7 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from typing import Generator
+
 from .base import Packet
 from ..datatypes import *
 from ..enums import (
@@ -960,7 +961,7 @@ class ChatSuggestions(Packet):
         return cls(action, entries)
 
 
-class PluginMessage(Packet):
+class PluginMessageClientbound(Packet):
     """
     Mods and plugins can use this to send their data.
     Minecraft itself uses several plugin channels.

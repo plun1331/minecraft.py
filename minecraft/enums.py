@@ -488,3 +488,56 @@ class AdvancementFrameType(Varint, ReprEnum):
     TASK = Varint(0)
     CHALLENGE = Varint(1)
     GOAL = Varint(2)
+
+
+class ClientCommandAction(Varint, ReprEnum):
+    PERFORM_RESPAWN = Varint(0)
+    REQUEST_STATS = Varint(1)
+
+
+class ChatMode(Varint, ReprEnum):
+    ENABLED = Varint(0)
+    COMMANDS_ONLY = Varint(1)
+    HIDDEN = Varint(2)
+
+
+class MainHand(Varint, ReprEnum):
+    LEFT = Varint(0)
+    RIGHT = Varint(1)
+
+
+class InteractionType(Varint, ReprEnum):
+    INTERACT = Varint(0)
+    ATTACK = Varint(1)
+    INTERACT_AT = Varint(2)
+
+
+class PlayerActionStatus(Varint, ReprEnum):
+    STARTED_DIGGING = Varint(0)
+    CANCELLED_DIGGING = Varint(1)
+    FINISHED_DIGGING = Varint(2)
+    DROP_ITEM_STACK = Varint(3)
+    DROP_ITEM = Varint(4)
+    SHOOT_ARROW = Varint(5)
+    SWAP_ITEM_IN_HAND = Varint(6)
+
+
+class BlockFace(Byte, ReprEnum):
+    BOTTOM = Byte(0)
+    TOP = Byte(1)
+    NORTH = Byte(2)
+    SOUTH = Byte(3)
+    WEST = Byte(4)
+    EAST = Byte(5)
+
+
+class PlayerCommandAction(Varint, ReprEnum):
+    START_SNEAKING = Varint(0)
+    STOP_SNEAKING = Varint(1)
+    LEAVE_BED = Varint(2)
+    START_SPRINTING = Varint(3)
+    STOP_SPRINTING = Varint(4)
+    START_JUMP_WITH_HORSE = Varint(5)
+    STOP_JUMP_WITH_HORSE = Varint(6)
+    OPEN_HORSE_INVENTORY = Varint(7)
+    START_FLYING_WITH_ELYTRA = Varint(8)
