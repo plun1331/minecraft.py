@@ -488,3 +488,9 @@ class CollisionRule(String, ReprEnum):
 class UpdateScoreAction(Varint, ReprEnum):
     CREATE_OR_UPDATE = Varint(0)
     REMOVE = Varint(1)
+
+
+class AdvancementFrameType(Varint, ReprEnum):
+    TASK = Varint(0)
+    CHALLENGE = Varint(1)
+    GOAL = Varint(2)
