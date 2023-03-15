@@ -1,4 +1,4 @@
-name: Lint
+name: Analyze Code with Pylint
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 permissions: write-all
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
