@@ -9,9 +9,10 @@ Contains all the packets used in the Minecraft protocol, as documented at https:
 """
 
 from .base import *
-from .handshake import *
+from .handshake_serverbound import *
 from .login_clientbound import *
 from .login_serverbound import *
 from .play_clientbound import *
 from .play_serverbound import *
-from .status import *
+from .status_clientbound import *
+from .status_serverbound import *
