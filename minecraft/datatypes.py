@@ -89,6 +89,7 @@ __all__ = (
     "AdvancementProgress",
     "CriterionProgress",
     "AdvancementDisplay",
+    "Recipe",
 )
 
 
@@ -1142,3 +1143,133 @@ class AdvancementProgress(DataType):
             identifier,
             progress,
         )
+
+
+class Ingredient(DataType):
+    def __init__(
+        self,
+        items: list[Slot],
+    ):
+        self.items: list[Slot] = items
+
+    def __bytes__(self) -> bytes:
+        res = bytes(Varint(len(self.items)))
+        for item in self.items:
+            res += bytes(item)
+        return res
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        items_count = Varint.from_bytes(data).value
+        items = []
+        for _ in range(items_count):
+            items.append(Slot.from_bytes(data))
+        return cls(
+            items,
+        )
+
+
+class Recipe(DataType):
+    def __init__(
+        self,
+        recipe_type: Identifier,
+        recipe_id: Identifier,
+        data: _DataProxy,
+    ):
+        self.recipe_type: Identifier = recipe_type
+        self.recipe_id: Identifier = recipe_id
+        self.data: _DataProxy = data
+
+    def __bytes__(self) -> bytes:
+        res = bytes(self.recipe_type)
+        res += bytes(self.recipe_id)
+        if self.recipe_type.value == "minecraft:crafting_shapeless":
+            res += bytes(self.data.group)
+            res += bytes(Varint(self.data.category))
+            res += bytes(Varint(len(self.data.ingredients)))
+            for ingredient in self.data.ingredients:
+                res += bytes(ingredient)
+            res += bytes(self.data.result)
+        elif self.recipe_type.value == "minecraft:crafting_shaped":
+            res += bytes(Varint(self.data.width))
+            res += bytes(Varint(self.data.height))
+            res += bytes(self.data.group)
+            res += bytes(Varint(self.data.category))
+            for ingredient in self.data.ingredients:
+                res += bytes(ingredient)
+            res += bytes(self.data.result)
+        elif self.recipe_type.value.startswith("minecraft:crafting_special_"):
+            res += bytes(Varint(self.data.category))
+        elif self.recipe_type.value in ("minecraft:smelting", "minecraft:blasting", "minecraft:smoking", "minecraft:campfire_cooking", "minecraft:stonecutting"):
+            res += bytes(self.data.group)
+            res += bytes(Varint(self.data.category))
+            res += bytes(self.data.ingredient)
+            res += bytes(self.data.result)
+            res += bytes(Float(self.data.experience))
+            res += bytes(Varint(self.data.cooking_time))
+        elif self.recipe_type.value == "minecraft:stonecutting":
+            res += bytes(self.data.group)
+            res += bytes(Varint(self.data.category))
+            res += bytes(self.data.ingredient)
+            res += bytes(self.data.result)
+        elif self.recipe_type.value == "minecraft:smithing":
+            res += bytes(self.data.base)
+            res += bytes(self.data.addition)
+            res += bytes(self.data.result)
+        else:
+            raise ValueError(f"Unknown recipe type {self.recipe_type}")
+        return res
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        recipe_type = Identifier.from_bytes(data)
+        recipe_id = Identifier.from_bytes(data)
+        if recipe_type.value == "minecraft:crafting_shapeless":
+            data = _DataProxy(
+                group=String.from_bytes(data),
+                category=Varint.from_bytes(data),
+                ingredients=[Ingredient.from_bytes(data) for _ in range(Varint.from_bytes(data).value)],
+                result=Slot.from_bytes(data),
+            )
+        elif recipe_type.value == "minecraft:crafting_shaped":
+            data = _DataProxy(
+                width=Varint.from_bytes(data).value,
+                height=Varint.from_bytes(data).value,
+                group=String.from_bytes(data),
+                category=Varint.from_bytes(data),
+                ingredients=[Ingredient.from_bytes(data) for _ in range(Varint.from_bytes(data).value)],
+                result=Slot.from_bytes(data),
+            )
+        elif recipe_type.value.startswith("minecraft:crafting_special_"):
+            data = _DataProxy(
+                category=Varint.from_bytes(data),
+            )
+        elif recipe_type.value in ("minecraft:smelting", "minecraft:blasting", "minecraft:smoking", "minecraft:campfire_cooking"):
+            data = _DataProxy(
+                group=String.from_bytes(data),
+                category=Varint.from_bytes(data),
+                ingredient=Ingredient.from_bytes(data),
+                result=Slot.from_bytes(data),
+                experience=Float.from_bytes(data),
+                cooking_time=Varint.from_bytes(data),
+            )
+        elif recipe_type.value == "minecraft:stonecutting":
+            data = _DataProxy(
+                group=String.from_bytes(data),
+                ingredient=Ingredient.from_bytes(data),
+                result=Slot.from_bytes(data),
+            )
+        elif recipe_type.value == "minecraft:smithing":
+            data = _DataProxy(
+                base=Ingredient.from_bytes(data),
+                addition=Ingredient.from_bytes(data),
+                result=Slot.from_bytes(data),
+            )
+        else:
+            raise ValueError(f"Unknown recipe type: {recipe_type}")
+        return cls(
+            recipe_type,
+            recipe_id,
+            data,
+        )
+        

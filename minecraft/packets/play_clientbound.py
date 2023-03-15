@@ -5029,4 +5029,92 @@ class FeatureFlags(Packet):
         return cls(features)
 
 
+class EntityEffect(Packet):
+    """
+    Applies an effect to the given entity.
 
+    Packet ID: 0x68
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x68
+
+    def __init__(
+        self,
+        entity_id: Varint,
+        effect_id: Byte,
+        amplifier: Byte,
+        duration: Varint,
+        flags: Byte,
+        factor_codec: NBT,
+    ):
+        self.entity_id = entity_id
+        self.effect_id = effect_id
+        self.amplifier = amplifier
+        self.duration = duration
+        self.flags = flags
+        self.factor_codec = factor_codec
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.entity_id) +
+            bytes(self.effect_id) +
+            bytes(self.amplifier) +
+            bytes(self.duration) +
+            bytes(self.flags) +
+            bytes(Boolean(self.factor_codec is not None)) +
+            bytes(self.factor_codec)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), effect_id (byte), amplifier (byte), duration (varint), flags (byte), factor_codec (nbt)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # effect_id
+        effect_id = Byte.from_bytes(data)
+        # amplifier
+        amplifier = Byte.from_bytes(data)
+        # duration
+        duration = Varint.from_bytes(data)
+        # flags
+        flags = Byte.from_bytes(data)
+        # factor_codec
+        factor_codec = NBT.from_bytes(data) if Boolean.from_bytes(data) else None
+        return cls(entity_id, effect_id, amplifier, duration, flags, factor_codec)
+
+
+class UpdateRecipes(Packet):
+    """
+    Updates the recipes on the client.
+
+    Packet ID: 0x69
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x69
+
+    def __init__(
+        self,
+        recipes: list[Recipe],
+    ):
+        self.recipes = recipes
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") +
+            bytes(Varint(len(self.recipes))) +
+            b"".join(bytes(recipe) for recipe in self.recipes)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: recipes (list)
+        # recipes
+        recipes = []
+        for _ in range(Varint.from_bytes(data)):
+            recipes.append(Recipe.from_bytes(data))
+        return cls(recipes)
