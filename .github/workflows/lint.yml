@@ -14,7 +14,7 @@ on:
 permissions: write-all
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
