@@ -4905,14 +4905,17 @@ class UpdateAdvancements(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.reset) +
-            bytes(Varint(len(self.mapping))) +
-            b"".join(bytes(Identifier(key)) + bytes(value) for key, value in self.mapping.items()) +
-            bytes(Varint(len(self.identifiers))) +
-            b"".join(bytes(identifier) for identifier in self.identifiers) +
-            bytes(Varint(len(self.progress))) +
-            b"".join(bytes(progress) for progress in self.progress)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.reset)
+            + bytes(Varint(len(self.mapping)))
+            + b"".join(
+                bytes(Identifier(key)) + bytes(value)
+                for key, value in self.mapping.items()
+            )
+            + bytes(Varint(len(self.identifiers)))
+            + b"".join(bytes(identifier) for identifier in self.identifiers)
+            + bytes(Varint(len(self.progress)))
+            + b"".join(bytes(progress) for progress in self.progress)
         )
 
     @classmethod
@@ -4962,13 +4965,11 @@ class UpdateAttributes(Packet):
             + bytes(self.entity_id)
             + bytes(Varint(len(self.attributes)))
             + b"".join(
-                bytes(attribute.key) + 
-                bytes(attribute.value) + 
-                bytes(Varint(len(attribute.modifiers))) +
-                b"".join(
-                    bytes(mod.uuid) + 
-                    bytes(mod.amount) + 
-                    bytes(mod.operation)
+                bytes(attribute.key)
+                + bytes(attribute.value)
+                + bytes(Varint(len(attribute.modifiers)))
+                + b"".join(
+                    bytes(mod.uuid) + bytes(mod.amount) + bytes(mod.operation)
                     for mod in attribute.modifiers
                 )
                 for attribute in self.attributes
@@ -4990,10 +4991,12 @@ class UpdateAttributes(Packet):
                 uuid = UUID.from_bytes(data)
                 amount = Double.from_bytes(data)
                 operation = Varint.from_bytes(data)
-                modifiers.append(_DataProxy(uuid=uuid, amount=amount, operation=operation))
+                modifiers.append(
+                    _DataProxy(uuid=uuid, amount=amount, operation=operation)
+                )
             attributes.append(_DataProxy(key=key, value=value, modifiers=modifiers))
         return cls(entity_id, attributes)
-    
+
 
 class FeatureFlags(Packet):
     """
@@ -5014,9 +5017,9 @@ class FeatureFlags(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Varint(len(self.features))) +
-            b"".join(bytes(feature) for feature in self.features)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.features)))
+            + b"".join(bytes(feature) for feature in self.features)
         )
 
     @classmethod
@@ -5027,6 +5030,3 @@ class FeatureFlags(Packet):
         for _ in range(Varint.from_bytes(data)):
             features.append(Identifier.from_bytes(data))
         return cls(features)
-
-
-
