@@ -28,6 +28,7 @@
 from .base import Packet
 from ..datatypes import *
 
+
 class ConfirmTeleportation(Packet):
     """
     Sent by client as confirmation of Synchronize Player Position.
@@ -43,18 +44,15 @@ class ConfirmTeleportation(Packet):
         self.teleport_id = teleport_id
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.teleport_id)
-        )
-    
+        return self.packet_id.to_bytes(1, "big") + bytes(self.teleport_id)
+
     @classmethod
     def from_bytes(cls, data: bytes):
         # Fields: teleport_id (Varint)
         # teleport_id
         teleport_id = Varint.from_bytes(data[1:])
         return cls(teleport_id)
-    
+
 
 class QueryBlockEntityTag(Packet):
     """
@@ -67,34 +65,30 @@ class QueryBlockEntityTag(Packet):
 
     packet_id = 0x01
 
-    def __init__(
-        self,
-        transaction_id: Varint,
-        location: Position
-    ):
+    def __init__(self, transaction_id: Varint, location: Position):
         self.transaction_id = transaction_id
         self.location = location
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.transaction_id) +
-            bytes(self.location)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.transaction_id)
+            + bytes(self.location)
         )
-    
+
     @classmethod
     def from_bytes(cls, data: bytes):
         # Fields: transaction_id (Varint), location (Position)
         # transaction_id
         transaction_id = Varint.from_bytes(data[1:])
         # location
-        location = Position.from_bytes(data[1 + len(transaction_id):])
+        location = Position.from_bytes(data[1 + len(transaction_id) :])
         return cls(transaction_id, location)
-    
+
 
 class ChangeDifficulty(Packet):
     """
-    Only be used on singleplayer; 
+    Only be used on singleplayer;
     the difficulty buttons are disabled in multiplayer.
 
     Packet ID: 0x02
@@ -108,11 +102,8 @@ class ChangeDifficulty(Packet):
         self.difficulty = difficulty
 
     def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.difficulty)
-        )
-    
+        return self.packet_id.to_bytes(1, "big") + bytes(self.difficulty)
+
     @classmethod
     def from_bytes(cls, data: bytes):
         # Fields: difficulty (UnsignedByte)

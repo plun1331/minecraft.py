@@ -28,6 +28,7 @@
 from .base import Packet
 from ..datatypes import *
 
+
 class LoginStart(Packet):
     """
     Sent by the client to start the login process.
