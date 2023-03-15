@@ -1157,7 +1157,7 @@ class Ingredient(DataType):
         for item in self.items:
             res += bytes(item)
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         items_count = Varint.from_bytes(data).value
@@ -1200,7 +1200,13 @@ class Recipe(DataType):
             res += bytes(self.data.result)
         elif self.recipe_type.value.startswith("minecraft:crafting_special_"):
             res += bytes(Varint(self.data.category))
-        elif self.recipe_type.value in ("minecraft:smelting", "minecraft:blasting", "minecraft:smoking", "minecraft:campfire_cooking", "minecraft:stonecutting"):
+        elif self.recipe_type.value in (
+            "minecraft:smelting",
+            "minecraft:blasting",
+            "minecraft:smoking",
+            "minecraft:campfire_cooking",
+            "minecraft:stonecutting",
+        ):
             res += bytes(self.data.group)
             res += bytes(Varint(self.data.category))
             res += bytes(self.data.ingredient)
@@ -1219,7 +1225,7 @@ class Recipe(DataType):
         else:
             raise ValueError(f"Unknown recipe type {self.recipe_type}")
         return res
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         recipe_type = Identifier.from_bytes(data)
@@ -1228,7 +1234,10 @@ class Recipe(DataType):
             data = _DataProxy(
                 group=String.from_bytes(data),
                 category=Varint.from_bytes(data),
-                ingredients=[Ingredient.from_bytes(data) for _ in range(Varint.from_bytes(data).value)],
+                ingredients=[
+                    Ingredient.from_bytes(data)
+                    for _ in range(Varint.from_bytes(data).value)
+                ],
                 result=Slot.from_bytes(data),
             )
         elif recipe_type.value == "minecraft:crafting_shaped":
@@ -1237,14 +1246,22 @@ class Recipe(DataType):
                 height=Varint.from_bytes(data).value,
                 group=String.from_bytes(data),
                 category=Varint.from_bytes(data),
-                ingredients=[Ingredient.from_bytes(data) for _ in range(Varint.from_bytes(data).value)],
+                ingredients=[
+                    Ingredient.from_bytes(data)
+                    for _ in range(Varint.from_bytes(data).value)
+                ],
                 result=Slot.from_bytes(data),
             )
         elif recipe_type.value.startswith("minecraft:crafting_special_"):
             data = _DataProxy(
                 category=Varint.from_bytes(data),
             )
-        elif recipe_type.value in ("minecraft:smelting", "minecraft:blasting", "minecraft:smoking", "minecraft:campfire_cooking"):
+        elif recipe_type.value in (
+            "minecraft:smelting",
+            "minecraft:blasting",
+            "minecraft:smoking",
+            "minecraft:campfire_cooking",
+        ):
             data = _DataProxy(
                 group=String.from_bytes(data),
                 category=Varint.from_bytes(data),
@@ -1272,4 +1289,3 @@ class Recipe(DataType):
             recipe_id,
             data,
         )
-        

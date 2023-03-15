@@ -5057,14 +5057,14 @@ class EntityEffect(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.entity_id) +
-            bytes(self.effect_id) +
-            bytes(self.amplifier) +
-            bytes(self.duration) +
-            bytes(self.flags) +
-            bytes(Boolean(self.factor_codec is not None)) +
-            bytes(self.factor_codec)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.effect_id)
+            + bytes(self.amplifier)
+            + bytes(self.duration)
+            + bytes(self.flags)
+            + bytes(Boolean(self.factor_codec is not None))
+            + bytes(self.factor_codec)
         )
 
     @classmethod
@@ -5104,9 +5104,9 @@ class UpdateRecipes(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(Varint(len(self.recipes))) +
-            b"".join(bytes(recipe) for recipe in self.recipes)
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.recipes)))
+            + b"".join(bytes(recipe) for recipe in self.recipes)
         )
 
     @classmethod
