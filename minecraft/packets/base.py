@@ -35,7 +35,7 @@ class Packet:
     packet_id: int = None
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
+    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
         return cls()
 
     @classmethod

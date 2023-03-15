@@ -1306,8 +1306,8 @@ class InitializeWorldBorder(Packet):
         new_diameter: Double,
         speed: Varlong,
         portal_teleport_boundary: Varint,
-        warning_blocks: Varint,
         warning_time: Varint,
+        warning_blocks: Varint,
     ):
         self.x: Double = x
         self.z: Double = z
