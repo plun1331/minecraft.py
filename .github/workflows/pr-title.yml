@@ -11,7 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: aslafy-z/conventional-pr-title-action@master
+      - uses: aslafy-z/conventional-pr-title-action@b9d8aa3
         with:
           failure-state: Title does not follow the specification. See https://conventionalcommits.org/ for more information.
           context-name: conventional-pr-title
