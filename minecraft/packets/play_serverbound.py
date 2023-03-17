@@ -591,7 +591,8 @@ class PluginMessageServerbound(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -1405,9 +1406,11 @@ class PlayerSession(Packet):
         # public_key_expires_at
         public_key_expires_at = Long.from_bytes(data)
         # public_key
-        public_key = ByteArray.from_bytes(data, length=Varint.from_bytes(data).value)
+        public_key = ByteArray.from_bytes(
+            data, length=Varint.from_bytes(data).value)
         # public_key_signature
-        public_key_signature = ByteArray.from_bytes(data, length=Varint.from_bytes(data).value)
+        public_key_signature = ByteArray.from_bytes(
+            data, length=Varint.from_bytes(data).value)
         return cls(session_id, public_key_expires_at, public_key, public_key_signature)
 
 
@@ -1450,7 +1453,7 @@ class ChangeRecipeBookSettings(Packet):
         # filter_active
         filter_active = Boolean.from_bytes(data)
         return cls(book_id, book_open, filter_active)
-    
+
 
 class SetSeenRecipe(Packet):
     """
@@ -1478,7 +1481,7 @@ class SetSeenRecipe(Packet):
         # recipe_id
         recipe_id = Identifier.from_bytes(data)
         return cls(recipe_id)
-    
+
 
 class RenameItem(Packet):
     """
@@ -1507,7 +1510,7 @@ class RenameItem(Packet):
         # item_name
         item_name = String.from_bytes(data, max_length=32767)
         return cls(item_name)
-    
+
 
 class ResourcePack(Packet):
     """
@@ -1535,7 +1538,7 @@ class ResourcePack(Packet):
         # resource_pack_status
         resource_pack_status = ResourcePackStatus(Varint.from_bytes(data))
         return cls(resource_pack_status)
-    
+
 
 class SeenAdvancements(Packet):
     """
@@ -1555,7 +1558,7 @@ class SeenAdvancements(Packet):
     ):
         self.action = action
         self.tab_id = tab_id
-        
+
     def __bytes__(self):
         return (
             self.packet_id.to_bytes(1, "big")
@@ -1569,9 +1572,10 @@ class SeenAdvancements(Packet):
         # action
         action = SeenAdvancementsAction(Varint.from_bytes(data))
         # tab_id
-        tab_id = Identifier.from_bytes(data) if action == SeenAdvancementsAction.OPENED_TAB else None
+        tab_id = Identifier.from_bytes(
+            data) if action == SeenAdvancementsAction.OPENED_TAB else None
         return cls(action, tab_id)
-    
+
 
 class SelectTrade(Packet):
     """
@@ -1599,7 +1603,7 @@ class SelectTrade(Packet):
         # selected_slot
         selected_slot = Varint.from_bytes(data)
         return cls(selected_slot)
-    
+
 
 class SetBeaconEffect(Packet):
     """
@@ -1633,11 +1637,13 @@ class SetBeaconEffect(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: primary_effect (Varint), secondary_effect (Varint)
         # primary_effect
-        primary_effect = Varint.from_bytes(data) if Boolean.from_bytes(data) else None
+        primary_effect = Varint.from_bytes(
+            data) if Boolean.from_bytes(data) else None
         # secondary_effect
-        secondary_effect = Varint.from_bytes(data) if Boolean.from_bytes(data) else None
+        secondary_effect = Varint.from_bytes(
+            data) if Boolean.from_bytes(data) else None
         return cls(primary_effect, secondary_effect)
-    
+
 
 class SetHeldItem(Packet):
     """
@@ -1665,7 +1671,7 @@ class SetHeldItem(Packet):
         # slot
         slot = Short.from_bytes(data)
         return cls(slot)
-    
+
 
 class ProgramCommandBlock(Packet):
     """
@@ -1711,7 +1717,7 @@ class ProgramCommandBlock(Packet):
         # flags
         flags = Byte.from_bytes(data)
         return cls(location, command, mode, flags)
-    
+
 
 class ProgramCommandBlockMinecart(Packet):
     """
@@ -1752,7 +1758,7 @@ class ProgramCommandBlockMinecart(Packet):
         # track_output
         track_output = Boolean.from_bytes(data)
         return cls(entity_id, command, track_output)
-    
+
 
 class SetCreativeModeSlot(Packet):
     """
@@ -1850,6 +1856,7 @@ class ProgramStructureBlock(Packet):
     State: Play
     Bound to: Server
     """
+
     def __init__(
         self,
         location: Position,
@@ -1906,13 +1913,13 @@ class ProgramStructureBlock(Packet):
             + bytes(self.seed)
             + bytes(self.flags)
         )
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO):
-        # Fields: location (Position), action (ProgramStructureBlockAction), 
-        # mode (ProgramStructureBlockMode), name (String), offset_x (Byte), 
-        # offset_y (Byte), offset_z (Byte), size_x (Byte), size_y (Byte), size_z (Byte), 
-        # mirror (ProgramStructureBlockMirror), rotation (ProgramStructureBlockRotation), 
+        # Fields: location (Position), action (ProgramStructureBlockAction),
+        # mode (ProgramStructureBlockMode), name (String), offset_x (Byte),
+        # offset_y (Byte), offset_z (Byte), size_x (Byte), size_y (Byte), size_z (Byte),
+        # mirror (ProgramStructureBlockMirror), rotation (ProgramStructureBlockRotation),
         # metadata (String), integrity (Float), seed (Varlong), flags (Byte)
         # location
         location = Position.from_bytes(data)
@@ -1999,7 +2006,7 @@ class UpdateSign(Packet):
         line_4 = String.from_bytes(data, max_length=384)
         return cls(location, line_1, line_2, line_3, line_4)
 
-    
+
 class SwingArm(Packet):
     """
     Swings the player's arm.
@@ -2023,7 +2030,7 @@ class SwingArm(Packet):
         # hand
         hand = Hand(Varint.from_bytes(data))
         return cls(hand)
-    
+
 
 class TeleportToEntity(Packet):
     """
@@ -2048,7 +2055,7 @@ class TeleportToEntity(Packet):
         # target_player
         target_player = UUID.from_bytes(data)
         return cls(target_player)
-    
+
 
 class UseItemOn(Packet):
     """
@@ -2093,7 +2100,7 @@ class UseItemOn(Packet):
             + bytes(self.inside_block)
             + bytes(self.sequence)
         )
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand), location (Position), face (BlockFace), cursor_x (Float), cursor_y (Float), cursor_z (Float), inside_block (Boolean), sequence (Varint)
@@ -2114,7 +2121,7 @@ class UseItemOn(Packet):
         # sequence
         sequence = Varint.from_bytes(data)
         return cls(hand, location, face, cursor_x, cursor_y, cursor_z, inside_block, sequence)
-    
+
 
 class UseItem(Packet):
     """

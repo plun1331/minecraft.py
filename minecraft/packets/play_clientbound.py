@@ -94,7 +94,7 @@ class SpawnEntity(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, 'big')
+            self.packet_id.to_bytes(1, "big")
             + bytes(self.entity_id)
             + bytes(self.entity_uuid)
             + bytes(self.entity_type)
@@ -539,7 +539,8 @@ class BossBar(Packet):
         self.flags: UnsignedByte | None = flags
 
     def __bytes__(self):
-        res = self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.action)
+        res = self.packet_id.to_bytes(
+            1, "big") + bytes(self.uuid) + bytes(self.action)
         match self.action.value:
             case 0:
                 res += (
@@ -980,7 +981,8 @@ class PluginMessageClientbound(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -1172,7 +1174,8 @@ class Explosion(Packet):
         records = []
         for _ in range(count):
             records.append(
-                (Byte.from_bytes(data), Byte.from_bytes(data), Byte.from_bytes(data))
+                (Byte.from_bytes(data), Byte.from_bytes(
+                    data), Byte.from_bytes(data))
             )
         # player_motion_x
         player_motion_x = Float.from_bytes(data)
@@ -1449,9 +1452,11 @@ class ChunkDataAndUpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.block_light])
         )
 
     @classmethod
@@ -1700,9 +1705,11 @@ class UpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.block_light])
         )
 
     @classmethod
@@ -1826,7 +1833,8 @@ class LoginPlay(Packet):
             + bytes(self.is_debug)
             + bytes(self.is_flat)
             + bytes(Boolean(self.has_death_location))
-            + (bytes(self.death_dimension_name) if self.has_death_location else b"")
+            + (bytes(self.death_dimension_name)
+               if self.has_death_location else b"")
             + (bytes(self.death_location) if self.has_death_location else b"")
         )
 
@@ -1881,7 +1889,8 @@ class LoginPlay(Packet):
             Identifier.from_bytes(data) if has_death_location else None
         )
         # death_location
-        death_location = Position.from_bytes(data) if has_death_location else None
+        death_location = Position.from_bytes(
+            data) if has_death_location else None
         return cls(
             entity_id,
             is_hardcore,
@@ -2610,11 +2619,13 @@ class PlayerChatMessage(Packet):
         for _ in range(prev_count):
             prev_id = Varint.from_bytes(data).value
             prev_sig = ByteArray.from_bytes(data, length=256)
-            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
+            previous_messages.append(_DataProxy(
+                id=prev_id, signature=prev_sig))
         # - Other
         # unsigned_content
         unsigned_content_present = Boolean.from_bytes(data)
-        unsigned_content = Chat.from_bytes(data) if unsigned_content_present else None
+        unsigned_content = Chat.from_bytes(
+            data) if unsigned_content_present else None
         # filter_type
         filter_type = FilterType(Varint.from_bytes(data))
         # filter_bits
@@ -2858,7 +2869,8 @@ class LookAt(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data) if is_entity else None
         # entity_feet_eyes
-        entity_feet_eyes = FeetEyes(Varint.from_bytes(data)) if is_entity else None
+        entity_feet_eyes = FeetEyes(
+            Varint.from_bytes(data)) if is_entity else None
         return cls(
             feet_eyes,
             target_x,
@@ -3143,7 +3155,8 @@ class ResourcePack(Packet):
             + bytes(self.hash)
             + bytes(self.forced)
             + bytes(Boolean(self.prompt_message is not None))
-            + (bytes(self.prompt_message) if self.prompt_message is not None else b"")
+            + (bytes(self.prompt_message)
+               if self.prompt_message is not None else b"")
         )
 
     @classmethod
@@ -3788,7 +3801,8 @@ class SetDefaultSpawnLocation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.location) + bytes(self.angle)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.location) + bytes(self.angle)
         )
 
     @classmethod
@@ -4252,7 +4266,8 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(
+                    String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
@@ -4270,7 +4285,8 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(
+                    String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
@@ -4726,7 +4742,8 @@ class SetTabListHeaderAndFooter(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.header) + bytes(self.footer)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.header) + bytes(self.footer)
         )
 
     @classmethod
@@ -4991,7 +5008,8 @@ class UpdateAttributes(Packet):
                 modifiers.append(
                     _DataProxy(uuid=uuid, amount=amount, operation=operation)
                 )
-            attributes.append(_DataProxy(key=key, value=value, modifiers=modifiers))
+            attributes.append(_DataProxy(
+                key=key, value=value, modifiers=modifiers))
         return cls(entity_id, attributes)
 
 
@@ -5082,7 +5100,8 @@ class EntityEffect(Packet):
         # flags
         flags = Byte.from_bytes(data)
         # factor_codec
-        factor_codec = NBT.from_bytes(data) if Boolean.from_bytes(data) else None
+        factor_codec = NBT.from_bytes(
+            data) if Boolean.from_bytes(data) else None
         return cls(entity_id, effect_id, amplifier, duration, flags, factor_codec)
 
 

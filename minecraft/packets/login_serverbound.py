@@ -49,7 +49,8 @@ class LoginStart(Packet):
         return self.uuid is not None
 
     def __bytes__(self) -> bytes:
-        res = bytes(self.id) + bytes(self.username) + bytes(Boolean(self.uuid_set))
+        res = bytes(self.id) + bytes(self.username) + \
+            bytes(Boolean(self.uuid_set))
         if self.uuid_set:
             res += bytes(self.uuid)
         return res
