@@ -541,3 +541,55 @@ class PlayerCommandAction(Varint, ReprEnum):
     STOP_JUMP_WITH_HORSE = Varint(6)
     OPEN_HORSE_INVENTORY = Varint(7)
     START_FLYING_WITH_ELYTRA = Varint(8)
+
+
+class RecipeBookID(Varint, ReprEnum):
+    CRAFTING = Varint(0)
+    FURNACE = Varint(1)
+    BLAST_FURNACE = Varint(2)
+    SMOKER = Varint(3)
+
+
+class ResourcePackStatus(Varint, ReprEnum):
+    SUCCESSFULLY_LOADED = Varint(0)
+    DECLINED = Varint(1)
+    FAILED_DOWNLOAD = Varint(2)
+    ACCEPTED = Varint(3)
+
+
+class SeenAdvancementsAction(Varint, ReprEnum):
+    OPENED_TAB = Varint(0)
+    CLOSED_SCREEN = Varint(1)
+
+
+class CommandBlockMode(Varint, ReprEnum):
+    SEQUENCE = Varint(0)
+    AUTO = Varint(1)
+    REDSTONE = Varint(2)
+
+
+class ProgramStructureBlockAction(Varint, ReprEnum):
+    UPDATE_DATA = Varint(0)
+    SAVE_STRUCTURE = Varint(1)
+    LOAD_STRUCTURE = Varint(2)
+    DETECT_SIZE = Varint(3)
+
+
+class ProgramStructureBlockMode(Varint, ReprEnum):
+    SAVE = Varint(0)
+    LOAD = Varint(1)
+    CORNER = Varint(2)
+    DATA = Varint(3)
+
+
+class ProgramStructureBlockMirror(Varint, ReprEnum):
+    NONE = Varint(0)
+    LEFT_RIGHT = Varint(1)
+    FRONT_BACK = Varint(2)
+
+
+class ProgramStructureBlockRotation(Varint, ReprEnum):
+    NONE = Varint(0)
+    CLOCKWISE_90 = Varint(1)
+    CLOCKWISE_180 = Varint(2)
+    COUNTERCLOCKWISE_90 = Varint(3)
