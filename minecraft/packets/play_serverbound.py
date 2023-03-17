@@ -316,7 +316,7 @@ class ClientCommand(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: action_id (ClientCommandAction)
         # action_id
-        action_id = ClientCommandAction(Varint.from_bytes(data))
+        action_id = ClientCommandAction.from_value(Varint.from_bytes(data))
         return cls(action_id)
 
 
@@ -374,13 +374,13 @@ class ClientInformation(Packet):
         # view_distance
         view_distance = Varint.from_bytes(data)
         # chat_mode
-        chat_mode = ChatMode(Varint.from_bytes(data))
+        chat_mode = ChatMode.from_value(Varint.from_bytes(data))
         # chat_colors
         chat_colors = Boolean.from_bytes(data)
         # displayed_skin_parts
         displayed_skin_parts = BitSet.from_bytes(data)
         # main_hand
-        main_hand = MainHand(Varint.from_bytes(data))
+        main_hand = MainHand.from_value(Varint.from_bytes(data))
         # enable_text_filtering
         enable_text_filtering = Boolean.from_bytes(data)
         # allow_server_listings
@@ -1246,11 +1246,11 @@ class PlayerAction(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: status (Varint), location (Position), face (Varint), sequence (Varint)
         # status
-        status = PlayerActionStatus(Varint.from_bytes(data))
+        status = PlayerActionStatus.from_value(Varint.from_bytes(data))
         # location
         location = Position.from_bytes(data)
         # face
-        face = BlockFace(Varint.from_bytes(data))
+        face = BlockFace.from_value(Varint.from_bytes(data))
         # sequence
         sequence = Varint.from_bytes(data)
         return cls(status, location, face, sequence)
@@ -1291,7 +1291,7 @@ class PlayerCommand(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data)
         # action_id
-        action_id = PlayerCommandAction(Varint.from_bytes(data))
+        action_id = PlayerCommandAction.from_value(Varint.from_bytes(data))
         # jump_boost
         jump_boost = Varint.from_bytes(data)
         return cls(entity_id, action_id, jump_boost)
@@ -1449,7 +1449,7 @@ class ChangeRecipeBookSettings(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: book_id (Varint), book_open (Boolean), filter_active (Boolean)
         # book_id
-        book_id = RecipeBookID(Varint.from_bytes(data))
+        book_id = RecipeBookID.from_value(Varint.from_bytes(data))
         # book_open
         book_open = Boolean.from_bytes(data)
         # filter_active
@@ -1538,7 +1538,7 @@ class ResourcePack(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: resource_pack_status (Varint)
         # resource_pack_status
-        resource_pack_status = ResourcePackStatus(Varint.from_bytes(data))
+        resource_pack_status = ResourcePackStatus.from_value(Varint.from_bytes(data))
         return cls(resource_pack_status)
 
 
@@ -1572,7 +1572,7 @@ class SeenAdvancements(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: action (Varint), tab_id (Identifier)
         # action
-        action = SeenAdvancementsAction(Varint.from_bytes(data))
+        action = SeenAdvancementsAction.from_value(Varint.from_bytes(data))
         # tab_id
         tab_id = Identifier.from_bytes(
             data) if action == SeenAdvancementsAction.OPENED_TAB else None
@@ -1715,7 +1715,7 @@ class ProgramCommandBlock(Packet):
         # command
         command = String.from_bytes(data, max_length=32767)
         # mode
-        mode = CommandBlockMode(Varint.from_bytes(data))
+        mode = CommandBlockMode.from_value(Varint.from_bytes(data))
         # flags
         flags = Byte.from_bytes(data)
         return cls(location, command, mode, flags)
@@ -1926,9 +1926,9 @@ class ProgramStructureBlock(Packet):
         # location
         location = Position.from_bytes(data)
         # action
-        action = ProgramStructureBlockAction(Varint.from_bytes(data))
+        action = ProgramStructureBlockAction.from_value(Varint.from_bytes(data))
         # mode
-        mode = ProgramStructureBlockMode(Varint.from_bytes(data))
+        mode = ProgramStructureBlockMode.from_value(Varint.from_bytes(data))
         # name
         name = String.from_bytes(data, max_length=32767)
         # offset_x
@@ -1944,9 +1944,9 @@ class ProgramStructureBlock(Packet):
         # size_z
         size_z = Byte.from_bytes(data)
         # mirror
-        mirror = ProgramStructureBlockMirror(Varint.from_bytes(data))
+        mirror = ProgramStructureBlockMirror.from_value(Varint.from_bytes(data))
         # rotation
-        rotation = ProgramStructureBlockRotation(Varint.from_bytes(data))
+        rotation = ProgramStructureBlockRotation.from_value(Varint.from_bytes(data))
         # metadata
         metadata = String.from_bytes(data, max_length=128)
         # integrity
@@ -2030,7 +2030,7 @@ class SwingArm(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         return cls(hand)
 
 
@@ -2107,11 +2107,11 @@ class UseItemOn(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand), location (Position), face (BlockFace), cursor_x (Float), cursor_y (Float), cursor_z (Float), inside_block (Boolean), sequence (Varint)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         # location
         location = Position.from_bytes(data)
         # face
-        face = BlockFace(Varint.from_bytes(data))
+        face = BlockFace.from_value(Varint.from_bytes(data))
         # cursor_x
         cursor_x = Float.from_bytes(data)
         # cursor_y
@@ -2147,7 +2147,7 @@ class UseItem(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand), sequence (Varint)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         # sequence
         sequence = Varint.from_bytes(data)
         return cls(hand, sequence)

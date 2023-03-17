@@ -88,7 +88,7 @@ class EncryptionRequest(Packet):
         )
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> "EncryptionRequest":
+    def from_bytes(cls, data: BytesIO) -> EncryptionRequest:
         # Fields: server_id (string), public key length (varint),
         # public_key (byte array), verify token length (varing), verify_token (byte array)
         # server id

@@ -276,19 +276,15 @@ class EntityAnimation(Packet):
 
     packet_id = 0x03
 
-    def __init__(self, entity_id: Varint, animation_id: UnsignedByte):
+    def __init__(self, entity_id: Varint, animation: Animation):
         self.entity_id = entity_id
-        self.animation_id = animation_id
-
-    @property
-    def animation(self):
-        return Animation(self.animation_id)
+        self.animation = animation
 
     def __bytes__(self):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.entity_id)
-            + bytes(self.animation_id)
+            + bytes(self.animation)
         )
 
     @classmethod
@@ -297,8 +293,8 @@ class EntityAnimation(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data)
         # animation
-        animation_id = UnsignedByte.from_bytes(data)
-        return cls(entity_id, animation_id)
+        animation = Animation.from_value(UnsignedByte.from_bytes(data))
+        return cls(entity_id, animation)
 
 
 class AwardStats(Packet):
@@ -359,7 +355,7 @@ class AcknowledgeBlockChange(Packet):
 
 class SetBlockDestroyStage(Packet):
     """
-    0–9 are the displayable destroy stages and each other
+    0-9 are the displayable destroy stages and each other
     number means that there is no animation on this coordinate.
 
     Packet ID: 0x06
@@ -583,7 +579,7 @@ class BossBar(Packet):
             case 0:
                 title = Chat.from_bytes(data)
                 health = Float.from_bytes(data)
-                color = BossBarColor(Varint.from_bytes(data))
+                color = BossBarColor.from_value(Varint.from_bytes(data))
                 division = Varint.from_bytes(data)
                 flags = UnsignedByte.from_bytes(data)
             case 1:
@@ -593,7 +589,7 @@ class BossBar(Packet):
             case 3:
                 title = Chat.from_bytes(data)
             case 4:
-                color = BossBarColor(Varint.from_bytes(data))
+                color = BossBarColor.from_value(Varint.from_bytes(data))
                 division = Varint.from_bytes(data)
             case 5:
                 flags = UnsignedByte.from_bytes(data)
@@ -1251,7 +1247,7 @@ class GameEvent(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: event_id (varint), value (float)
         # event_id
-        event = GameEvents(UnsignedByte.from_bytes(data))
+        event = GameEvents.from_value(UnsignedByte.from_bytes(data))
         # value
         value = Float.from_bytes(data)
         return cls(event, value)
@@ -1557,7 +1553,7 @@ class WorldEvent(Packet):
         # Fields: event_id (int), location (position), data (int),
         # disable_relative_volume (boolean)
         # event_id
-        event = WorldEvents(Int.from_bytes(data))
+        event = WorldEvents.from_value(Int.from_bytes(data))
         # location
         location = Position.from_bytes(data)
         # data
@@ -2629,7 +2625,7 @@ class PlayerChatMessage(Packet):
         unsigned_content = Chat.from_bytes(
             data) if unsigned_content_present else None
         # filter_type
-        filter_type = FilterType(Varint.from_bytes(data))
+        filter_type = FilterType.from_value(Varint.from_bytes(data))
         # filter_bits
         filter_bits = (
             BitSet.from_bytes(data)
@@ -2859,7 +2855,7 @@ class LookAt(Packet):
         # Fields: feet_eyes (varint), target_x (double), target_y (double), target_z (double),
         # is_entity (boolean), entity_id (varint), entity_feet_eyes (varint)
         # feet_eyes
-        feet_eyes = FeetEyes(Varint.from_bytes(data))
+        feet_eyes = FeetEyes.from_value(Varint.from_bytes(data))
         # target_x
         target_x = Double.from_bytes(data)
         # target_y
@@ -2871,7 +2867,7 @@ class LookAt(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data) if is_entity else None
         # entity_feet_eyes
-        entity_feet_eyes = FeetEyes(
+        entity_feet_eyes = FeetEyes.from_value(
             Varint.from_bytes(data)) if is_entity else None
         return cls(
             feet_eyes,
@@ -2936,7 +2932,7 @@ class SynchronizePlayerPosition(Packet):
         # z
         z = Double.from_bytes(data)
         # feet_eyes
-        feet_eyes = FeetEyes(Varint.from_bytes(data))
+        feet_eyes = FeetEyes.from_value(Varint.from_bytes(data))
         # flags
         flags = Byte.from_bytes(data)
         # teleport_id
@@ -3015,7 +3011,7 @@ class UpdateRecipeBook(Packet):
         # smoker_recipe_book_filter_active (boolean), array_1 (varint, identifier[]),
         # array_2 (varint, identifier[])
         # action
-        action = RecipeBookActionType(Varint.from_bytes(data))
+        action = RecipeBookActionType.from_value(Varint.from_bytes(data))
         # crafting_recipe_book_open
         crafting_recipe_book_open = Boolean.from_bytes(data)
         # crafting_recipe_book_filter_active
@@ -3847,7 +3843,7 @@ class DisplayObjective(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: position (scoreboard_position), objective_name (string)
         # position
-        position = ScoreboardPosition(Byte.from_bytes(data))
+        position = ScoreboardPosition.from_value(Byte.from_bytes(data))
         # objective_name
         objective_name = String.from_bytes(data)
         return cls(position, objective_name)
@@ -4142,7 +4138,7 @@ class UpdateObjectives(Packet):
         # objective_name
         objective_name = String.from_bytes(data)
         # mode
-        mode = UpdateObjectiveModes(Byte.from_bytes(data))
+        mode = UpdateObjectiveModes.from_value(Byte.from_bytes(data))
         # objective_value
         objective_value = (
             Chat.from_bytes(data)
@@ -4259,7 +4255,7 @@ class UpdateTeams(Packet):
         # team_name
         team_name = String.from_bytes(data, max_length=16)
         # mode
-        mode = UpdateTeamModes(Byte.from_bytes(data))
+        mode = UpdateTeamModes.from_value(Byte.from_bytes(data))
         # data
         if mode is UpdateTeamModes.CREATE:
             data = _DataProxy(
@@ -4345,7 +4341,7 @@ class UpdateScore(Packet):
         # entity_name
         entity_name = String.from_bytes(data, max_length=40)
         # action
-        action = UpdateScoreAction(Varint.from_bytes(data))
+        action = UpdateScoreAction.from_value(Varint.from_bytes(data))
         # objective_name
         objective_name = String.from_bytes(data, max_length=16)
         # value

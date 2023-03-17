@@ -98,7 +98,7 @@ class EncryptionResponse(Packet):
         )
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> "EncryptionResponse":
+    def from_bytes(cls, data: BytesIO) -> EncryptionResponse:
         # Fields: shared secret length (varint), shared secret (byte array),
         # verify token length (varint), verify token (byte array)
         # shared secret length

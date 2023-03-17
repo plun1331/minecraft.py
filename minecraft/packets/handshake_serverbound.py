@@ -65,7 +65,7 @@ class Handshake(Packet):
         # server port
         server_port = UnsignedShort.from_bytes(data)
         # next state
-        next_state = NextState(Varint.from_bytes(data))
+        next_state = NextState.from_value(Varint.from_bytes(data))
         return cls(protocol_version, server_address, server_port, next_state)
 
     def __bytes__(self):

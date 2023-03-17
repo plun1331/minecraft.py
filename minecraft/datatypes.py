@@ -99,6 +99,16 @@ class DataType:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__dict__})"
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
+    
+    def __ne__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.__dict__ != other.__dict__
+        return False
+
 
 class Boolean(DataType):
     def __init__(self, value: bool):
@@ -602,8 +612,8 @@ class Statistic(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import StatCategory, StatID
-        category = StatCategory(Varint.from_bytes(data))
-        stat_id = StatID(Varint.from_bytes(data))
+        category = StatCategory.from_value(Varint.from_bytes(data))
+        stat_id = StatID.from_value(Varint.from_bytes(data))
         value = Varint.from_bytes(data)
         return cls(category, stat_id, value)
 
