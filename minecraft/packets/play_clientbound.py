@@ -94,7 +94,7 @@ class SpawnEntity(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big")
+            self.packet_id.to_bytes(1, 'big')
             + bytes(self.entity_id)
             + bytes(self.entity_uuid)
             + bytes(self.entity_type)
@@ -109,16 +109,6 @@ class SpawnEntity(Packet):
             + bytes(self.velocity_y)
             + bytes(self.velocity_z)
         )
-
-
-
-
-
-
-
-
-
-
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
