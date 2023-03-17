@@ -44,4 +44,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -a -m "style: format code with black"
           git pull --rebase
-          git push origin HEAD:${{ github.head_ref }}
+          git push 
