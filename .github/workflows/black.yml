@@ -34,6 +34,10 @@ jobs:
           pip install black
           pip install -r requirements.txt
 
+      - name: Is up to date
+        run: |
+          git pull --rebase origin ${{ github.base_ref }}
+
       - name: Format with black
         run: |
           black .
@@ -42,7 +46,5 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -a -m "style: format code with black"
-          git pull --rebase origin ${{ github.base_ref }}
           git push origin ${{ github.base_ref }}
 
