@@ -25,8 +25,12 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from typing import Self
-from .datatypes import *
+from __future__ import annotations
+
+from typing import Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .datatypes import *
 
 
 class _Brigadier:
@@ -67,22 +71,22 @@ class _Brigadier:
 
 class BrigadierFloat(_Brigadier):
     # brigadier:float
-    object_type = Float
+    object_type: Float
 
 
 class BrigadierDouble(_Brigadier):
     # brigadier:double
-    object_type = Double
+    object_type: Double
 
 
 class BrigadierInteger(_Brigadier):
     # brigadier:integer
-    object_type = Int
+    object_type: Int
 
 
 class BrigadierLong(_Brigadier):
     # brigadier:long
-    object_type = Long
+    object_type: Long
 
 
 class BrigadierString:
