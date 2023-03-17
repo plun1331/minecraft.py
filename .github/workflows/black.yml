@@ -36,7 +36,8 @@ jobs:
 
       - name: Is up to date
         run: |
-          git pull --rebase origin ${{ github.base_ref }}
+          git fetch --all
+          git reset --hard origin/${{ github.base_ref }}
 
       - name: Format with black
         run: |
