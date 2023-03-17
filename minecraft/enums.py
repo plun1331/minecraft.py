@@ -25,17 +25,19 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from enum import ReprEnum
+from __future__ import annotations
+
+from enum import Enum
 
 from .datatypes import Byte, Int, String, UnsignedByte, Varint
 
 
-class NextState(Varint, ReprEnum):
+class NextState(Enum):
     STATUS = Varint(1)
     LOGIN = Varint(2)
 
 
-class Animation(UnsignedByte, ReprEnum):
+class Animation(Enum):
     SWING_MAIN_ARM = UnsignedByte(0)
     TAKE_DAMAGE = UnsignedByte(1)
     LEAVE_BED = UnsignedByte(2)
@@ -44,7 +46,7 @@ class Animation(UnsignedByte, ReprEnum):
     MAGIC_CRITICAL_EFFECT = UnsignedByte(5)
 
 
-class StatCategory(Varint, ReprEnum):
+class StatCategory(Enum):
     MINED = Varint(0)
     CRAFTED = Varint(1)
     USED = Varint(2)
@@ -56,7 +58,7 @@ class StatCategory(Varint, ReprEnum):
     CUSTOM = Varint(8)
 
 
-class StatID(Varint, ReprEnum):
+class StatID(Enum):
     LEAVE_GAME = Varint(0)
     PLAY_ONE_MINUTE = Varint(1)
     TIME_SINCE_DEATH = Varint(2)
@@ -133,7 +135,7 @@ class StatID(Varint, ReprEnum):
     INTERACT_WITH_SMITHING_TABLE = Varint(73)
 
 
-class BossBarColor(Varint, ReprEnum):
+class BossBarColor(Enum):
     PINK = Varint(0)
     BLUE = Varint(1)
     RED = Varint(2)
@@ -143,7 +145,7 @@ class BossBarColor(Varint, ReprEnum):
     WHITE = Varint(6)
 
 
-class BossBarDivision(Varint, ReprEnum):
+class BossBarDivision(Enum):
     NO_DIVISION = Varint(0)
     SIX_NOTCHES = Varint(1)
     TEN_NOTCHES = Varint(2)
@@ -151,7 +153,7 @@ class BossBarDivision(Varint, ReprEnum):
     TWENTY_NOTCHES = Varint(4)
 
 
-class CommandParser(Varint, ReprEnum):
+class CommandParser(Enum):
     BOOL = Varint(0)
     FLOAT = Varint(1)
     DOUBLE = Varint(2)
@@ -200,7 +202,7 @@ class CommandParser(Varint, ReprEnum):
     UUID = Varint(47)
 
 
-class Enchant(Varint, ReprEnum):
+class Enchant(Enum):
     PROTECTION = Varint(0)
     FIRE_PROTECTION = Varint(1)
     FEATHER_FALLING = Varint(2)
@@ -241,13 +243,13 @@ class Enchant(Varint, ReprEnum):
     VANISHING_CURSE = Varint(37)
 
 
-class ChatSuggestionAction(Varint, ReprEnum):
+class ChatSuggestionAction(Enum):
     ADD = Varint(0)
     REMOVE = Varint(1)
     SET = Varint(2)
 
 
-class GameEvents(UnsignedByte, ReprEnum):
+class GameEvents(Enum):
     NO_RESPAWN_BLOCK_AVAILABLE = UnsignedByte(0)
     END_RAINING = UnsignedByte(1)
     BEGIN_RAINING = UnsignedByte(2)
@@ -262,7 +264,7 @@ class GameEvents(UnsignedByte, ReprEnum):
     ENABLE_RESPAWN_SCREEN = UnsignedByte(11)
 
 
-class WorldEvents(Int, ReprEnum):
+class WorldEvents(Enum):
     DISPENSER_DISPENSES = Int(1000)
     DISPENSER_FAILS_TO_DISPENSE = Int(1001)
     DISPENSER_SHOOTS = Int(1002)
@@ -329,7 +331,7 @@ class WorldEvents(Int, ReprEnum):
     COPPER_SCRAPE_OXIDATION = Int(3005)
 
 
-class MapIconType(Varint, ReprEnum):
+class MapIconType(Enum):
     WHITE_ARROW = Varint(0)
     GREEN_ARROW = Varint(1)
     RED_ARROW = Varint(2)
@@ -359,18 +361,18 @@ class MapIconType(Varint, ReprEnum):
     TREASURE_MARKER = Varint(26)
 
 
-class Hand(Varint, ReprEnum):
+class Hand(Enum):
     MAIN_HAND = Varint(0)
     OFF_HAND = Varint(1)
 
 
-class FilterType(Varint, ReprEnum):
+class FilterType(Enum):
     PASS_THROUGH = Varint(0)
     FULLY_FILTERED = Varint(1)
     PARTIALLY_FILTERED = Varint(2)
 
 
-class PlayerInfoUpdateActionBits(int, ReprEnum):
+class PlayerInfoUpdateActionBits(Enum):
     ADD_PLAYER = 0x01
     INITIALIZE_CHAT = 0x02
     UPDATE_GAMEMODE = 0x04
@@ -379,18 +381,18 @@ class PlayerInfoUpdateActionBits(int, ReprEnum):
     UPDATE_DISPLAY_NAME = 0x32
 
 
-class FeetEyes(Varint, ReprEnum):
+class FeetEyes(Enum):
     FEET = Varint(0)
     EYES = Varint(1)
 
 
-class RecipeBookActionType(Varint, ReprEnum):
+class RecipeBookActionType(Enum):
     INIT = Varint(0)
     ADD = Varint(1)
     REMOVE = Varint(2)
 
 
-class ChatColor(Varint, ReprEnum):
+class ChatColor(Enum):
     BLACK = Varint(0)
     DARK_BLUE = Varint(1)
     DARK_GREEN = Varint(2)
@@ -415,7 +417,7 @@ class ChatColor(Varint, ReprEnum):
     RESET = Varint(21)
 
 
-class ScoreboardPosition(Byte, ReprEnum):
+class ScoreboardPosition(Enum):
     LIST = Byte(0)
     SIDEBAR = Byte(1)
     BELOW_NAME = Byte(2)
@@ -437,7 +439,7 @@ class ScoreboardPosition(Byte, ReprEnum):
     TEAM_SPECIFIC_WHITE = Byte(18)
 
 
-class EquipmentSlot(Byte, ReprEnum):
+class EquipmentSlot(Enum):
     MAINHAND = Byte(0)
     OFFHAND = Byte(1)
     BOOTS = Byte(2)
@@ -446,18 +448,18 @@ class EquipmentSlot(Byte, ReprEnum):
     HELMET = Byte(5)
 
 
-class UpdateObjectiveModes(Byte, ReprEnum):
+class UpdateObjectiveModes(Enum):
     CREATE = Byte(0)
     REMOVE = Byte(1)
     UPDATE = Byte(2)
 
 
-class UpdateObjectiveType(Varint, ReprEnum):
+class UpdateObjectiveType(Enum):
     INTEGER = Varint(0)
     HEARTS = Varint(1)
 
 
-class UpdateTeamModes(Byte, ReprEnum):
+class UpdateTeamModes(Enum):
     CREATE = Byte(0)
     REMOVE = Byte(1)
     UPDATE = Byte(2)
@@ -465,54 +467,54 @@ class UpdateTeamModes(Byte, ReprEnum):
     REMOVE_ENTITIES = Byte(4)
 
 
-class NameTagVisibility(String, ReprEnum):
+class NameTagVisibility(Enum):
     ALWAYS = String("always")
     HIDE_FOR_OTHER_TEAMS = String("hideForOtherTeams")
     HIDE_FOR_OWN_TEAM = String("hideForOwnTeam")
     NEVER = String("never")
 
 
-class CollisionRule(String, ReprEnum):
+class CollisionRule(Enum):
     ALWAYS = String("always")
     PUSH_OTHER_TEAMS = String("pushOtherTeams")
     PUSH_OWN_TEAM = String("pushOwnTeam")
     NEVER = String("never")
 
 
-class UpdateScoreAction(Varint, ReprEnum):
+class UpdateScoreAction(Enum):
     CREATE_OR_UPDATE = Varint(0)
     REMOVE = Varint(1)
 
 
-class AdvancementFrameType(Varint, ReprEnum):
+class AdvancementFrameType(Enum):
     TASK = Varint(0)
     CHALLENGE = Varint(1)
     GOAL = Varint(2)
 
 
-class ClientCommandAction(Varint, ReprEnum):
+class ClientCommandAction(Enum):
     PERFORM_RESPAWN = Varint(0)
     REQUEST_STATS = Varint(1)
 
 
-class ChatMode(Varint, ReprEnum):
+class ChatMode(Enum):
     ENABLED = Varint(0)
     COMMANDS_ONLY = Varint(1)
     HIDDEN = Varint(2)
 
 
-class MainHand(Varint, ReprEnum):
+class MainHand(Enum):
     LEFT = Varint(0)
     RIGHT = Varint(1)
 
 
-class InteractionType(Varint, ReprEnum):
+class InteractionType(Enum):
     INTERACT = Varint(0)
     ATTACK = Varint(1)
     INTERACT_AT = Varint(2)
 
 
-class PlayerActionStatus(Varint, ReprEnum):
+class PlayerActionStatus(Enum):
     STARTED_DIGGING = Varint(0)
     CANCELLED_DIGGING = Varint(1)
     FINISHED_DIGGING = Varint(2)
@@ -522,7 +524,7 @@ class PlayerActionStatus(Varint, ReprEnum):
     SWAP_ITEM_IN_HAND = Varint(6)
 
 
-class BlockFace(Byte, ReprEnum):
+class BlockFace(Enum):
     BOTTOM = Byte(0)
     TOP = Byte(1)
     NORTH = Byte(2)
@@ -531,7 +533,7 @@ class BlockFace(Byte, ReprEnum):
     EAST = Byte(5)
 
 
-class PlayerCommandAction(Varint, ReprEnum):
+class PlayerCommandAction(Enum):
     START_SNEAKING = Varint(0)
     STOP_SNEAKING = Varint(1)
     LEAVE_BED = Varint(2)
@@ -543,52 +545,52 @@ class PlayerCommandAction(Varint, ReprEnum):
     START_FLYING_WITH_ELYTRA = Varint(8)
 
 
-class RecipeBookID(Varint, ReprEnum):
+class RecipeBookID(Enum):
     CRAFTING = Varint(0)
     FURNACE = Varint(1)
     BLAST_FURNACE = Varint(2)
     SMOKER = Varint(3)
 
 
-class ResourcePackStatus(Varint, ReprEnum):
+class ResourcePackStatus(Enum):
     SUCCESSFULLY_LOADED = Varint(0)
     DECLINED = Varint(1)
     FAILED_DOWNLOAD = Varint(2)
     ACCEPTED = Varint(3)
 
 
-class SeenAdvancementsAction(Varint, ReprEnum):
+class SeenAdvancementsAction(Enum):
     OPENED_TAB = Varint(0)
     CLOSED_SCREEN = Varint(1)
 
 
-class CommandBlockMode(Varint, ReprEnum):
+class CommandBlockMode(Enum):
     SEQUENCE = Varint(0)
     AUTO = Varint(1)
     REDSTONE = Varint(2)
 
 
-class ProgramStructureBlockAction(Varint, ReprEnum):
+class ProgramStructureBlockAction(Enum):
     UPDATE_DATA = Varint(0)
     SAVE_STRUCTURE = Varint(1)
     LOAD_STRUCTURE = Varint(2)
     DETECT_SIZE = Varint(3)
 
 
-class ProgramStructureBlockMode(Varint, ReprEnum):
+class ProgramStructureBlockMode(Enum):
     SAVE = Varint(0)
     LOAD = Varint(1)
     CORNER = Varint(2)
     DATA = Varint(3)
 
 
-class ProgramStructureBlockMirror(Varint, ReprEnum):
+class ProgramStructureBlockMirror(Enum):
     NONE = Varint(0)
     LEFT_RIGHT = Varint(1)
     FRONT_BACK = Varint(2)
 
 
-class ProgramStructureBlockRotation(Varint, ReprEnum):
+class ProgramStructureBlockRotation(Enum):
     NONE = Varint(0)
     CLOCKWISE_90 = Varint(1)
     CLOCKWISE_180 = Varint(2)

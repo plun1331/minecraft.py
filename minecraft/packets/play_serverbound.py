@@ -25,9 +25,10 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from minecraft.enums import CommandBlockMode, ProgramStructureBlockAction, ProgramStructureBlockMirror, ProgramStructureBlockMode, ProgramStructureBlockRotation, RecipeBookID, ResourcePackStatus, SeenAdvancementsAction
+from __future__ import annotations
+
 from .base import Packet
-from .. import (
+from ..enums import (
     BlockFace,
     ChatMode,
     ClientCommandAction,
@@ -36,6 +37,7 @@ from .. import (
     MainHand,
     PlayerActionStatus,
     PlayerCommandAction,
+    CommandBlockMode, ProgramStructureBlockAction, ProgramStructureBlockMirror, ProgramStructureBlockMode, ProgramStructureBlockRotation, RecipeBookID, ResourcePackStatus, SeenAdvancementsAction
 )
 from ..datatypes import *
 
