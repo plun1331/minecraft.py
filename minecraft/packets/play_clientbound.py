@@ -110,6 +110,16 @@ class SpawnEntity(Packet):
             + bytes(self.velocity_z)
         )
 
+
+
+
+
+
+
+
+
+
+
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: entity_id, entity_uuid, entity_type, x, y, z, pitch,

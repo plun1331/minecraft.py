@@ -49,4 +49,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -a -m "style: format code with black"
           git push origin ${{ github.base_ref }}
+          true
 
