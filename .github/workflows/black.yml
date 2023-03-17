@@ -34,7 +34,7 @@ jobs:
           pip install black
           pip install -r requirements.txt
 
-      - name: Is up to date
+      - name: Ensure up-to-date
         run: |
           git fetch --all
           git reset --hard origin/${{ github.base_ref }}
