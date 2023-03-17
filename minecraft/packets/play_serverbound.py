@@ -1909,7 +1909,11 @@ class ProgramStructureBlock(Packet):
     
     @classmethod
     def from_bytes(cls, data: BytesIO):
-        # Fields: location (Position), action (ProgramStructureBlockAction), mode (ProgramStructureBlockMode), name (String), offset_x (Byte), offset_y (Byte), offset_z (Byte), size_x (Byte), size_y (Byte), size_z (Byte), mirror (ProgramStructureBlockMirror), rotation (ProgramStructureBlockRotation), metadata (String), integrity (Float), seed (Varlong), flags (Byte)
+        # Fields: location (Position), action (ProgramStructureBlockAction), 
+        # mode (ProgramStructureBlockMode), name (String), offset_x (Byte), 
+        # offset_y (Byte), offset_z (Byte), size_x (Byte), size_y (Byte), size_z (Byte), 
+        # mirror (ProgramStructureBlockMirror), rotation (ProgramStructureBlockRotation), 
+        # metadata (String), integrity (Float), seed (Varlong), flags (Byte)
         # location
         location = Position.from_bytes(data)
         # action
