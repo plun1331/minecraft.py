@@ -1,7 +1,5 @@
 # minecraft.py
 
-[![Analyze Code with Pylint](https://github.com/plun1331/minecraft.py/actions/workflows/lint.yml/badge.svg)](https://github.com/plun1331/minecraft.py/actions/workflows/lint.yml)
-
 A simple Minecraft client wrapper for Python 3.11+.
 
 **This project is currently in a very very very very very very early stage.** Don't expect it to do anything yet.
