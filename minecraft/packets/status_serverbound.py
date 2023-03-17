@@ -25,64 +25,8 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import json
-
 from .base import Packet
 from ..datatypes import *
-
-
-class StatusResponse(Packet):
-    """
-    Status response packet sent by the server to the client in response to a status request.
-
-    Packet ID: 0x00
-    State: Status
-    Bound to: Client
-    """
-
-    packet_id = 0x00
-
-    def __init__(self, json_response: String):
-        self.json_response = json_response
-
-    @property
-    def json(self):
-        return json.loads(self.json_response.value)
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO):
-        # Fields: json_response (string)
-        # json_response
-        json_response = String.from_bytes(data)
-        return cls(json_response)
-
-    def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + bytes(self.json_response)
-
-
-class PingResponse(Packet):
-    """
-    Ping response packet sent by the server to the client in response to a ping request.
-
-    Packet ID: 0x01
-    State: Status
-    Bound to: Client
-    """
-
-    packet_id = 0x01
-
-    def __init__(self, payload: Varint):
-        self.payload: Varint = payload
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO):
-        # Fields: payload (long)
-        # payload
-        payload = Varint.from_bytes(data)
-        return cls(payload)
-
-    def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + bytes(self.payload)
 
 
 class StatusRequest(Packet):

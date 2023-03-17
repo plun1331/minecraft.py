@@ -25,37 +25,61 @@
 #  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from io import BytesIO
-from typing import Self
+import json
+
+from .base import Packet
+from ..datatypes import *
 
 
-class Packet:
-    """Represents a Minecraft packet."""
+class StatusResponse(Packet):
+    """
+    Status response packet sent by the server to the client in response to a status request.
 
-    packet_id: int = None
+    Packet ID: 0x00
+    State: Status
+    Bound to: Client
+    """
+
+    packet_id = 0x00
+
+    def __init__(self, json_response: String):
+        self.json_response = json_response
+
+    @property
+    def json(self):
+        return json.loads(self.json_response.value)
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
-        return cls()
-
-    @classmethod
-    def decode(cls, data: bytes) -> Self:
-        io = BytesIO(data)
-        packet_id = int(io.read(1)[0])
-        if packet_id != cls.packet_id:
-            raise ValueError(
-                f"Packet ID ({packet_id}) does not match expected packet ID ({cls.packet_id})"
-            )
-        return cls.from_bytes(io)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(packet_id={self.packet_id})"
+    def from_bytes(cls, data: BytesIO):
+        # Fields: json_response (string)
+        # json_response
+        json_response = String.from_bytes(data)
+        return cls(json_response)
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big")
+        return self.packet_id.to_bytes(1, "big") + bytes(self.json_response)
 
-    def __len__(self):
-        return len(self.packet_id.to_bytes(1, "big"))
 
-    def __eq__(self, other):
-        return bytes(self) == bytes(other)
+class PingResponse(Packet):
+    """
+    Ping response packet sent by the server to the client in response to a ping request.
+
+    Packet ID: 0x01
+    State: Status
+    Bound to: Client
+    """
+
+    packet_id = 0x01
+
+    def __init__(self, payload: Varint):
+        self.payload: Varint = payload
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: payload (long)
+        # payload
+        payload = Varint.from_bytes(data)
+        return cls(payload)
+
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big") + bytes(self.payload)

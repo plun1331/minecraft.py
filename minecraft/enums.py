@@ -200,12 +200,6 @@ class CommandParser(Varint, ReprEnum):
     UUID = Varint(47)
 
 
-class BrigadierStringParser(Varint, ReprEnum):
-    SINGLE_WORD = Varint(0)
-    QUOTABLE_PHRASE = Varint(1)
-    GREEDY_PHRASE = Varint(2)
-
-
 class Enchant(Varint, ReprEnum):
     PROTECTION = Varint(0)
     FIRE_PROTECTION = Varint(1)
@@ -488,3 +482,114 @@ class CollisionRule(String, ReprEnum):
 class UpdateScoreAction(Varint, ReprEnum):
     CREATE_OR_UPDATE = Varint(0)
     REMOVE = Varint(1)
+
+
+class AdvancementFrameType(Varint, ReprEnum):
+    TASK = Varint(0)
+    CHALLENGE = Varint(1)
+    GOAL = Varint(2)
+
+
+class ClientCommandAction(Varint, ReprEnum):
+    PERFORM_RESPAWN = Varint(0)
+    REQUEST_STATS = Varint(1)
+
+
+class ChatMode(Varint, ReprEnum):
+    ENABLED = Varint(0)
+    COMMANDS_ONLY = Varint(1)
+    HIDDEN = Varint(2)
+
+
+class MainHand(Varint, ReprEnum):
+    LEFT = Varint(0)
+    RIGHT = Varint(1)
+
+
+class InteractionType(Varint, ReprEnum):
+    INTERACT = Varint(0)
+    ATTACK = Varint(1)
+    INTERACT_AT = Varint(2)
+
+
+class PlayerActionStatus(Varint, ReprEnum):
+    STARTED_DIGGING = Varint(0)
+    CANCELLED_DIGGING = Varint(1)
+    FINISHED_DIGGING = Varint(2)
+    DROP_ITEM_STACK = Varint(3)
+    DROP_ITEM = Varint(4)
+    SHOOT_ARROW = Varint(5)
+    SWAP_ITEM_IN_HAND = Varint(6)
+
+
+class BlockFace(Byte, ReprEnum):
+    BOTTOM = Byte(0)
+    TOP = Byte(1)
+    NORTH = Byte(2)
+    SOUTH = Byte(3)
+    WEST = Byte(4)
+    EAST = Byte(5)
+
+
+class PlayerCommandAction(Varint, ReprEnum):
+    START_SNEAKING = Varint(0)
+    STOP_SNEAKING = Varint(1)
+    LEAVE_BED = Varint(2)
+    START_SPRINTING = Varint(3)
+    STOP_SPRINTING = Varint(4)
+    START_JUMP_WITH_HORSE = Varint(5)
+    STOP_JUMP_WITH_HORSE = Varint(6)
+    OPEN_HORSE_INVENTORY = Varint(7)
+    START_FLYING_WITH_ELYTRA = Varint(8)
+
+
+class RecipeBookID(Varint, ReprEnum):
+    CRAFTING = Varint(0)
+    FURNACE = Varint(1)
+    BLAST_FURNACE = Varint(2)
+    SMOKER = Varint(3)
+
+
+class ResourcePackStatus(Varint, ReprEnum):
+    SUCCESSFULLY_LOADED = Varint(0)
+    DECLINED = Varint(1)
+    FAILED_DOWNLOAD = Varint(2)
+    ACCEPTED = Varint(3)
+
+
+class SeenAdvancementsAction(Varint, ReprEnum):
+    OPENED_TAB = Varint(0)
+    CLOSED_SCREEN = Varint(1)
+
+
+class CommandBlockMode(Varint, ReprEnum):
+    SEQUENCE = Varint(0)
+    AUTO = Varint(1)
+    REDSTONE = Varint(2)
+
+
+class ProgramStructureBlockAction(Varint, ReprEnum):
+    UPDATE_DATA = Varint(0)
+    SAVE_STRUCTURE = Varint(1)
+    LOAD_STRUCTURE = Varint(2)
+    DETECT_SIZE = Varint(3)
+
+
+class ProgramStructureBlockMode(Varint, ReprEnum):
+    SAVE = Varint(0)
+    LOAD = Varint(1)
+    CORNER = Varint(2)
+    DATA = Varint(3)
+
+
+class ProgramStructureBlockMirror(Varint, ReprEnum):
+    NONE = Varint(0)
+    LEFT_RIGHT = Varint(1)
+    FRONT_BACK = Varint(2)
+
+
+class ProgramStructureBlockRotation(Varint, ReprEnum):
+    NONE = Varint(0)
+    CLOCKWISE_90 = Varint(1)
+    CLOCKWISE_180 = Varint(2)
+    COUNTERCLOCKWISE_90 = Varint(3)

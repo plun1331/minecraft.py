@@ -26,6 +26,7 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from typing import Generator
+
 from .base import Packet
 from ..datatypes import *
 from ..enums import (
@@ -538,7 +539,8 @@ class BossBar(Packet):
         self.flags: UnsignedByte | None = flags
 
     def __bytes__(self):
-        res = self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.action)
+        res = self.packet_id.to_bytes(
+            1, "big") + bytes(self.uuid) + bytes(self.action)
         match self.action.value:
             case 0:
                 res += (
@@ -960,7 +962,7 @@ class ChatSuggestions(Packet):
         return cls(action, entries)
 
 
-class PluginMessage(Packet):
+class PluginMessageClientbound(Packet):
     """
     Mods and plugins can use this to send their data.
     Minecraft itself uses several plugin channels.
@@ -979,7 +981,8 @@ class PluginMessage(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -1171,7 +1174,8 @@ class Explosion(Packet):
         records = []
         for _ in range(count):
             records.append(
-                (Byte.from_bytes(data), Byte.from_bytes(data), Byte.from_bytes(data))
+                (Byte.from_bytes(data), Byte.from_bytes(
+                    data), Byte.from_bytes(data))
             )
         # player_motion_x
         player_motion_x = Float.from_bytes(data)
@@ -1306,8 +1310,8 @@ class InitializeWorldBorder(Packet):
         new_diameter: Double,
         speed: Varlong,
         portal_teleport_boundary: Varint,
-        warning_blocks: Varint,
         warning_time: Varint,
+        warning_blocks: Varint,
     ):
         self.x: Double = x
         self.z: Double = z
@@ -1448,9 +1452,11 @@ class ChunkDataAndUpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.block_light])
         )
 
     @classmethod
@@ -1699,9 +1705,11 @@ class UpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i)
+                       for i in self.block_light])
         )
 
     @classmethod
@@ -1825,7 +1833,8 @@ class LoginPlay(Packet):
             + bytes(self.is_debug)
             + bytes(self.is_flat)
             + bytes(Boolean(self.has_death_location))
-            + (bytes(self.death_dimension_name) if self.has_death_location else b"")
+            + (bytes(self.death_dimension_name)
+               if self.has_death_location else b"")
             + (bytes(self.death_location) if self.has_death_location else b"")
         )
 
@@ -1880,7 +1889,8 @@ class LoginPlay(Packet):
             Identifier.from_bytes(data) if has_death_location else None
         )
         # death_location
-        death_location = Position.from_bytes(data) if has_death_location else None
+        death_location = Position.from_bytes(
+            data) if has_death_location else None
         return cls(
             entity_id,
             is_hardcore,
@@ -2609,11 +2619,13 @@ class PlayerChatMessage(Packet):
         for _ in range(prev_count):
             prev_id = Varint.from_bytes(data).value
             prev_sig = ByteArray.from_bytes(data, length=256)
-            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
+            previous_messages.append(_DataProxy(
+                id=prev_id, signature=prev_sig))
         # - Other
         # unsigned_content
         unsigned_content_present = Boolean.from_bytes(data)
-        unsigned_content = Chat.from_bytes(data) if unsigned_content_present else None
+        unsigned_content = Chat.from_bytes(
+            data) if unsigned_content_present else None
         # filter_type
         filter_type = FilterType(Varint.from_bytes(data))
         # filter_bits
@@ -2857,7 +2869,8 @@ class LookAt(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data) if is_entity else None
         # entity_feet_eyes
-        entity_feet_eyes = FeetEyes(Varint.from_bytes(data)) if is_entity else None
+        entity_feet_eyes = FeetEyes(
+            Varint.from_bytes(data)) if is_entity else None
         return cls(
             feet_eyes,
             target_x,
@@ -3142,7 +3155,8 @@ class ResourcePack(Packet):
             + bytes(self.hash)
             + bytes(self.forced)
             + bytes(Boolean(self.prompt_message is not None))
-            + (bytes(self.prompt_message) if self.prompt_message is not None else b"")
+            + (bytes(self.prompt_message)
+               if self.prompt_message is not None else b"")
         )
 
     @classmethod
@@ -3787,7 +3801,8 @@ class SetDefaultSpawnLocation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.location) + bytes(self.angle)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.location) + bytes(self.angle)
         )
 
     @classmethod
@@ -3975,14 +3990,10 @@ class SetEquipment(Packet):
     def __init__(
         self,
         entity_id: Varint,
-        slot: Slot,
-        item: Slot,
-        nbt_data: NBT,
+        equipment: list[tuple[Byte, Slot]],
     ):
         self.entity_id = entity_id
-        self.slot = slot
-        self.item = item
-        self.nbt_data = nbt_data
+        self.equipment = equipment
 
     def __bytes__(self):
         return (
@@ -4034,8 +4045,8 @@ class SetExperience(Packet):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.experience_bar)
-            + bytes(self.level)
             + bytes(self.total_experience)
+            + bytes(self.level)
         )
 
     @classmethod
@@ -4047,7 +4058,7 @@ class SetExperience(Packet):
         total_experience = Varint.from_bytes(data)
         # level
         level = Varint.from_bytes(data)
-        return cls(experience_bar, level, total_experience)
+        return cls(experience_bar, total_experience, level)
 
 
 class SetHealth(Packet):
@@ -4255,7 +4266,8 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(
+                    String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
@@ -4273,7 +4285,8 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(
+                    String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
@@ -4729,7 +4742,8 @@ class SetTabListHeaderAndFooter(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") + bytes(self.header) + bytes(self.footer)
+            self.packet_id.to_bytes(1, "big") +
+            bytes(self.header) + bytes(self.footer)
         )
 
     @classmethod
@@ -4878,3 +4892,248 @@ class TeleportEntity(Packet):
         # on_ground
         on_ground = Boolean.from_bytes(data)
         return cls(entity_id, x, y, z, yaw, pitch, on_ground)
+
+
+class UpdateAdvancements(Packet):
+    """
+    Sent by the server to the client to update the advancements.
+
+    Packet ID: 0x65
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x65
+
+    def __init__(
+        self,
+        reset: Boolean,
+        mapping: dict[Identifier, Advancement],
+        identifiers: list[Identifier],
+        progress: list[AdvancementProgress],
+    ):
+        self.reset = reset
+        self.mapping = mapping
+        self.identifiers = identifiers
+        self.progress = progress
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.reset)
+            + bytes(Varint(len(self.mapping)))
+            + b"".join(
+                bytes(Identifier(key)) + bytes(value)
+                for key, value in self.mapping.items()
+            )
+            + bytes(Varint(len(self.identifiers)))
+            + b"".join(bytes(identifier) for identifier in self.identifiers)
+            + bytes(Varint(len(self.progress)))
+            + b"".join(bytes(progress) for progress in self.progress)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: reset (boolean), mapping (dictionary), identifiers (list), progress (list)
+        # reset
+        reset = Boolean.from_bytes(data)
+        # mapping
+        mapping = {}
+        for _ in range(Varint.from_bytes(data)):
+            key = Identifier.from_bytes(data)
+            value = Advancement.from_bytes(data)
+            mapping[key] = value
+        # identifiers
+        identifiers = []
+        for _ in range(Varint.from_bytes(data)):
+            identifiers.append(Identifier.from_bytes(data))
+        # progress
+        progress = []
+        for _ in range(Varint.from_bytes(data)):
+            progress.append(AdvancementProgress.from_bytes(data))
+        return cls(reset, mapping, identifiers, progress)
+
+
+class UpdateAttributes(Packet):
+    """
+    Sets attributes on the given entity.
+
+    Packet ID: 0x66
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x66
+
+    def __init__(
+        self,
+        entity_id: Varint,
+        attributes: list[_DataProxy],
+    ):
+        self.entity_id = entity_id
+        self.attributes = attributes
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(Varint(len(self.attributes)))
+            + b"".join(
+                bytes(attribute.key)
+                + bytes(attribute.value)
+                + bytes(Varint(len(attribute.modifiers)))
+                + b"".join(
+                    bytes(mod.uuid) + bytes(mod.amount) + bytes(mod.operation)
+                    for mod in attribute.modifiers
+                )
+                for attribute in self.attributes
+            )
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), attributes (list)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # attributes
+        attributes = []
+        for _ in range(Varint.from_bytes(data)):
+            key = Identifier.from_bytes(data)
+            value = Double.from_bytes(data)
+            modifiers = []
+            for _ in range(Varint.from_bytes(data)):
+                uuid = UUID.from_bytes(data)
+                amount = Double.from_bytes(data)
+                operation = Varint.from_bytes(data)
+                modifiers.append(
+                    _DataProxy(uuid=uuid, amount=amount, operation=operation)
+                )
+            attributes.append(_DataProxy(
+                key=key, value=value, modifiers=modifiers))
+        return cls(entity_id, attributes)
+
+
+class FeatureFlags(Packet):
+    """
+    Used to enable and disable features, generally experimental ones, on the client.
+
+    Packet ID: 0x67
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x67
+
+    def __init__(
+        self,
+        features: list[Identifier],
+    ):
+        self.features = features
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.features)))
+            + b"".join(bytes(feature) for feature in self.features)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: features (list)
+        # features
+        features = []
+        for _ in range(Varint.from_bytes(data)):
+            features.append(Identifier.from_bytes(data))
+        return cls(features)
+
+
+class EntityEffect(Packet):
+    """
+    Applies an effect to the given entity.
+
+    Packet ID: 0x68
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x68
+
+    def __init__(
+        self,
+        entity_id: Varint,
+        effect_id: Byte,
+        amplifier: Byte,
+        duration: Varint,
+        flags: Byte,
+        factor_codec: NBT,
+    ):
+        self.entity_id = entity_id
+        self.effect_id = effect_id
+        self.amplifier = amplifier
+        self.duration = duration
+        self.flags = flags
+        self.factor_codec = factor_codec
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.effect_id)
+            + bytes(self.amplifier)
+            + bytes(self.duration)
+            + bytes(self.flags)
+            + bytes(Boolean(self.factor_codec is not None))
+            + bytes(self.factor_codec)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), effect_id (byte), amplifier (byte), duration (varint), flags (byte), factor_codec (nbt)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # effect_id
+        effect_id = Byte.from_bytes(data)
+        # amplifier
+        amplifier = Byte.from_bytes(data)
+        # duration
+        duration = Varint.from_bytes(data)
+        # flags
+        flags = Byte.from_bytes(data)
+        # factor_codec
+        factor_codec = NBT.from_bytes(
+            data) if Boolean.from_bytes(data) else None
+        return cls(entity_id, effect_id, amplifier, duration, flags, factor_codec)
+
+
+class UpdateRecipes(Packet):
+    """
+    Updates the recipes on the client.
+
+    Packet ID: 0x69
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x69
+
+    def __init__(
+        self,
+        recipes: list[Recipe],
+    ):
+        self.recipes = recipes
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.recipes)))
+            + b"".join(bytes(recipe) for recipe in self.recipes)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: recipes (list)
+        # recipes
+        recipes = []
+        for _ in range(Varint.from_bytes(data)):
+            recipes.append(Recipe.from_bytes(data))
+        return cls(recipes)

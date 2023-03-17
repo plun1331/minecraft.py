@@ -1,5 +1,5 @@
 """
-MCPy Packets
+minecraft.packets
 ~~~~~~~~~~~~~
 
 Contains all the packets used in the Minecraft protocol, as documented at https://wiki.vg/Protocol.
@@ -9,7 +9,10 @@ Contains all the packets used in the Minecraft protocol, as documented at https:
 """
 
 from .base import *
-from .handshake import *
-from .login import *
-from .play import *
-from .status import *
+from .handshake_serverbound import *
+from .login_clientbound import *
+from .login_serverbound import *
+from .play_clientbound import *
+from .play_serverbound import *
+from .status_clientbound import *
+from .status_serverbound import *

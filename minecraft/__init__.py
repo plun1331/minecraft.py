@@ -1,5 +1,5 @@
 """
-MCPy
+minecraft.py
 ~~~~~
 
 A Python library for Minecraft clients.
