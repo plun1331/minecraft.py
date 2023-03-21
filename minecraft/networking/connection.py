@@ -218,7 +218,7 @@ class Connection:
             )
         )
         try:
-            encryption_request = await self.wait_for(EncryptionRequest, timeout=10)
+            encryption_request = await self.wait_for(EncryptionRequest, timeout=5)
         except asyncio.TimeoutError as e:
             log.warn(f"Server did not send encryption request, terminating connection")
             raise asyncio.TimeoutError("Server did not send encryption request") from e
