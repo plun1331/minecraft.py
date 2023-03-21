@@ -41,6 +41,7 @@ class StatusRequest(Packet):
     """
 
     packet_id = 0x00
+    bound_to = "server"
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -61,6 +62,7 @@ class PingRequest(Packet):
     """
 
     packet_id = 0x01
+    bound_to = "server"
 
     def __init__(self, payload: Long):
         self.payload: Long = payload

@@ -8,6 +8,17 @@ A Python library for Minecraft clients.
 :license: BSD 3-Clause, see LICENSE for more details.
 """
 
+import logging
+
 from .datatypes import *
 from .enums import *
 from .packets import *
+from .client import *
+
+__title__ = "minecraft.py"
+__author__ = "plun1331"
+__license__ = "BSD 3-Clause"
+__copyright__ = "Copyright 2023-present plun1331"
+__version__ = "0.0.0a1"
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())

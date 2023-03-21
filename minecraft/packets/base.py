@@ -28,13 +28,14 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Self
+from typing import Literal, Self
 
 
 class Packet:
     """Represents a Minecraft packet."""
 
     packet_id: int = None
+    bound_to: Literal["client", "server"] = None
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
@@ -48,6 +49,7 @@ class Packet:
             raise ValueError(
                 f"Packet ID ({packet_id}) does not match expected packet ID ({cls.packet_id})"
             )
+        print(packet_id)
         return cls.from_bytes(io)
 
     def __repr__(self):
@@ -61,3 +63,9 @@ class Packet:
 
     def __eq__(self, other):
         return bytes(self) == bytes(other)
+
+    def __hash__(self):
+        return hash(bytes(self))
+
+    def to_bytes(self) -> bytes:
+        return bytes(self)

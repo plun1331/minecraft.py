@@ -63,6 +63,7 @@ class SpawnEntity(Packet):
     """
 
     packet_id = 0x00
+    bound_to = "client"
 
     def __init__(
         self,
@@ -168,6 +169,7 @@ class SpawnExperienceOrb(Packet):
     """
 
     packet_id = 0x01
+    bound_to = "client"
 
     def __init__(
         self, entity_id: Varint, x: Double, y: Double, z: Double, count: Short
@@ -214,6 +216,7 @@ class SpawnPlayer(Packet):
     """
 
     packet_id = 0x02
+    bound_to = "client"
 
     def __init__(
         self,
@@ -275,6 +278,7 @@ class EntityAnimation(Packet):
     """
 
     packet_id = 0x03
+    bound_to = "client"
 
     def __init__(self, entity_id: Varint, animation: Animation):
         self.entity_id = entity_id
@@ -308,6 +312,7 @@ class AwardStats(Packet):
     """
 
     packet_id = 0x04
+    bound_to = "client"
 
     def __init__(self, stats: list[tuple[Varint, Varint]]):
         self.stats = stats
@@ -338,6 +343,7 @@ class AcknowledgeBlockChange(Packet):
     """
 
     packet_id = 0x05
+    bound_to = "client"
 
     def __init__(self, sequence_id: Varint):
         self.sequence_id: Varint = sequence_id
@@ -364,6 +370,7 @@ class SetBlockDestroyStage(Packet):
     """
 
     packet_id = 0x06
+    bound_to = "client"
 
     def __init__(self, entity_id: Varint, location: Position, destroy_stage: Byte):
         self.entity_id: Varint = entity_id
@@ -400,6 +407,7 @@ class BlockEntityData(Packet):
     """
 
     packet_id = 0x07
+    bound_to = "client"
 
     def __init__(self, location: Position, type: Varint, nbt_data: NBT):
         self.location: Position = location
@@ -439,6 +447,7 @@ class BlockAction(Packet):
     """
 
     packet_id = 0x08
+    bound_to = "client"
 
     def __init__(
         self,
@@ -485,6 +494,7 @@ class BlockUpdate(Packet):
     """
 
     packet_id = 0x09
+    bound_to = "client"
 
     def __init__(self, location: Position, block_id: Varint):
         self.location: Position = location
@@ -517,6 +527,7 @@ class BossBar(Packet):
     """
 
     packet_id = 0x0A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -608,6 +619,7 @@ class ChangeDifficulty(Packet):
     """
 
     packet_id = 0x0B
+    bound_to = "client"
 
     def __init__(self, difficulty: UnsignedByte, locked: Boolean = Boolean(False)):
         self.difficulty: UnsignedByte = difficulty
@@ -637,6 +649,7 @@ class ClearTitles(Packet):
     """
 
     packet_id = 0x0C
+    bound_to = "client"
 
     def __init__(self, reset: Boolean):
         self.reset: Boolean = reset
@@ -662,6 +675,7 @@ class CommandSuggestionsResponse(Packet):
     """
 
     packet_id = 0x0D
+    bound_to = "client"
 
     def __init__(
         self,
@@ -710,6 +724,7 @@ class Commands(Packet):
     """
 
     packet_id = 0x0E
+    bound_to = "client"
 
     def __init__(self, nodes: list[CommandNode], root_index: Varint):
         self.nodes: list[CommandNode] = nodes
@@ -747,6 +762,7 @@ class CloseContainer(Packet):
     """
 
     packet_id = 0x0F
+    bound_to = "client"
 
     def __init__(self, window_id: UnsignedByte):
         self.window_id: UnsignedByte = window_id
@@ -775,6 +791,7 @@ class SetContainerContents(Packet):
     """
 
     packet_id = 0x10
+    bound_to = "client"
 
     def __init__(
         self,
@@ -825,6 +842,7 @@ class SetContainerProperty(Packet):
     """
 
     packet_id = 0x11
+    bound_to = "client"
 
     def __init__(self, window_id: UnsignedByte, property: Short, value: Short):
         self.window_id: UnsignedByte = window_id
@@ -861,6 +879,7 @@ class SetContainerSlot(Packet):
     """
 
     packet_id = 0x12
+    bound_to = "client"
 
     def __init__(self, window_id: Byte, state_id: Varint, slot: Short, item: Slot):
         self.window_id: Byte = window_id
@@ -901,6 +920,7 @@ class SetCooldown(Packet):
     """
 
     packet_id = 0x13
+    bound_to = "client"
 
     def __init__(self, item_id: Varint, cooldown: Varint):
         self.item_id: Varint = item_id
@@ -934,6 +954,7 @@ class ChatSuggestions(Packet):
     """
 
     packet_id = 0x14
+    bound_to = "client"
 
     def __init__(self, action: ChatSuggestionAction, entries: list[String]):
         self.action: ChatSuggestionAction = action
@@ -972,6 +993,7 @@ class PluginMessageClientbound(Packet):
     """
 
     packet_id = 0x15
+    bound_to = "client"
 
     def __init__(self, channel: Identifier, data: ByteArray):
         self.channel: Identifier = channel
@@ -1003,6 +1025,7 @@ class DeleteMessage(Packet):
     """
 
     packet_id = 0x16
+    bound_to = "client"
 
     def __init__(self, signature: ByteArray):
         self.signature: ByteArray = signature
@@ -1035,6 +1058,7 @@ class DisconnectPlay(Packet):
     """
 
     packet_id = 0x17
+    bound_to = "client"
 
     def __init__(self, reason: Chat):
         self.reason: Chat = reason
@@ -1060,6 +1084,7 @@ class DisguisedChatMessage(Packet):
     """
 
     packet_id = 0x18
+    bound_to = "client"
 
     def __init__(self, message: String):
         self.message: String = message
@@ -1085,6 +1110,7 @@ class EntityEvent(Packet):
     """
 
     packet_id = 0x19
+    bound_to = "client"
 
     def __init__(self, entity_id: Varint, entity_status: Byte):
         self.entity_id: Varint = entity_id
@@ -1117,6 +1143,7 @@ class Explosion(Packet):
     """
 
     packet_id = 0x1A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1203,6 +1230,7 @@ class UnloadChunk(Packet):
     """
 
     packet_id = 0x1B
+    bound_to = "client"
 
     def __init__(self, x: Int, z: Int):
         self.x: Int = x
@@ -1231,6 +1259,7 @@ class GameEvent(Packet):
     """
 
     packet_id = 0x1C
+    bound_to = "client"
 
     def __init__(self, event: GameEvents, value: Float):
         self.event: GameEvents = event
@@ -1263,6 +1292,7 @@ class OpenHorseScreen(Packet):
     """
 
     packet_id = 0x1D
+    bound_to = "client"
 
     def __init__(self, window_id: UnsignedByte, slot_count: Varint, entity_id: Int):
         self.window_id: UnsignedByte = window_id
@@ -1299,6 +1329,7 @@ class InitializeWorldBorder(Packet):
     """
 
     packet_id = 0x1E
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1381,6 +1412,7 @@ class KeepAliveServer(Packet):
     """
 
     packet_id = 0x1F
+    bound_to = "client"
 
     def __init__(self, keep_alive_id: Long):
         self.keep_alive_id: Long = keep_alive_id
@@ -1406,6 +1438,7 @@ class ChunkDataAndUpdateLight(Packet):
     """
 
     packet_id = 0x20
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1526,6 +1559,7 @@ class WorldEvent(Packet):
     """
 
     packet_id = 0x21
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1573,6 +1607,7 @@ class Particle(Packet):
     """
 
     packet_id = 0x22
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1669,6 +1704,7 @@ class UpdateLight(Packet):
     """
 
     packet_id = 0x23
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1765,6 +1801,7 @@ class LoginPlay(Packet):
     """
 
     packet_id = 0x24
+    bound_to = "client"
 
     def __init__(
         self,
@@ -1921,6 +1958,7 @@ class MapDataPacket(Packet):
     """
 
     packet_id = 0x25
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2013,6 +2051,7 @@ class MerchantOffers(Packet):
     """
 
     packet_id = 0x26
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2083,6 +2122,7 @@ class UpdateEntityPosition(Packet):
     """
 
     packet_id = 0x27
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2144,6 +2184,7 @@ class UpdateEntityPositionAndRotation(Packet):
     """
 
     packet_id = 0x28
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2214,6 +2255,7 @@ class UpdateEntityRotation(Packet):
     """
 
     packet_id = 0x29
+    bound_to = "client"
 
     def __init__(self, entity_id: Varint, yaw: Angle, pitch: Angle, on_ground: Boolean):
         self.entity_id = entity_id
@@ -2255,6 +2297,7 @@ class MoveVehicle(Packet):
     """
 
     packet_id = 0x2A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2313,6 +2356,7 @@ class OpenBook(Packet):
     """
 
     packet_id = 0x2B
+    bound_to = "client"
 
     def __init__(self, hand: Hand):
         self.hand = hand
@@ -2339,6 +2383,7 @@ class OpenScreen(Packet):
     """
 
     packet_id = 0x2C
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2381,6 +2426,7 @@ class OpenSignEditor(Packet):
     """
 
     packet_id = 0x2D
+    bound_to = "client"
 
     def __init__(self, location: Position):
         self.location: Position = location
@@ -2407,6 +2453,7 @@ class Ping(Packet):
     """
 
     packet_id = 0x2E
+    bound_to = "client"
 
     def __init__(self, id: Int):
         self.id = id
@@ -2432,6 +2479,7 @@ class PlaceGhostRecipe(Packet):
     """
 
     packet_id = 0x2F
+    bound_to = "client"
 
     def __init__(self, window_id: Varint, recipe_id: Identifier):
         self.window_id = window_id
@@ -2465,6 +2513,7 @@ class PlayerAbilities(Packet):
     """
 
     packet_id = 0x30
+    bound_to = "client"
 
     def __init__(self, flags: Byte, flying_speed: Float, field_of_view_modifier: Float):
         self.flags = flags
@@ -2518,6 +2567,7 @@ class PlayerChatMessage(Packet):
     """
 
     packet_id = 0x31
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2671,6 +2721,7 @@ class EndCombat(Packet):
     """
 
     packet_id = 0x32
+    bound_to = "client"
 
     def __init__(self, duration: Int, entity_id: Varint):
         self.duration = duration
@@ -2703,6 +2754,7 @@ class EnterCombat(Packet):
     """
 
     packet_id = 0x33
+    bound_to = "client"
 
 
 class CombatDeath(Packet):
@@ -2715,6 +2767,7 @@ class CombatDeath(Packet):
     """
 
     packet_id = 0x34
+    bound_to = "client"
 
     def __init__(self, player_id: Varint, entity_id: Int, message: Chat):
         self.player_id = player_id
@@ -2751,6 +2804,7 @@ class PlayerInfoRemove(Packet):
     """
 
     packet_id = 0x35
+    bound_to = "client"
 
     def __init__(self, players: list[UUID]):
         self.players = players
@@ -2783,6 +2837,7 @@ class PlayerInfoUpdate(Packet):
     """
 
     packet_id = 0x36
+    bound_to = "client"
 
     def __init__(self, actions: Byte, players: list[PlayerInfoUpdatePlayer]):
         self.actions = actions
@@ -2819,6 +2874,7 @@ class LookAt(Packet):
     """
 
     packet_id = 0x37
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2890,6 +2946,7 @@ class SynchronizePlayerPosition(Packet):
     """
 
     packet_id = 0x38
+    bound_to = "client"
 
     def __init__(
         self,
@@ -2952,6 +3009,7 @@ class UpdateRecipeBook(Packet):
     """
 
     packet_id = 0x39
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3063,6 +3121,7 @@ class RemoveEntities(Packet):
     """
 
     packet_id = 0x3A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3097,6 +3156,7 @@ class RemoveEntityEffect(Packet):
     """
 
     packet_id = 0x3B
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3133,6 +3193,7 @@ class ResourcePack(Packet):
     """
 
     packet_id = 0x3C
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3188,6 +3249,7 @@ class Respawn(Packet):
     """
 
     packet_id = 0x3D
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3289,6 +3351,7 @@ class SetHeadRotation(Packet):
     """
 
     packet_id = 0x3E
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3325,6 +3388,7 @@ class UpdateSectionBlocks(Packet):
     """
 
     packet_id = 0x3F
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3391,6 +3455,7 @@ class SelectAdvancementsTab(Packet):
     """
 
     packet_id = 0x40
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3429,6 +3494,7 @@ class ServerData(Packet):
     """
 
     packet_id = 0x41
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3477,6 +3543,7 @@ class SetActionBarText(Packet):
     """
 
     packet_id = 0x42
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3505,6 +3572,7 @@ class SetBorderCenter(Packet):
     """
 
     packet_id = 0x43
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3537,6 +3605,7 @@ class SetBorderLerpSize(Packet):
     """
 
     packet_id = 0x44
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3578,6 +3647,7 @@ class SetBorderSize(Packet):
     """
 
     packet_id = 0x45
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3606,6 +3676,7 @@ class SetBorderWarningDelay(Packet):
     """
 
     packet_id = 0x46
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3634,6 +3705,7 @@ class SetBorderWarningDistance(Packet):
     """
 
     packet_id = 0x47
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3663,6 +3735,7 @@ class SetCamera(Packet):
     """
 
     packet_id = 0x48
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3691,6 +3764,7 @@ class SetHeldItem(Packet):
     """
 
     packet_id = 0x49
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3725,6 +3799,7 @@ class SetCenterChunk(Packet):
     """
 
     packet_id = 0x4A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3762,6 +3837,7 @@ class SetRenderDistance(Packet):
     """
 
     packet_id = 0x4B
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3792,6 +3868,7 @@ class SetDefaultSpawnLocation(Packet):
     """
 
     packet_id = 0x4C
+    bound_to = "client"
 
     def __init__(self, location: Position, angle: Float):
         self.location = location
@@ -3823,6 +3900,7 @@ class DisplayObjective(Packet):
     """
 
     packet_id = 0x4D
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3860,6 +3938,7 @@ class SetEntityMetadata(Packet):
     """
 
     packet_id = 0x4E
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3897,6 +3976,7 @@ class LinkEntities(Packet):
     """
 
     packet_id = 0x4F
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3938,6 +4018,7 @@ class SetEntityVelocity(Packet):
     """
 
     packet_id = 0x50
+    bound_to = "client"
 
     def __init__(
         self,
@@ -3984,6 +4065,7 @@ class SetEquipment(Packet):
     """
 
     packet_id = 0x51
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4028,6 +4110,7 @@ class SetExperience(Packet):
     """
 
     packet_id = 0x52
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4069,6 +4152,7 @@ class SetHealth(Packet):
     """
 
     packet_id = 0x53
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4110,6 +4194,7 @@ class UpdateObjectives(Packet):
     """
 
     packet_id = 0x54
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4164,6 +4249,7 @@ class SetPassengers(Packet):
     """
 
     packet_id = 0x55
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4203,6 +4289,7 @@ class UpdateTeams(Packet):
     """
 
     packet_id = 0x56
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4311,6 +4398,7 @@ class UpdateScore(Packet):
     """
 
     packet_id = 0x57
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4364,6 +4452,7 @@ class SetSimulationDistance(Packet):
     """
 
     packet_id = 0x58
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4392,6 +4481,7 @@ class SetSubtitleText(Packet):
     """
 
     packet_id = 0x59
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4424,6 +4514,7 @@ class UpdateTime(Packet):
     """
 
     packet_id = 0x5A
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4460,6 +4551,7 @@ class SetTitleText(Packet):
     """
 
     packet_id = 0x5B
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4488,6 +4580,7 @@ class SetTitleAnimationTimes(Packet):
     """
 
     packet_id = 0x5C
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4530,6 +4623,7 @@ class EntitySoundEffect(Packet):
     """
 
     packet_id = 0x5D
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4586,6 +4680,7 @@ class SoundEffect(Packet):
     """
 
     packet_id = 0x5E
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4652,6 +4747,7 @@ class StopSound(Packet):
     """
 
     packet_id = 0x5F
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4693,6 +4789,7 @@ class SystemChatMessage(Packet):
     """
 
     packet_id = 0x60
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4729,6 +4826,7 @@ class SetTabListHeaderAndFooter(Packet):
     """
 
     packet_id = 0x61
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4764,6 +4862,7 @@ class TagQueryResponse(Packet):
     """
 
     packet_id = 0x62
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4800,6 +4899,7 @@ class PickupItem(Packet):
     """
 
     packet_id = 0x63
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4841,6 +4941,7 @@ class TeleportEntity(Packet):
     """
 
     packet_id = 0x64
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4902,6 +5003,7 @@ class UpdateAdvancements(Packet):
     """
 
     packet_id = 0x65
+    bound_to = "client"
 
     def __init__(
         self,
@@ -4962,6 +5064,7 @@ class UpdateAttributes(Packet):
     """
 
     packet_id = 0x66
+    bound_to = "client"
 
     def __init__(
         self,
@@ -5021,6 +5124,7 @@ class FeatureFlags(Packet):
     """
 
     packet_id = 0x67
+    bound_to = "client"
 
     def __init__(
         self,
@@ -5055,6 +5159,7 @@ class EntityEffect(Packet):
     """
 
     packet_id = 0x68
+    bound_to = "client"
 
     def __init__(
         self,
@@ -5113,6 +5218,7 @@ class UpdateRecipes(Packet):
     """
 
     packet_id = 0x69
+    bound_to = "client"
 
     def __init__(
         self,

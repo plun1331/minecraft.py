@@ -43,6 +43,7 @@ class StatusResponse(Packet):
     """
 
     packet_id = 0x00
+    bound_to = "client"
 
     def __init__(self, json_response: String):
         self.json_response = json_response
@@ -72,6 +73,7 @@ class PingResponse(Packet):
     """
 
     packet_id = 0x01
+    bound_to = "client"
 
     def __init__(self, payload: Varint):
         self.payload: Varint = payload

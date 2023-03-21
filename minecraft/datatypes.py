@@ -226,11 +226,11 @@ class String(DataType):
         self.value = value
 
     def __bytes__(self) -> bytes:
-        return bytes(UnsignedShort(len(self.value))) + self.value.encode("utf-8")
+        return bytes(Varint(len(self.value))) + self.value.encode("utf-8")
 
     @classmethod
     def from_bytes(cls, data: BytesIO, *, max_length: int = None) -> Self:
-        length = UnsignedShort.from_bytes(data)
+        length = Varint.from_bytes(data)
         if max_length is not None and length.value > (max_length * 4) + 3:
             raise ValueError(
                 f"String length {length.value} exceeds max length {max_length}"
@@ -515,23 +515,42 @@ class Angle(DataType):
         return cls(UnsignedByte.from_bytes(data))
 
 
+class Unsigned64Int(DataType):
+    # unsigned 64-bit integer
+    def __init__(self, value: int):
+        self.value = value
+
+    def __bytes__(self) -> bytes:
+        return self.value.to_bytes(8, "big")
+    
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        return cls(int.from_bytes(data.read(8), "big"))
+
+
 class UUID(DataType):
-    def __init__(self, most: Int, least: Int):
+    def __init__(self, most: Unsigned64Int, least: Unsigned64Int):
         self.most = most
         self.least = least
 
-    @property
-    def uuid(self):
-        return uuid.UUID(bytes=bytes(self))
-
     def __bytes__(self) -> bytes:
         return bytes(self.most) + bytes(self.least)
-
+    
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        most = Int.from_bytes(data)
-        least = Int.from_bytes(data)
-        return cls(most, least)
+        return cls(Unsigned64Int.from_bytes(data), Unsigned64Int.from_bytes(data))
+    
+    @property
+    def uuid(self) -> uuid.UUID:
+        return uuid.UUID(int=(self.most.value << 64) | self.least.value)
+    
+    @classmethod
+    def from_uuid(cls, uuid: uuid.UUID) -> Self:
+        return cls(Unsigned64Int(uuid.int >> 64), Unsigned64Int(uuid.int & 0xFFFFFFFFFFFFFFFF))
+
+    @classmethod
+    def from_string(cls, string: str) -> Self:
+        return cls.from_uuid(uuid.UUID(string))
 
 
 class Array(DataType):

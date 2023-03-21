@@ -42,6 +42,7 @@ class Handshake(Packet):
     """
 
     packet_id = 0x00
+    bound_to = "server"
 
     def __init__(
         self,

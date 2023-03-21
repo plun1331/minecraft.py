@@ -62,6 +62,13 @@ class NextState(Enum):
     LOGIN = Varint(2)
 
 
+class State(Enum):
+    HANDSHAKE = Varint(0)
+    STATUS = Varint(1)
+    LOGIN = Varint(2)
+    PLAY = Varint(3)
+
+
 class Animation(Enum):
     SWING_MAIN_ARM = UnsignedByte(0)
     TAKE_DAMAGE = UnsignedByte(1)
