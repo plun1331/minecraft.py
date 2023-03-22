@@ -28,8 +28,8 @@
 from __future__ import annotations
 
 from enum import Enum as _Enum
-
 from typing import Any
+
 try:
     from typing import Self
 except ImportError:
@@ -47,11 +47,10 @@ class Enum(_Enum):
 
     def __repr__(self):
         return f"{self.__class__.__name__}.{self.name}"
-    
+
     @classmethod
     def from_value(cls, value: Any) -> Self:
         for member in cls:
-            print(member.value)
             if member.value == value:
                 return member
         raise ValueError(f"{value} is not a valid {cls.__name__}")

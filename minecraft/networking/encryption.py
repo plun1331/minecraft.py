@@ -26,13 +26,14 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
-import os
-import hashlib
-import aiohttp
-import base64
-import rsa
 
+import base64
+import hashlib
+import os
 from typing import TYPE_CHECKING
+
+import aiohttp
+import rsa
 
 from ..packets.login_clientbound import EncryptionRequest
 
@@ -50,18 +51,22 @@ def generate_verify_token() -> bytes:
     return os.urandom(4)
 
 
-def hexdigest(sha: hashlib._Hash) -> str:
+def hexdigest(sha) -> str:
     """Implement Minecraft's custom hexdigest function."""
     output_bytes = sha.digest()
-    output_int = int.from_bytes(output_bytes, byteorder='big', signed=True)
+    output_int = int.from_bytes(output_bytes, byteorder="big", signed=True)
     if output_int < 0:
-        return '-' + hex(abs(output_int))[2:]
+        return "-" + hex(abs(output_int))[2:]
     else:
         return hex(output_int)[2:]
 
 
 def load_public_key(public_key: bytes) -> rsa.PublicKey:
-    key = "-----BEGIN PUBLIC KEY-----\n" + base64.b64encode(public_key).decode() + "-----END PUBLIC KEY-----"
+    key = (
+        "-----BEGIN PUBLIC KEY-----\n"
+        + base64.b64encode(public_key).decode()
+        + "\n-----END PUBLIC KEY-----"
+    )
     return rsa.PublicKey.load_pkcs1_openssl_pem(key.encode())
 
 
@@ -69,34 +74,33 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
     """Process an encryption request packet."""
     server_id = packet.server_id
     server_public_key = packet.public_key
-    loaded_server_public_key = load_public_key(server_public_key)
+    loaded_server_public_key = load_public_key(bytes(server_public_key))
     client_shared_secret = generate_shared_secret()
-    encrypted_shared_secret = rsa.encrypt(client_shared_secret, loaded_server_public_key)
+    encrypted_shared_secret = rsa.encrypt(
+        client_shared_secret, loaded_server_public_key
+    )
     client_verify_token = generate_verify_token()
     encrypted_verify_token = rsa.encrypt(client_verify_token, loaded_server_public_key)
     # padding
-    encrypted_shared_secret += b'\x00' * (128 - len(encrypted_shared_secret))
-    encrypted_verify_token += b'\x00' * (128 - len(encrypted_verify_token))
+    encrypted_shared_secret += b"\x00" * (128 - len(encrypted_shared_secret))
+    encrypted_verify_token += b"\x00" * (128 - len(encrypted_verify_token))
     sha1 = hashlib.sha1()
-    sha1.update(server_id.encode('ascii'))
+    sha1.update(server_id.value.encode("ascii"))
     sha1.update(client_shared_secret)
-    sha1.update(server_public_key)
+    sha1.update(bytes(server_public_key))
     client_hash = hexdigest(sha1)
     async with aiohttp.ClientSession() as session:
-        async with session.request("https://sessionserver.mojang.com/session/minecraft/join", data={
-            "accessToken": connection.client.access_token,
-            "selectedProfile": connection.client.uuid,
-            "serverId": client_hash
-        }) as resp:
+        async with session.post(
+            "https://sessionserver.mojang.com/session/minecraft/join",
+            json={
+                "accessToken": connection.client.access_token,
+                "selectedProfile": connection.client.uuid,
+                "serverId": client_hash,
+            },
+        ) as resp:
             resp.raise_for_status()
     return {
         "shared_secret": client_shared_secret,
         "encrypted_shared_secret": encrypted_shared_secret,
-        "encrypted_verify_token": encrypted_verify_token
+        "encrypted_verify_token": encrypted_verify_token,
     }
-
-
-        
-
-
-        

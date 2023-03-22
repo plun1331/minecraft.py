@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from .base import Packet
 from ..datatypes import *
-from ..enums import NextState
+from ..enums import NextState, State
 
 
 class Handshake(Packet):
@@ -43,6 +43,7 @@ class Handshake(Packet):
 
     packet_id = 0x00
     bound_to = "server"
+    state = State.HANDSHAKE
 
     def __init__(
         self,

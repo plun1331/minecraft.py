@@ -31,6 +31,7 @@ import json
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class StatusResponse(Packet):
@@ -44,6 +45,7 @@ class StatusResponse(Packet):
 
     packet_id = 0x00
     bound_to = "client"
+    state = State.STATUS
 
     def __init__(self, json_response: String):
         self.json_response = json_response
@@ -74,6 +76,7 @@ class PingResponse(Packet):
 
     packet_id = 0x01
     bound_to = "client"
+    state = State.STATUS
 
     def __init__(self, payload: Varint):
         self.payload: Varint = payload

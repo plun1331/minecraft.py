@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class StatusRequest(Packet):
@@ -42,6 +43,7 @@ class StatusRequest(Packet):
 
     packet_id = 0x00
     bound_to = "server"
+    state = State.STATUS
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -63,6 +65,7 @@ class PingRequest(Packet):
 
     packet_id = 0x01
     bound_to = "server"
+    state = State.STATUS
 
     def __init__(self, payload: Long):
         self.payload: Long = payload

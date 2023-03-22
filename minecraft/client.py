@@ -26,15 +26,17 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
-import traceback
+
 import logging
+import traceback
 from typing import Callable, Coroutine
 
-from .networking.connection import Connection
 from .auth import microsoft_auth
+from .networking.connection import Connection
 from .packets import Packet
 
 log = logging.getLogger(__name__)
+
 
 class Client:
     def __init__(self):
@@ -42,7 +44,9 @@ class Client:
         self.username: str | None = None
         self.uuid: str | None = None
         self.access_token: str | None = None
-        self.listeners: dict[type[Packet], list[Callable[[Packet], Coroutine[None, None, None]]]] = {}
+        self.listeners: dict[
+            type[Packet], list[Callable[[Packet], Coroutine[None, None, None]]]
+        ] = {}
 
     async def connect(self, host: str, port: int = 25565) -> None:
         await self.connection.connect(host, port)
@@ -66,12 +70,11 @@ class Client:
         traceback.print_exc()
 
     async def handle_packet(self, packet: Packet) -> None:
-        log.debug(f"Dispatching {packet} to all listeners")
+        log.debug(f"Dispatching {packet.__class__.__name__} to all listeners")
         for listener in self.listeners.get(type(packet), []):
             self.connection.loop.create_task(self._dispatch_listener(packet, listener))
 
-    async def wait_for_packet(self, packet_type: type[Packet], *, timeout: float = None) -> Packet:
+    async def wait_for_packet(
+        self, packet_type: type[Packet], *, timeout: float = None
+    ) -> Packet:
         return await self.connection.wait_for(packet_type, timeout=timeout)
-            
-        
-    

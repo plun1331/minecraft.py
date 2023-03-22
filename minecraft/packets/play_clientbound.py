@@ -45,6 +45,7 @@ from ..enums import (
     NameTagVisibility,
     RecipeBookActionType,
     ScoreboardPosition,
+    State,
     UpdateObjectiveModes,
     UpdateObjectiveType,
     UpdateScoreAction,
@@ -64,6 +65,7 @@ class SpawnEntity(Packet):
 
     packet_id = 0x00
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -170,6 +172,7 @@ class SpawnExperienceOrb(Packet):
 
     packet_id = 0x01
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self, entity_id: Varint, x: Double, y: Double, z: Double, count: Short
@@ -217,6 +220,7 @@ class SpawnPlayer(Packet):
 
     packet_id = 0x02
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -279,6 +283,7 @@ class EntityAnimation(Packet):
 
     packet_id = 0x03
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, entity_id: Varint, animation: Animation):
         self.entity_id = entity_id
@@ -313,6 +318,7 @@ class AwardStats(Packet):
 
     packet_id = 0x04
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, stats: list[tuple[Varint, Varint]]):
         self.stats = stats
@@ -344,6 +350,7 @@ class AcknowledgeBlockChange(Packet):
 
     packet_id = 0x05
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, sequence_id: Varint):
         self.sequence_id: Varint = sequence_id
@@ -371,6 +378,7 @@ class SetBlockDestroyStage(Packet):
 
     packet_id = 0x06
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, entity_id: Varint, location: Position, destroy_stage: Byte):
         self.entity_id: Varint = entity_id
@@ -408,6 +416,7 @@ class BlockEntityData(Packet):
 
     packet_id = 0x07
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, location: Position, type: Varint, nbt_data: NBT):
         self.location: Position = location
@@ -448,6 +457,7 @@ class BlockAction(Packet):
 
     packet_id = 0x08
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -495,6 +505,7 @@ class BlockUpdate(Packet):
 
     packet_id = 0x09
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, location: Position, block_id: Varint):
         self.location: Position = location
@@ -528,6 +539,7 @@ class BossBar(Packet):
 
     packet_id = 0x0A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -548,14 +560,13 @@ class BossBar(Packet):
         self.flags: UnsignedByte | None = flags
 
     def __bytes__(self):
-        res = self.packet_id.to_bytes(
-            1, "big") + bytes(self.uuid) + bytes(self.action)
+        res = self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.action)
         match self.action.value:
             case 0:
                 res += (
                     bytes(self.title)
                     + bytes(self.health)
-                    + bytes(self.color.value)
+                    + bytes(self.color.value)  # type: ignore
                     + bytes(self.division.value)  # type: ignore
                     + bytes(self.flags)  # type: ignore
                 )
@@ -566,9 +577,9 @@ class BossBar(Packet):
             case 3:
                 res += bytes(self.title)
             case 4:
-                res += bytes(self.color.value) + bytes(
-                    self.division.value
-                )  # type: ignore
+                res += bytes(self.color.value) + bytes(  # type: ignore
+                    self.division.value  # type: ignore
+                )
             case 5:
                 res += bytes(self.flags)
             case _:
@@ -620,6 +631,7 @@ class ChangeDifficulty(Packet):
 
     packet_id = 0x0B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, difficulty: UnsignedByte, locked: Boolean = Boolean(False)):
         self.difficulty: UnsignedByte = difficulty
@@ -650,6 +662,7 @@ class ClearTitles(Packet):
 
     packet_id = 0x0C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, reset: Boolean):
         self.reset: Boolean = reset
@@ -676,6 +689,7 @@ class CommandSuggestionsResponse(Packet):
 
     packet_id = 0x0D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -725,6 +739,7 @@ class Commands(Packet):
 
     packet_id = 0x0E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, nodes: list[CommandNode], root_index: Varint):
         self.nodes: list[CommandNode] = nodes
@@ -763,6 +778,7 @@ class CloseContainer(Packet):
 
     packet_id = 0x0F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, window_id: UnsignedByte):
         self.window_id: UnsignedByte = window_id
@@ -792,6 +808,7 @@ class SetContainerContents(Packet):
 
     packet_id = 0x10
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -843,6 +860,7 @@ class SetContainerProperty(Packet):
 
     packet_id = 0x11
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, window_id: UnsignedByte, property: Short, value: Short):
         self.window_id: UnsignedByte = window_id
@@ -880,6 +898,7 @@ class SetContainerSlot(Packet):
 
     packet_id = 0x12
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, window_id: Byte, state_id: Varint, slot: Short, item: Slot):
         self.window_id: Byte = window_id
@@ -921,6 +940,7 @@ class SetCooldown(Packet):
 
     packet_id = 0x13
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, item_id: Varint, cooldown: Varint):
         self.item_id: Varint = item_id
@@ -955,6 +975,7 @@ class ChatSuggestions(Packet):
 
     packet_id = 0x14
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, action: ChatSuggestionAction, entries: list[String]):
         self.action: ChatSuggestionAction = action
@@ -994,6 +1015,7 @@ class PluginMessageClientbound(Packet):
 
     packet_id = 0x15
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, channel: Identifier, data: ByteArray):
         self.channel: Identifier = channel
@@ -1001,8 +1023,7 @@ class PluginMessageClientbound(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.channel) + bytes(self.data)
+            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -1026,6 +1047,7 @@ class DeleteMessage(Packet):
 
     packet_id = 0x16
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, signature: ByteArray):
         self.signature: ByteArray = signature
@@ -1059,6 +1081,7 @@ class DisconnectPlay(Packet):
 
     packet_id = 0x17
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, reason: Chat):
         self.reason: Chat = reason
@@ -1085,6 +1108,7 @@ class DisguisedChatMessage(Packet):
 
     packet_id = 0x18
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, message: String):
         self.message: String = message
@@ -1111,6 +1135,7 @@ class EntityEvent(Packet):
 
     packet_id = 0x19
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, entity_id: Varint, entity_status: Byte):
         self.entity_id: Varint = entity_id
@@ -1144,6 +1169,7 @@ class Explosion(Packet):
 
     packet_id = 0x1A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1199,8 +1225,7 @@ class Explosion(Packet):
         records = []
         for _ in range(count):
             records.append(
-                (Byte.from_bytes(data), Byte.from_bytes(
-                    data), Byte.from_bytes(data))
+                (Byte.from_bytes(data), Byte.from_bytes(data), Byte.from_bytes(data))
             )
         # player_motion_x
         player_motion_x = Float.from_bytes(data)
@@ -1231,6 +1256,7 @@ class UnloadChunk(Packet):
 
     packet_id = 0x1B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, x: Int, z: Int):
         self.x: Int = x
@@ -1260,6 +1286,7 @@ class GameEvent(Packet):
 
     packet_id = 0x1C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, event: GameEvents, value: Float):
         self.event: GameEvents = event
@@ -1293,6 +1320,7 @@ class OpenHorseScreen(Packet):
 
     packet_id = 0x1D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, window_id: UnsignedByte, slot_count: Varint, entity_id: Int):
         self.window_id: UnsignedByte = window_id
@@ -1330,6 +1358,7 @@ class InitializeWorldBorder(Packet):
 
     packet_id = 0x1E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1413,6 +1442,7 @@ class KeepAliveServer(Packet):
 
     packet_id = 0x1F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, keep_alive_id: Long):
         self.keep_alive_id: Long = keep_alive_id
@@ -1439,6 +1469,7 @@ class ChunkDataAndUpdateLight(Packet):
 
     packet_id = 0x20
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1483,11 +1514,9 @@ class ChunkDataAndUpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i)
-                       for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i)
-                       for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
         )
 
     @classmethod
@@ -1560,6 +1589,7 @@ class WorldEvent(Packet):
 
     packet_id = 0x21
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1608,6 +1638,7 @@ class Particle(Packet):
 
     packet_id = 0x22
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1705,6 +1736,7 @@ class UpdateLight(Packet):
 
     packet_id = 0x23
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1739,11 +1771,9 @@ class UpdateLight(Packet):
             + bytes(self.empty_sky_light_mask)
             + bytes(self.empty_block_light_mask)
             + bytes(Varint(len(self.sky_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i)
-                       for i in self.sky_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.sky_light])
             + bytes(Varint(len(self.block_light)))
-            + b"".join([bytes(Varint(len(i))) + bytes(i)
-                       for i in self.block_light])
+            + b"".join([bytes(Varint(len(i))) + bytes(i) for i in self.block_light])
         )
 
     @classmethod
@@ -1802,6 +1832,7 @@ class LoginPlay(Packet):
 
     packet_id = 0x24
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1868,8 +1899,7 @@ class LoginPlay(Packet):
             + bytes(self.is_debug)
             + bytes(self.is_flat)
             + bytes(Boolean(self.has_death_location))
-            + (bytes(self.death_dimension_name)
-               if self.has_death_location else b"")
+            + (bytes(self.death_dimension_name) if self.has_death_location else b"")
             + (bytes(self.death_location) if self.has_death_location else b"")
         )
 
@@ -1924,8 +1954,7 @@ class LoginPlay(Packet):
             Identifier.from_bytes(data) if has_death_location else None
         )
         # death_location
-        death_location = Position.from_bytes(
-            data) if has_death_location else None
+        death_location = Position.from_bytes(data) if has_death_location else None
         return cls(
             entity_id,
             is_hardcore,
@@ -1959,6 +1988,7 @@ class MapDataPacket(Packet):
 
     packet_id = 0x25
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2052,6 +2082,7 @@ class MerchantOffers(Packet):
 
     packet_id = 0x26
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2123,6 +2154,7 @@ class UpdateEntityPosition(Packet):
 
     packet_id = 0x27
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2185,6 +2217,7 @@ class UpdateEntityPositionAndRotation(Packet):
 
     packet_id = 0x28
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2256,6 +2289,7 @@ class UpdateEntityRotation(Packet):
 
     packet_id = 0x29
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, entity_id: Varint, yaw: Angle, pitch: Angle, on_ground: Boolean):
         self.entity_id = entity_id
@@ -2298,6 +2332,7 @@ class MoveVehicle(Packet):
 
     packet_id = 0x2A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2357,6 +2392,7 @@ class OpenBook(Packet):
 
     packet_id = 0x2B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, hand: Hand):
         self.hand = hand
@@ -2368,7 +2404,7 @@ class OpenBook(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (hand)
         # hand
-        hand = Hand.from_bytes(data)
+        hand = Hand.from_value(Varint.from_bytes(data))
         return cls(hand)
 
 
@@ -2384,6 +2420,7 @@ class OpenScreen(Packet):
 
     packet_id = 0x2C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2427,6 +2464,7 @@ class OpenSignEditor(Packet):
 
     packet_id = 0x2D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, location: Position):
         self.location: Position = location
@@ -2454,6 +2492,7 @@ class Ping(Packet):
 
     packet_id = 0x2E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, id: Int):
         self.id = id
@@ -2480,6 +2519,7 @@ class PlaceGhostRecipe(Packet):
 
     packet_id = 0x2F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, window_id: Varint, recipe_id: Identifier):
         self.window_id = window_id
@@ -2514,6 +2554,7 @@ class PlayerAbilities(Packet):
 
     packet_id = 0x30
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, flags: Byte, flying_speed: Float, field_of_view_modifier: Float):
         self.flags = flags
@@ -2568,6 +2609,7 @@ class PlayerChatMessage(Packet):
 
     packet_id = 0x31
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2667,13 +2709,11 @@ class PlayerChatMessage(Packet):
         for _ in range(prev_count):
             prev_id = Varint.from_bytes(data).value
             prev_sig = ByteArray.from_bytes(data, length=256)
-            previous_messages.append(_DataProxy(
-                id=prev_id, signature=prev_sig))
+            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
         # - Other
         # unsigned_content
         unsigned_content_present = Boolean.from_bytes(data)
-        unsigned_content = Chat.from_bytes(
-            data) if unsigned_content_present else None
+        unsigned_content = Chat.from_bytes(data) if unsigned_content_present else None
         # filter_type
         filter_type = FilterType.from_value(Varint.from_bytes(data))
         # filter_bits
@@ -2722,6 +2762,7 @@ class EndCombat(Packet):
 
     packet_id = 0x32
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, duration: Int, entity_id: Varint):
         self.duration = duration
@@ -2755,6 +2796,7 @@ class EnterCombat(Packet):
 
     packet_id = 0x33
     bound_to = "client"
+    state = State.PLAY
 
 
 class CombatDeath(Packet):
@@ -2768,6 +2810,7 @@ class CombatDeath(Packet):
 
     packet_id = 0x34
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, player_id: Varint, entity_id: Int, message: Chat):
         self.player_id = player_id
@@ -2805,6 +2848,7 @@ class PlayerInfoRemove(Packet):
 
     packet_id = 0x35
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, players: list[UUID]):
         self.players = players
@@ -2838,6 +2882,7 @@ class PlayerInfoUpdate(Packet):
 
     packet_id = 0x36
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, actions: Byte, players: list[PlayerInfoUpdatePlayer]):
         self.actions = actions
@@ -2875,6 +2920,7 @@ class LookAt(Packet):
 
     packet_id = 0x37
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2923,8 +2969,9 @@ class LookAt(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data) if is_entity else None
         # entity_feet_eyes
-        entity_feet_eyes = FeetEyes.from_value(
-            Varint.from_bytes(data)) if is_entity else None
+        entity_feet_eyes = (
+            FeetEyes.from_value(Varint.from_bytes(data)) if is_entity else None
+        )
         return cls(
             feet_eyes,
             target_x,
@@ -2947,6 +2994,7 @@ class SynchronizePlayerPosition(Packet):
 
     packet_id = 0x38
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3010,6 +3058,7 @@ class UpdateRecipeBook(Packet):
 
     packet_id = 0x39
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3122,6 +3171,7 @@ class RemoveEntities(Packet):
 
     packet_id = 0x3A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3157,6 +3207,7 @@ class RemoveEntityEffect(Packet):
 
     packet_id = 0x3B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3194,6 +3245,7 @@ class ResourcePack(Packet):
 
     packet_id = 0x3C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3214,8 +3266,7 @@ class ResourcePack(Packet):
             + bytes(self.hash)
             + bytes(self.forced)
             + bytes(Boolean(self.prompt_message is not None))
-            + (bytes(self.prompt_message)
-               if self.prompt_message is not None else b"")
+            + (bytes(self.prompt_message) if self.prompt_message is not None else b"")
         )
 
     @classmethod
@@ -3250,6 +3301,7 @@ class Respawn(Packet):
 
     packet_id = 0x3D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3352,6 +3404,7 @@ class SetHeadRotation(Packet):
 
     packet_id = 0x3E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3389,6 +3442,7 @@ class UpdateSectionBlocks(Packet):
 
     packet_id = 0x3F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3402,22 +3456,22 @@ class UpdateSectionBlocks(Packet):
 
     @property
     def chunk_x(self):
-        return self.chunk_section_position >> 42
+        return self.chunk_section_position.value >> 42
 
     @property
     def chunk_y(self):
-        return self.chunk_section_position << 44 >> 44
+        return self.chunk_section_position.value << 44 >> 44
 
     @property
     def chunk_z(self):
-        return self.chunk_section_position << 22 >> 42
+        return self.chunk_section_position.value << 22 >> 42
 
     def parse_blocks(self) -> Generator[tuple[int, int, int, int], None, None]:
         for block in self.blocks:
-            block_state_id = block >> 12
-            block_local_x = block << 52 >> 56
-            block_local_z = block << 48 >> 60
-            block_local_y = block << 44 >> 60
+            block_state_id = block.value >> 12
+            block_local_x = block.value << 52 >> 56
+            block_local_z = block.value << 48 >> 60
+            block_local_y = block.value << 44 >> 60
             yield block_state_id, block_local_x, block_local_y, block_local_z
 
     def __bytes__(self):
@@ -3456,6 +3510,7 @@ class SelectAdvancementsTab(Packet):
 
     packet_id = 0x40
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3495,6 +3550,7 @@ class ServerData(Packet):
 
     packet_id = 0x41
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3544,6 +3600,7 @@ class SetActionBarText(Packet):
 
     packet_id = 0x42
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3573,6 +3630,7 @@ class SetBorderCenter(Packet):
 
     packet_id = 0x43
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3606,6 +3664,7 @@ class SetBorderLerpSize(Packet):
 
     packet_id = 0x44
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3648,6 +3707,7 @@ class SetBorderSize(Packet):
 
     packet_id = 0x45
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3677,6 +3737,7 @@ class SetBorderWarningDelay(Packet):
 
     packet_id = 0x46
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3706,6 +3767,7 @@ class SetBorderWarningDistance(Packet):
 
     packet_id = 0x47
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3736,6 +3798,7 @@ class SetCamera(Packet):
 
     packet_id = 0x48
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3765,6 +3828,7 @@ class SetHeldItem(Packet):
 
     packet_id = 0x49
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3800,6 +3864,7 @@ class SetCenterChunk(Packet):
 
     packet_id = 0x4A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3838,6 +3903,7 @@ class SetRenderDistance(Packet):
 
     packet_id = 0x4B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3869,6 +3935,7 @@ class SetDefaultSpawnLocation(Packet):
 
     packet_id = 0x4C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(self, location: Position, angle: Float):
         self.location = location
@@ -3876,8 +3943,7 @@ class SetDefaultSpawnLocation(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.location) + bytes(self.angle)
+            self.packet_id.to_bytes(1, "big") + bytes(self.location) + bytes(self.angle)
         )
 
     @classmethod
@@ -3901,6 +3967,7 @@ class DisplayObjective(Packet):
 
     packet_id = 0x4D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3939,6 +4006,7 @@ class SetEntityMetadata(Packet):
 
     packet_id = 0x4E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3977,6 +4045,7 @@ class LinkEntities(Packet):
 
     packet_id = 0x4F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -3989,8 +4058,8 @@ class LinkEntities(Packet):
     def __bytes__(self):
         return (
             self.packet_id.to_bytes(1, "big")
-            + bytes(self.attached_entity)
-            + bytes(self.holding_entity)
+            + bytes(self.attached_entity_id)
+            + bytes(self.holding_entity_id)
         )
 
     @classmethod
@@ -4019,6 +4088,7 @@ class SetEntityVelocity(Packet):
 
     packet_id = 0x50
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4066,6 +4136,7 @@ class SetEquipment(Packet):
 
     packet_id = 0x51
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4079,9 +4150,7 @@ class SetEquipment(Packet):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.entity_id)
-            + bytes(self.slot)
-            + bytes(self.item)
-            + bytes(self.nbt_data)
+            + b"".join(bytes(slot) + bytes(item) for slot, item in self.equipment)
         )
 
     @classmethod
@@ -4095,7 +4164,7 @@ class SetEquipment(Packet):
             slot = Byte.from_bytes(data)
             item = Slot.from_bytes(data)
             equipment.append((slot, item))
-            if slot & 0x80 == 0:
+            if slot.value & 0x80 == 0:
                 break
         return cls(entity_id, equipment)
 
@@ -4111,6 +4180,7 @@ class SetExperience(Packet):
 
     packet_id = 0x52
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4153,6 +4223,7 @@ class SetHealth(Packet):
 
     packet_id = 0x53
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4195,6 +4266,7 @@ class UpdateObjectives(Packet):
 
     packet_id = 0x54
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4250,6 +4322,7 @@ class SetPassengers(Packet):
 
     packet_id = 0x55
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4264,7 +4337,7 @@ class SetPassengers(Packet):
             self.packet_id.to_bytes(1, "big")
             + bytes(self.entity_id)
             + bytes(Varint(len(self.passengers)))
-            + bytes(self.passengers)
+            + b"".join(bytes(passenger) for passenger in self.passengers)
         )
 
     @classmethod
@@ -4290,6 +4363,7 @@ class UpdateTeams(Packet):
 
     packet_id = 0x56
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4330,7 +4404,10 @@ class UpdateTeams(Packet):
                 + bytes(self.data.prefix)
                 + bytes(self.data.suffix)
             )
-        elif self.mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
+        elif self.mode in (
+            UpdateTeamModes.ADD_ENTITIES,
+            UpdateTeamModes.REMOVE_ENTITIES,
+        ):
             res += bytes(Varint(len(self.data.entities))) + b"".join(
                 [bytes(e) for e in self.data.entities]
             )
@@ -4351,8 +4428,7 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(
-                    String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
@@ -4370,13 +4446,12 @@ class UpdateTeams(Packet):
                 name_tag_visibility=NameTagVisibility(
                     String.from_bytes(data, max_length=32)
                 ),
-                collision_rule=CollisionRule(
-                    String.from_bytes(data, max_length=32)),
+                collision_rule=CollisionRule(String.from_bytes(data, max_length=32)),
                 color=ChatColor(Varint.from_bytes(data)),
                 prefix=Chat.from_bytes(data),
                 suffix=Chat.from_bytes(data),
             )
-        elif mode in (UpdateTeamModes.ADD_PLAYERS, UpdateTeamModes.REMOVE_PLAYERS):
+        elif mode in (UpdateTeamModes.ADD_ENTITIES, UpdateTeamModes.REMOVE_ENTITIES):
             data = _DataProxy(
                 entities=[
                     String.from_bytes(data, max_length=40)
@@ -4399,6 +4474,7 @@ class UpdateScore(Packet):
 
     packet_id = 0x57
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4419,7 +4495,7 @@ class UpdateScore(Packet):
             + bytes(self.action.value)
             + bytes(self.objective_name)
         )
-        if self.action is UpdateScoreAction.CHANGE:
+        if self.action is UpdateScoreAction.CREATE_OR_UPDATE:
             res += bytes(self.value)
         return res
 
@@ -4453,6 +4529,7 @@ class SetSimulationDistance(Packet):
 
     packet_id = 0x58
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4482,6 +4559,7 @@ class SetSubtitleText(Packet):
 
     packet_id = 0x59
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4515,6 +4593,7 @@ class UpdateTime(Packet):
 
     packet_id = 0x5A
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4552,6 +4631,7 @@ class SetTitleText(Packet):
 
     packet_id = 0x5B
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4581,6 +4661,7 @@ class SetTitleAnimationTimes(Packet):
 
     packet_id = 0x5C
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4624,6 +4705,7 @@ class EntitySoundEffect(Packet):
 
     packet_id = 0x5D
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4681,6 +4763,7 @@ class SoundEffect(Packet):
 
     packet_id = 0x5E
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4748,6 +4831,7 @@ class StopSound(Packet):
 
     packet_id = 0x5F
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4790,6 +4874,7 @@ class SystemChatMessage(Packet):
 
     packet_id = 0x60
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4827,6 +4912,7 @@ class SetTabListHeaderAndFooter(Packet):
 
     packet_id = 0x61
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4838,8 +4924,7 @@ class SetTabListHeaderAndFooter(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.header) + bytes(self.footer)
+            self.packet_id.to_bytes(1, "big") + bytes(self.header) + bytes(self.footer)
         )
 
     @classmethod
@@ -4863,6 +4948,7 @@ class TagQueryResponse(Packet):
 
     packet_id = 0x62
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4900,6 +4986,7 @@ class PickupItem(Packet):
 
     packet_id = 0x63
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -4942,6 +5029,7 @@ class TeleportEntity(Packet):
 
     packet_id = 0x64
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5004,6 +5092,7 @@ class UpdateAdvancements(Packet):
 
     packet_id = 0x65
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5039,17 +5128,17 @@ class UpdateAdvancements(Packet):
         reset = Boolean.from_bytes(data)
         # mapping
         mapping = {}
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             key = Identifier.from_bytes(data)
             value = Advancement.from_bytes(data)
             mapping[key] = value
         # identifiers
         identifiers = []
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             identifiers.append(Identifier.from_bytes(data))
         # progress
         progress = []
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             progress.append(AdvancementProgress.from_bytes(data))
         return cls(reset, mapping, identifiers, progress)
 
@@ -5065,6 +5154,7 @@ class UpdateAttributes(Packet):
 
     packet_id = 0x66
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5109,8 +5199,7 @@ class UpdateAttributes(Packet):
                 modifiers.append(
                     _DataProxy(uuid=uuid, amount=amount, operation=operation)
                 )
-            attributes.append(_DataProxy(
-                key=key, value=value, modifiers=modifiers))
+            attributes.append(_DataProxy(key=key, value=value, modifiers=modifiers))
         return cls(entity_id, attributes)
 
 
@@ -5125,6 +5214,7 @@ class FeatureFlags(Packet):
 
     packet_id = 0x67
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5160,6 +5250,7 @@ class EntityEffect(Packet):
 
     packet_id = 0x68
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5191,8 +5282,8 @@ class EntityEffect(Packet):
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
-        # Fields: entity_id (varint), effect_id (byte), amplifier (byte), duration (varint), flags (byte), factor_codec (nbt)
-        # entity_id
+        # Fields: entity_id (varint), effect_id (byte), amplifier (byte), duration (varint), flags (byte),
+        # factor_codec (nbt) entity_id
         entity_id = Varint.from_bytes(data)
         # effect_id
         effect_id = Byte.from_bytes(data)
@@ -5203,8 +5294,7 @@ class EntityEffect(Packet):
         # flags
         flags = Byte.from_bytes(data)
         # factor_codec
-        factor_codec = NBT.from_bytes(
-            data) if Boolean.from_bytes(data) else None
+        factor_codec = NBT.from_bytes(data) if Boolean.from_bytes(data) else None
         return cls(entity_id, effect_id, amplifier, duration, flags, factor_codec)
 
 
@@ -5219,6 +5309,7 @@ class UpdateRecipes(Packet):
 
     packet_id = 0x69
     bound_to = "client"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -5238,6 +5329,6 @@ class UpdateRecipes(Packet):
         # Fields: recipes (list)
         # recipes
         recipes = []
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             recipes.append(Recipe.from_bytes(data))
         return cls(recipes)
