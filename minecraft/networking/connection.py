@@ -26,31 +26,35 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+
 import asyncio
 import logging
+import time
+from typing import Callable, Coroutine, TYPE_CHECKING
 
 from typing import TYPE_CHECKING
 from cryptography.hazmat.primitives.ciphers import Cipher
 from ..enums import State, NextState
 from ..datatypes import *
+from ..enums import NextState, State
 from .dispatcher import Dispatcher
 from ..packets import (
-    get_packet, 
-    Packet, 
-    Handshake, 
-    DisconnectLogin, 
-    LoginStart,
+    DisconnectLogin,
     EncryptionRequest,
-    LoginSuccess,
-    LoginPluginResponse,
+    get_packet,
+    Handshake,
     LoginPluginRequest,
+    LoginPluginResponse,
+    LoginStart,
+    LoginSuccess,
+    Packet,
+    PACKET,
 )
 from .reactors.base import REACTOR
 from .reactors import REACTORS
 
 if TYPE_CHECKING:
     from ..client import Client
-
 
 log = logging.getLogger(__name__)
 
@@ -74,22 +78,29 @@ class Connection:
         self.port: int | None = None
         self.shared_secret: bytes | None = None
         self.cipher: Cipher | None = None
+        self.use_encryption: bool = False
         self.reactor: REACTOR | None = None
 
     def encrypt(self, data: bytes) -> bytes:
+        if not self.use_encryption:
+            return data
         if self.shared_secret is None:
             raise RuntimeError("Cannot encrypt data before shared secret is set")
         encryptor = self.cipher.encryptor()
         return encryptor.update(data)
-    
+
     def decrypt(self, data: bytes) -> bytes:
+        if not self.use_encryption:
+            return data
         if self.shared_secret is None:
             raise RuntimeError("Cannot decrypt data before shared secret is set")
         decryptor = self.cipher.decryptor()
         return decryptor.update(data)
 
     async def connect(self, host: str, port: int):
-        log.info(f"Connecting to {host}:{port} with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})")
+        log.info(
+            f"Connecting to {host}:{port} with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})"
+        )
         self.host = host
         self.port = port
         self.loop = asyncio.get_running_loop()
@@ -106,53 +117,77 @@ class Connection:
                 while True:
                     read = await self.reader.read(1)
                     if read == b"":
+                        await asyncio.sleep(0.01)
                         continue
-                    if self.cipher is not None:
-                        read = self.decrypt(read)
-                    log.debug(f"Connection (raw) < {read}")
+                    read = self.decrypt(read)
                     value = read[0] & 0b01111111
                     result |= value << (7 * num_read)
                     num_read += 1
                     if (read[0] & 0b10000000) == 0:
                         break
                 packet_length = result
-                packet_data = await self.reader.read(packet_length)
-                if self.cipher is not None:
-                    packet_data = self.decrypt(packet_data)
-                log.debug(f"Connection (raw) < {packet_data}")
-                packet = get_packet(BytesIO(packet_data))
-                log.debug(f"Connection < {packet}")
+                log.debug(f"Connection < Recieving packet of length {packet_length}")
+                untouched_packet_data = await self.reader.read(packet_length)
+
+                packet_data = self.decrypt(untouched_packet_data)
+                try:
+                    packet = get_packet(packet_data, state=self.state)
+                except KeyError:
+                    try:
+                        packet = get_packet(untouched_packet_data, state=self.state)
+                    except KeyError:
+                        log.error(
+                            f"Connection < Recieved unknown packet with id "
+                            f"{Varint.from_bytes(BytesIO(packet_data)).value}: {packet_data}"
+                        )
+                        continue
+                log.debug(
+                    f"Connection < Recieved {packet.__class__.__name__} ({packet.packet_id})"
+                )
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
-            log.error("Read loop cancelled")
+            log.error("Connection : Read loop cancelled")
             self.reader.feed_eof()
         except KeyboardInterrupt:
             self.reader.feed_eof()
             await self.client.close()
         except Exception:
-            log.exception("Error in read loop", exc_info=True)
+            log.exception("Connection : Error in read loop")
 
     async def _write_loop(self):
         try:
             while True:
-                packet = await self.outgoing_packets.get()
-                log.debug(f"Connection > {packet}")
+                packet: PACKET = await self.outgoing_packets.get()
+                if packet.state != self.state:
+                    log.error(
+                        f"Connection : Illegal packet {packet.__class__.__name__} "
+                        f" during {self.state.name} (expected state {packet.state.name})"
+                    )
+                    continue
+                if isinstance(packet, Handshake):
+                    self.change_state(State.from_value(packet.next_state.value))
+                log.debug(
+                    f"Connection > Sending {packet.__class__.__name__} ({packet.packet_id})"
+                )
                 packet_data = bytes(Varint(len(packet))) + bytes(packet)
-                log.debug(f"Connection (raw) > {packet_data}")
-                if self.cipher is not None:
-                    packet_data = self.encrypt(packet_data)
+                log.debug(
+                    f"Connection > Raw packet data: {packet_data} ({len(packet_data)} - {len(packet)})"
+                )
+                packet_data = self.encrypt(packet_data)
+                if isinstance(packet, EncryptionResponse):
+                    self.use_encryption = True
                 self.writer.write(packet_data)
                 await self.writer.drain()
         except asyncio.CancelledError:
             self.writer.close()
         except Exception:
-            log.exception("Error in read loop", exc_info=True)
+            log.exception("Connection : Error in write loop")
 
-    async def send_packet(self, packet: type[Packet], *, immediate: bool = False):
+    async def send_packet(self, packet: PACKET, *, immediate: bool = False):
         if immediate:
-            log.debug(f"Connection I> {packet}")
+            log.debug(f"Connection > Immediately sending {packet.__class__.__name__}")
             packet_data = bytes(Varint(len(packet))) + bytes(packet)
-            log.debug(f"Connection (raw) I> {packet_data}")
+            log.debug(f"Connection > Raw packet data: {packet_data}")
             if self.cipher is not None:
                 packet_data = self.encrypt(packet_data)
             self.writer.write(packet_data)
@@ -172,10 +207,19 @@ class Connection:
     def change_state(self, state: State):
         self.state = state
         self.reactor = REACTORS.get(state)
-        log.info(f"State changed to {state.name}")
+        log.info(f"Connection : State changed to {state.name}")
 
     async def wait_for(self, packet: type[Packet], *, timeout: float = None) -> type[Packet]:
         await self.dispatcher.wait_for(packet, timeout=timeout)
+
+    async def wait_for_state(self, state: State, *, timeout: float = None):
+        if self.state == state:
+            return
+        timeout_at = time.time() + timeout if timeout is not None else None
+        while self.state != state:
+            await asyncio.sleep(0.01)
+            if timeout_at is not None and time.time() > timeout_at:
+                raise asyncio.TimeoutError(f"Timed out waiting for state {state.name}")
 
     # Login
     async def login(self):
@@ -183,19 +227,19 @@ class Connection:
             raise RuntimeError("Cannot begin login when not in handshake state")
         if self.client.access_token is None:
             raise RuntimeError("Cannot begin login without access token")
-        log.info("Beginning standard login flow")
+        log.info("Connection : Beginning standard login flow")
         await self.send_packet(
             Handshake(
-                protocol_version=Varint(PROTOCOL_VERSION), 
-                server_address=String(self.host), 
-                server_port=UnsignedShort(self.port), 
-                next_state=NextState.LOGIN
+                protocol_version=Varint(PROTOCOL_VERSION),
+                server_address=String(self.host),
+                server_port=UnsignedShort(self.port),
+                next_state=NextState.LOGIN,
             ),
         )
-        self.change_state(State.LOGIN)
+        await self.wait_for_state(State.LOGIN)
         await self.send_packet(
             LoginStart(
-                username=String(self.client.username), 
-                uuid=UUID.from_string(self.client.uuid)
+                username=String(self.client.username),
+                uuid=UUID.from_string(self.client.uuid),
             )
         )

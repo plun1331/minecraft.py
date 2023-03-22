@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class LoginStart(Packet):
@@ -42,6 +43,7 @@ class LoginStart(Packet):
 
     packet_id = 0x00
     bound_to = "server"
+    state = State.LOGIN
 
     def __init__(self, username: String, uuid: UUID | None) -> None:
         self.username: String = username
@@ -52,8 +54,11 @@ class LoginStart(Packet):
         return self.uuid is not None
 
     def __bytes__(self) -> bytes:
-        res = self.packet_id.to_bytes(1, "big") + bytes(self.username) + \
-            bytes(Boolean(self.uuid_set))
+        res = (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.username)
+            + bytes(Boolean(self.uuid_set))
+        )
         if self.uuid_set:
             res += bytes(self.uuid)
         return res
@@ -83,6 +88,7 @@ class EncryptionResponse(Packet):
 
     packet_id = 0x01
     bound_to = "server"
+    state = State.LOGIN
 
     def __init__(self, shared_secret: ByteArray, verify_token: ByteArray) -> None:
         self.shared_secret: ByteArray = shared_secret
@@ -126,6 +132,7 @@ class LoginPluginResponse(Packet):
 
     packet_id = 0x02
     bound_to = "server"
+    state = State.LOGIN
 
     def __init__(
         self, message_id: Varint, successful: Boolean, data: ByteArray | None = None

@@ -26,17 +26,21 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
-import json
 
-import aiohttp
+import json
 import logging
 
+import aiohttp
+
 log = logging.getLogger(__name__)
+
 
 async def start_device_code_flow(clientapp):
     flow = clientapp.initiate_device_flow(scopes=["XboxLive.signin"])
     if "user_code" not in flow:
-        raise Exception("Failed to create device flow. Err: " + json.dumps(flow, indent=4))
+        raise Exception(
+            "Failed to create device flow. Err: " + json.dumps(flow, indent=4)
+        )
     print(flow["message"])
     return flow
 
@@ -58,59 +62,57 @@ async def get_access_token(token):
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            "RpsTicket": "d={}".format(token) if not token.startswith('d=') else token
+            "RpsTicket": "d={}".format(token) if not token.startswith("d=") else token,
         },
         "RelyingParty": "http://auth.xboxlive.com",
-        "TokenType": "JWT"
+        "TokenType": "JWT",
     }
 
-    xbl_response = await sess.post(url='https://user.auth.xboxlive.com/user/authenticate', json=xbl_payload)
+    xbl_response = await sess.post(
+        url="https://user.auth.xboxlive.com/user/authenticate", json=xbl_payload
+    )
     xbl_response = await xbl_response.json()
 
-    xbl_token = xbl_response['Token']
-    xui_uhs = xbl_response['DisplayClaims']['xui'][0]['uhs']
+    xbl_token = xbl_response["Token"]
+    xui_uhs = xbl_response["DisplayClaims"]["xui"][0]["uhs"]
 
     xsts_payload = {
-        "Properties": {
-            "SandboxId": "RETAIL",
-            "UserTokens": [
-                xbl_token
-            ]
-        },
+        "Properties": {"SandboxId": "RETAIL", "UserTokens": [xbl_token]},
         "RelyingParty": "rp://api.minecraftservices.com/",
-        "TokenType": "JWT"
+        "TokenType": "JWT",
     }
 
-    xsts_response = await sess.post('https://xsts.auth.xboxlive.com/xsts/authorize', json=xsts_payload)
+    xsts_response = await sess.post(
+        "https://xsts.auth.xboxlive.com/xsts/authorize", json=xsts_payload
+    )
     xsts_response = await xsts_response.json()
-    xsts_token = xsts_response['Token']
+    xsts_token = xsts_response["Token"]
 
-    mc_payload = {
-        "identityToken": f"XBL3.0 x={xui_uhs};{xsts_token}"
-    }
+    mc_payload = {"identityToken": f"XBL3.0 x={xui_uhs};{xsts_token}"}
 
-    mc_response = await sess.post('https://api.minecraftservices.com/authentication/login_with_xbox', json=mc_payload)
+    mc_response = await sess.post(
+        "https://api.minecraftservices.com/authentication/login_with_xbox",
+        json=mc_payload,
+    )
     mc_response = await mc_response.json()
 
-    mc_token = mc_response['access_token']
+    mc_token = mc_response["access_token"]
 
     profile = await sess.get(
-        'https://api.minecraftservices.com/minecraft/profile',
-        headers={'Authorization': f'Bearer {mc_token}'}
+        "https://api.minecraftservices.com/minecraft/profile",
+        headers={"Authorization": f"Bearer {mc_token}"},
     )
     profile = await profile.json()
 
     await sess.close()
-    return mc_token, profile['id'], profile['name']
+    return mc_token, profile["id"], profile["name"]
 
 
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     try:
         import msal
     except ImportError:
-        raise RuntimeError(
-            "msal must be installed to use Microsoft authentication."
-        )
+        raise RuntimeError("msal must be installed to use Microsoft authentication.")
     log.debug(f"Starting Microsoft authentication flow with client ID {client_id}")
     clientapp = msal.PublicClientApplication(
         client_id,

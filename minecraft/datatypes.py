@@ -29,9 +29,9 @@ from __future__ import annotations
 
 import json
 import struct
-from types import FrameType
 import uuid
 from io import BytesIO
+from types import FrameType
 from typing import Any
 
 from nbt import nbt
@@ -103,7 +103,7 @@ class DataType:
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         return False
-    
+
     def __ne__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):
             return self.__dict__ != other.__dict__
@@ -522,7 +522,7 @@ class Unsigned64Int(DataType):
 
     def __bytes__(self) -> bytes:
         return self.value.to_bytes(8, "big")
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         return cls(int.from_bytes(data.read(8), "big"))
@@ -535,18 +535,20 @@ class UUID(DataType):
 
     def __bytes__(self) -> bytes:
         return bytes(self.most) + bytes(self.least)
-    
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         return cls(Unsigned64Int.from_bytes(data), Unsigned64Int.from_bytes(data))
-    
+
     @property
     def uuid(self) -> uuid.UUID:
         return uuid.UUID(int=(self.most.value << 64) | self.least.value)
-    
+
     @classmethod
     def from_uuid(cls, uuid: uuid.UUID) -> Self:
-        return cls(Unsigned64Int(uuid.int >> 64), Unsigned64Int(uuid.int & 0xFFFFFFFFFFFFFFFF))
+        return cls(
+            Unsigned64Int(uuid.int >> 64), Unsigned64Int(uuid.int & 0xFFFFFFFFFFFFFFFF)
+        )
 
     @classmethod
     def from_string(cls, string: str) -> Self:
@@ -631,6 +633,7 @@ class Statistic(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import StatCategory, StatID
+
         category = StatCategory.from_value(Varint.from_bytes(data))
         stat_id = StatID.from_value(Varint.from_bytes(data))
         value = Varint.from_bytes(data)
@@ -700,6 +703,7 @@ class CommandNode(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import CommandParser
+
         flags = Byte.from_bytes(data)
         children = []
         children_count = Varint.from_bytes(data)
@@ -800,6 +804,7 @@ class MapIcon(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import MapIconType
+
         type = MapIconType(Byte.from_bytes(data))
         x = Byte.from_bytes(data)
         y = Byte.from_bytes(data)
@@ -935,6 +940,7 @@ class PlayerInfoUpdatePlayer(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO, actions: Byte) -> Self:
         from .enums import PlayerInfoUpdateActionBits
+
         uuid = UUID.from_bytes(data)
         add_player = None
         initialize_chat = None

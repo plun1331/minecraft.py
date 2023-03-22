@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class DisconnectLogin(Packet):
@@ -42,6 +43,7 @@ class DisconnectLogin(Packet):
 
     packet_id = 0x00
     bound_to = "client"
+    state = State.LOGIN
 
     def __init__(self, reason: String) -> None:
         self.reason: String = reason
@@ -69,6 +71,7 @@ class EncryptionRequest(Packet):
 
     packet_id = 0x01
     bound_to = "client"
+    state = State.LOGIN
 
     def __init__(
         self, server_id: String, public_key: ByteArray, verify_token: ByteArray
@@ -117,6 +120,7 @@ class LoginSuccess(Packet):
 
     packet_id = 0x02
     bound_to = "client"
+    state = State.LOGIN
 
     def __init__(
         self, uuid: UUID, username: String, properties: list[Property]
@@ -126,7 +130,9 @@ class LoginSuccess(Packet):
         self.properties = properties
 
     def __bytes__(self) -> bytes:
-        return self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.username)
+        return (
+            self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.username)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "LoginSuccess":
@@ -155,6 +161,7 @@ class SetCompression(Packet):
 
     packet_id = 0x03
     bound_to = "client"
+    state = State.LOGIN
 
     def __init__(self, threshold: Varint) -> None:
         self.threshold = threshold
@@ -182,6 +189,7 @@ class LoginPluginRequest(Packet):
 
     packet_id = 0x04
     bound_to = "client"
+    state = State.LOGIN
 
     def __init__(self, message_id: Varint, channel: String, data: ByteArray) -> None:
         self.message_id = message_id
