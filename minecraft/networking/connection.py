@@ -30,16 +30,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Callable, Coroutine, TYPE_CHECKING
-
 from typing import TYPE_CHECKING
+
 from cryptography.hazmat.primitives.ciphers import Cipher
 
 from minecraft.packets.login_serverbound import EncryptionResponse
-from ..enums import State, NextState
+from .dispatcher import Dispatcher
+from .reactors import REACTORS
+from .reactors.base import REACTOR
 from ..datatypes import *
 from ..enums import NextState, State
-from .dispatcher import Dispatcher
 from ..packets import (
     get_packet,
     Handshake,
@@ -47,16 +47,14 @@ from ..packets import (
     Packet,
     PACKET,
 )
-from .reactors.base import REACTOR
-from .reactors import REACTORS
 
 if TYPE_CHECKING:
     from ..client import Client
 
 log = logging.getLogger(__name__)
 
-PROTOCOL_VERSION: int = 762
-RELEASE_NAME: str = "1.19.4"
+PROTOCOL_VERSION: int = 761
+RELEASE_NAME: str = "1.19.3"
 
 
 class Connection:
@@ -128,7 +126,7 @@ class Connection:
                         break
                 packet_length = result
                 log.debug(f"Reader < Recieving packet of length {packet_length}")
-                
+
                 packet_data = self.decrypt(await self.reader.read(packet_length))
                 try:
                     packet = get_packet(packet_data, state=self.state)
@@ -139,9 +137,7 @@ class Connection:
                     )
                     continue
 
-                log.debug(
-                    f"Reader < Recieved {packet.__class__.__name__}"
-                )
+                log.debug(f"Reader < Recieved {packet.__class__.__name__}")
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
             log.error("Reader : Read loop cancelled")
@@ -161,7 +157,7 @@ class Connection:
                     continue
                 if isinstance(packet, Handshake):
                     self.change_state(State.from_value(packet.next_state.value))
-                
+
                 log.debug(
                     f"Writer > Sending {packet.__class__.__name__} ({packet.packet_id})"
                 )
@@ -170,10 +166,10 @@ class Connection:
                     f"Writer > Raw packet data: {packet_data} ({len(packet_data)} - {len(packet)})"
                 )
                 packet_data = self.encrypt(packet_data)
-                
+
                 if isinstance(packet, EncryptionResponse):
                     self.use_encryption = True
-                
+
                 self.writer.write(packet_data)
                 await self.writer.drain()
         except asyncio.CancelledError:
@@ -217,7 +213,9 @@ class Connection:
             self.reactor.setup()
         log.info(f"Connection state changed to {state.name}")
 
-    async def wait_for(self, packet: type[Packet], *, timeout: float = None) -> type[Packet]:
+    async def wait_for(
+        self, packet: type[Packet], *, timeout: float = None
+    ) -> type[Packet]:
         await self.dispatcher.wait_for(packet, timeout=timeout)
 
     async def wait_for_state(self, state: State, *, timeout: float = None):
