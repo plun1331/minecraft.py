@@ -29,12 +29,11 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from typing import TYPE_CHECKING, Callable, Coroutine
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-from .encryption import process_encryption_request
+from typing import TYPE_CHECKING
+from cryptography.hazmat.primitives.ciphers import Cipher
 from ..enums import State, NextState
 from ..datatypes import *
+from .dispatcher import Dispatcher
 from ..packets import (
     get_packet, 
     Packet, 
@@ -42,11 +41,12 @@ from ..packets import (
     DisconnectLogin, 
     LoginStart,
     EncryptionRequest,
-    EncryptionResponse,
     LoginSuccess,
     LoginPluginResponse,
     LoginPluginRequest,
 )
+from .reactors.base import REACTOR
+from .reactors import REACTORS
 
 if TYPE_CHECKING:
     from ..client import Client
@@ -68,15 +68,13 @@ class Connection:
         self.read_task: asyncio.Task | None = None
         self.write_task: asyncio.Task | None = None
         self.outgoing_packets: asyncio.Queue[type[Packet]] = asyncio.Queue()
-        self.default_recieve_handlers: dict[type[Packet], Callable[[type[Packet]], Coroutine]] = {
-            LoginPluginRequest: self._handle_login_plugin_request,
-        }
+        self.dispatcher: Dispatcher = Dispatcher(self)
         self.using_compression: bool = False
         self.host: str | None = None
         self.port: int | None = None
-        self.temporary_listeners: dict[type[Packet], asyncio.Future] = {}
         self.shared_secret: bytes | None = None
         self.cipher: Cipher | None = None
+        self.reactor: REACTOR | None = None
 
     def encrypt(self, data: bytes) -> bytes:
         if self.shared_secret is None:
@@ -124,14 +122,7 @@ class Connection:
                 log.debug(f"Connection (raw) < {packet_data}")
                 packet = get_packet(BytesIO(packet_data))
                 log.debug(f"Connection < {packet}")
-                print(self.temporary_listeners)
-                if type(packet) in self.default_recieve_handlers:
-                    log.debug(f"Dispatching default handler for {packet}")
-                    await self.default_recieve_handlers[type(packet)](packet)
-                elif type(packet) in self.temporary_listeners:
-                    log.debug(f"Dispatching temporary listener for {packet}")
-                    self.temporary_listeners[type(packet)].set_result(packet)
-                await self.client.handle_packet(packet)
+                self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
             log.error("Read loop cancelled")
             self.reader.feed_eof()
@@ -171,29 +162,20 @@ class Connection:
 
     async def close(self):
         log.info("Closing connection")
-        self.read_task.cancel()
-        self.write_task.cancel()
-        await self.read_task
-        await self.write_task
-        self.loop.close()
+        if self.read_task:
+            self.read_task.cancel()
+            await self.read_task
+        if self.write_task:
+            self.write_task.cancel()
+            await self.write_task
 
     def change_state(self, state: State):
         self.state = state
+        self.reactor = REACTORS.get(state)
         log.info(f"State changed to {state.name}")
 
     async def wait_for(self, packet: type[Packet], *, timeout: float = None) -> type[Packet]:
-        if packet in self.temporary_listeners:
-            return await asyncio.wait_for(self.temporary_listeners[packet], timeout=timeout)
-        future = self.loop.create_future()
-        self.temporary_listeners[packet] = future
-        log.debug(f"Waiting for {packet} (timeout: {timeout})")
-        try:
-            result = await asyncio.wait_for(future, timeout=timeout)
-        except asyncio.TimeoutError as e:
-            raise asyncio.TimeoutError(f"Timed out waiting for {packet}") from e
-        finally:
-            del self.temporary_listeners[packet]
-        return result
+        await self.dispatcher.wait_for(packet, timeout=timeout)
 
     # Login
     async def login(self):
@@ -217,33 +199,3 @@ class Connection:
                 uuid=UUID.from_string(self.client.uuid)
             )
         )
-        try:
-            encryption_request = await self.wait_for(EncryptionRequest, timeout=5)
-        except asyncio.TimeoutError as e:
-            log.warn(f"Server did not send encryption request, terminating connection")
-            raise asyncio.TimeoutError("Server did not send encryption request") from e
-        encryption_data = await process_encryption_request(encryption_request, self)
-        await self.send_packet(
-            EncryptionResponse(
-                shared_secret=ByteArray(encryption_data["encrypted_shared_secret"]),
-                verify_token=ByteArray(encryption_data["encrypted_verify_token"]),
-            )
-        )
-        self.shared_secret = encryption_data["shared_secret"]
-        self.cipher = Cipher(algorithms.AES(self.shared_secret), modes.CFB8(self.shared_secret))
-        login_success = await self.wait_for(LoginSuccess)
-        self.client.uuid = login_success.uuid
-        self.client.username = login_success.username
-        self.client.properties = login_success.properties
-        self.change_state(State.PLAY)
-        log.info("Login successful")
-
-    async def _handle_disconnect_login(self, packet: DisconnectLogin):
-        log.info(f"Disconnected from server: {packet.reason}")
-        await self.close()
-
-    async def _handle_login_plugin_request(self, packet: LoginPluginRequest):
-        await self.send_packet(LoginPluginResponse(message_id=packet.message_id, successful=False))
-
-    
-    
