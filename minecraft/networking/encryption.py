@@ -27,17 +27,15 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import os
 from typing import TYPE_CHECKING
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
-from cryptography.hazmat.primitives.serialization import load_der_public_key
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 import aiohttp
-import rsa
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
+from cryptography.hazmat.primitives.serialization import load_der_public_key
 
 from ..packets.login_clientbound import EncryptionRequest
 
@@ -50,8 +48,11 @@ def generate_shared_secret():
 
 
 def create_cipher(shared_secret):
-    cipher = Cipher(algorithms.AES(shared_secret), modes.CFB8(shared_secret),
-                    backend=default_backend())
+    cipher = Cipher(
+        algorithms.AES(shared_secret),
+        modes.CFB8(shared_secret),
+        backend=default_backend(),
+    )
     return cipher
 
 
@@ -60,7 +61,9 @@ def generate_verify_token() -> bytes:
     return os.urandom(4)
 
 
-def encrypt_secret_and_token(public_key: bytes, shared_secret: bytes, verify_token: bytes) -> dict:
+def encrypt_secret_and_token(
+    public_key: bytes, shared_secret: bytes, verify_token: bytes
+) -> dict:
     pubkey = load_der_public_key(public_key)
     encrypted_shared_secret = pubkey.encrypt(shared_secret, PKCS1v15())
     encrypted_verify_token = pubkey.encrypt(verify_token, PKCS1v15())
@@ -74,10 +77,11 @@ def minecraft_hexdigest(sha) -> str:
         return "-" + hex(abs(output_int))[2:]
     else:
         return hex(output_int)[2:]
-    
+
+
 def generate_hash(server_id, shared_secret, public_key):
     client_hash = hashlib.sha1()
-    client_hash.update(server_id.encode('utf-8'))
+    client_hash.update(server_id.encode("utf-8"))
     client_hash.update(shared_secret)
     client_hash.update(public_key)
     return minecraft_hexdigest(client_hash)
@@ -87,14 +91,14 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
     """Process an encryption request packet."""
     server_id = packet.server_id.value
     server_public_key = packet.public_key.data
-    
+
     shared_secret = generate_shared_secret()
     verify_token = generate_verify_token()
-    
+
     encrypted_shared_secret, encrypted_verify_token = encrypt_secret_and_token(
         server_public_key, shared_secret, verify_token
     )
-    
+
     client_hash = generate_hash(server_id, shared_secret, server_public_key)
     async with aiohttp.ClientSession() as session:
         async with session.post(

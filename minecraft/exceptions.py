@@ -26,7 +26,9 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+
 from .datatypes import Chat
+
 
 class DisconnectException(Exception):
     def __init__(self, reason):
@@ -34,7 +36,7 @@ class DisconnectException(Exception):
 
     def __str__(self):
         return str(self.reason)
-    
+
 
 class LoginDisconnectException(DisconnectException):
     pass

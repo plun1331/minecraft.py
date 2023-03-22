@@ -1,12 +1,11 @@
-
-
 import asyncio
 import logging
 from typing import Callable, Coroutine
+
 from ..packets.base import Packet
 
-
 log = logging.getLogger(__name__)
+
 
 class Dispatcher:
     def __init__(self, connection):
@@ -19,7 +18,9 @@ class Dispatcher:
             self.handlers[packet] = []
         self.handlers[packet].append(handler)
 
-    def remove_handler(self, packet: type[Packet], handler: Callable[[Packet], Coroutine]):
+    def remove_handler(
+        self, packet: type[Packet], handler: Callable[[Packet], Coroutine]
+    ):
         if packet in self.handlers:
             self.handlers[packet].remove(handler)
 
@@ -34,8 +35,8 @@ class Dispatcher:
         if packet.__class__ in self.handlers:
             for handler in self.handlers[packet.__class__]:
                 self.connection.loop.create_task(
-                    self.handler_wrapper(packet, handler), 
-                    name=f"handle-{packet.__class__.__name__}-{handler.__name__}"
+                    self.handler_wrapper(packet, handler),
+                    name=f"handle-{packet.__class__.__name__}-{handler.__name__}",
                 )
         if packet.__class__ in self.temporary_handlers:
             self.temporary_handlers[packet.__class__].set_result(packet)
@@ -44,5 +45,6 @@ class Dispatcher:
     async def wait_for(self, packet_id, *, timeout=None):
         if packet_id not in self.temporary_handlers:
             self.temporary_handlers[packet_id] = asyncio.Future()
-        return await asyncio.wait_for(self.temporary_handlers[packet_id], timeout=timeout)
-        
+        return await asyncio.wait_for(
+            self.temporary_handlers[packet_id], timeout=timeout
+        )

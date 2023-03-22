@@ -26,24 +26,24 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+
 import logging
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from ...enums import State
+from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
 
-from ...datatypes import ByteArray
-
+from .base import react_to, Reactor
 from ..encryption import process_encryption_request
-from .base import Reactor, react_to
+from ...datatypes import ByteArray
+from ...enums import State
+from ...exceptions import LoginDisconnectException
 from ...packets import (
-    EncryptionRequest, 
-    EncryptionResponse, 
-    LoginSuccess, 
-    DisconnectLogin, 
+    DisconnectLogin,
+    EncryptionRequest,
+    EncryptionResponse,
     LoginPluginRequest,
     LoginPluginResponse,
+    LoginSuccess,
 )
-from ...exceptions import LoginDisconnectException
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class LoginReactor(Reactor):
         )
         self.connection.shared_secret = encryption_data["shared_secret"]
         self.connection.cipher = Cipher(
-            algorithms.AES(self.connection.shared_secret), 
+            algorithms.AES(self.connection.shared_secret),
             modes.CFB8(self.connection.shared_secret),
         )
 
@@ -85,5 +85,3 @@ class LoginReactor(Reactor):
                 successful=False,
             )
         )
-
-    

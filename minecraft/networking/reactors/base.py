@@ -26,17 +26,21 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+
 from typing import Callable, TYPE_CHECKING, TypeVar
+
 from ...packets.base import Packet
 
 if TYPE_CHECKING:
     from ..connection import Connection
     from ...client import Client
 
+
 def react_to(packet: Packet) -> None:
     def decorator(func: Callable[[Packet], None]) -> Callable[[Packet], None]:
         func.__reacts_to__ = packet
         return func
+
     return decorator
 
 
@@ -61,6 +65,6 @@ class Reactor:
     @property
     def client(self) -> Client:
         return self.connection.client
-    
+
 
 REACTOR = TypeVar("REACTOR", bound=Reactor)

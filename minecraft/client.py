@@ -27,8 +27,8 @@
 
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
 import traceback
 from typing import Callable, Coroutine
 
@@ -79,7 +79,7 @@ class Client:
         self, packet_type: type[Packet], *, timeout: float = None
     ) -> Packet:
         return await self.connection.wait_for(packet_type, timeout=timeout)
-    
+
     async def setup(self):
         pass
 
@@ -87,7 +87,7 @@ class Client:
         await self.setup()
         await self.connect(host, port)
         await self.connection._running
-    
+
     def run(self, host: str, port: int) -> None:
         loop = asyncio.get_event_loop()
 
