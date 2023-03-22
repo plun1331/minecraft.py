@@ -43,6 +43,7 @@ from ...packets import (
     LoginPluginRequest,
     LoginPluginResponse,
 )
+from ...exceptions import LoginDisconnectException
 
 log = logging.getLogger(__name__)
 
@@ -70,8 +71,8 @@ class LoginReactor(Reactor):
 
     @react_to(DisconnectLogin)
     async def disconnect_login(self, packet: DisconnectLogin):
-        log.warning(f"Disconnected from server: {packet.reason.value}")
-        await self.connection.close()
+        log.warning(f"Disconnected from server during login: {packet.reason.json}")
+        await self.connection.close(error=LoginDisconnectException(packet.reason))
 
     @react_to(LoginPluginRequest)
     async def login_plugin_request(self, packet: LoginPluginRequest):

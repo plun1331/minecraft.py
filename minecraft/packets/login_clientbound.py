@@ -45,8 +45,8 @@ class DisconnectLogin(Packet):
     bound_to = "client"
     state = State.LOGIN
 
-    def __init__(self, reason: String) -> None:
-        self.reason: String = reason
+    def __init__(self, reason: Chat) -> None:
+        self.reason: Chat = reason
 
     def __bytes__(self) -> bytes:
         return self.packet_id.to_bytes(1, "big") + bytes(self.reason)
@@ -54,7 +54,7 @@ class DisconnectLogin(Packet):
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: reason (string)
-        return cls(String.from_bytes(data))
+        return cls(Chat.from_bytes(data))
 
     def __str__(self) -> str:
         return str(self.reason)

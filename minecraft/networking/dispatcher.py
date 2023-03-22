@@ -27,7 +27,7 @@ class Dispatcher:
         try:
             await handler(packet)
         except Exception as e:
-            await self.connection.client.handler_error(e)
+            await self.connection.client.handler_error(handler, e)
 
     def dispatch(self, packet):
         log.debug(f"Dispatching {packet.__class__.__name__}")

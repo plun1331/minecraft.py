@@ -66,8 +66,8 @@ class Client:
         except Exception as e:
             await self.handle_listener_error(listener, e)
 
-    async def handle_listener_error(self, listener: Callable, error: Exception) -> None:
-        print(f"Error in listener {listener}:")
+    async def handler_error(self, handler, error: Exception) -> None:
+        print(f"Error in handler {handler}:")
         traceback.print_exc()
 
     async def handle_packet(self, packet: Packet) -> None:

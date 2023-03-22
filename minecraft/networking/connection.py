@@ -183,9 +183,9 @@ class Connection:
 
     async def send_packet(self, packet: PACKET, *, immediate: bool = False):
         if immediate:
-            log.debug(f"Connection > Immediately sending {packet.__class__.__name__}")
+            log.debug(f"Writer > Immediately sending {packet.__class__.__name__}")
             packet_data = bytes(Varint(len(packet))) + bytes(packet)
-            log.debug(f"Connection > Raw packet data: {packet_data}")
+            log.debug(f"Writer > Raw packet data: {packet_data}")
             if self.cipher is not None:
                 packet_data = self.encrypt(packet_data)
             self.writer.write(packet_data)
@@ -193,7 +193,7 @@ class Connection:
         else:
             await self.outgoing_packets.put(packet)
 
-    async def close(self):
+    async def close(self, *, error: Exception = None):
         log.info("Closing connection")
         if self.read_task:
             self.read_task.cancel()
@@ -201,7 +201,10 @@ class Connection:
         if self.write_task:
             self.write_task.cancel()
             await self.write_task
-        self._running.set_result(None)
+        if error:
+            self._running.set_exception(error)
+        else:
+            self._running.set_result(None)
         self.closed = True
 
     def change_state(self, state: State):
@@ -211,7 +214,7 @@ class Connection:
         self.reactor = REACTORS.get(state)(self)
         if self.reactor:
             self.reactor.setup()
-        log.info(f"Connection : State changed to {state.name}")
+        log.info(f"Connection state changed to {state.name}")
 
     async def wait_for(self, packet: type[Packet], *, timeout: float = None) -> type[Packet]:
         await self.dispatcher.wait_for(packet, timeout=timeout)
@@ -231,7 +234,7 @@ class Connection:
             raise RuntimeError("Cannot begin login when not in handshake state")
         if self.client.access_token is None:
             raise RuntimeError("Cannot begin login without access token")
-        log.info("Connection : Beginning standard login flow")
+        log.info("Beginning standard login flow")
         await self.send_packet(
             Handshake(
                 protocol_version=Varint(PROTOCOL_VERSION),
