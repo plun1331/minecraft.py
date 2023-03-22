@@ -12,4 +12,4 @@ class Client(minecraft.Client):
 
 client = Client()
 
-client.run("tcr.mcserver.us", 25565)
+client.run("mcsl.savermc.net", 25565)

@@ -59,7 +59,10 @@ class LoginReactor(Reactor):
             )
         )
         self.connection.shared_secret = encryption_data["shared_secret"]
-        self.connection.cipher = Cipher(algorithms.AES(self.shared_secret), modes.CFB8(self.shared_secret))
+        self.connection.cipher = Cipher(
+            algorithms.AES(self.connection.shared_secret), 
+            modes.CFB8(self.connection.shared_secret),
+        )
 
     @react_to(LoginSuccess)
     async def login_success(self, packet: LoginSuccess):

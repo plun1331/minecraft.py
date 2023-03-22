@@ -31,6 +31,10 @@ import base64
 import hashlib
 import os
 from typing import TYPE_CHECKING
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.serialization import load_der_public_key
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 import aiohttp
 import rsa
@@ -41,9 +45,14 @@ if TYPE_CHECKING:
     from .connection import Connection
 
 
-def generate_shared_secret() -> bytes:
-    """Generate a random 16-byte shared secret."""
+def generate_shared_secret():
     return os.urandom(16)
+
+
+def create_cipher(shared_secret):
+    cipher = Cipher(algorithms.AES(shared_secret), modes.CFB8(shared_secret),
+                    backend=default_backend())
+    return cipher
 
 
 def generate_verify_token() -> bytes:
@@ -51,44 +60,42 @@ def generate_verify_token() -> bytes:
     return os.urandom(4)
 
 
-def hexdigest(sha) -> str:
-    """Implement Minecraft's custom hexdigest function."""
+def encrypt_secret_and_token(public_key: bytes, shared_secret: bytes, verify_token: bytes) -> dict:
+    pubkey = load_der_public_key(public_key)
+    encrypted_shared_secret = pubkey.encrypt(shared_secret, PKCS1v15())
+    encrypted_verify_token = pubkey.encrypt(verify_token, PKCS1v15())
+    return encrypted_shared_secret, encrypted_verify_token
+
+
+def minecraft_hexdigest(sha) -> str:
     output_bytes = sha.digest()
     output_int = int.from_bytes(output_bytes, byteorder="big", signed=True)
     if output_int < 0:
         return "-" + hex(abs(output_int))[2:]
     else:
         return hex(output_int)[2:]
-
-
-def load_public_key(public_key: bytes) -> rsa.PublicKey:
-    key = (
-        "-----BEGIN PUBLIC KEY-----\n"
-        + base64.b64encode(public_key).decode()
-        + "\n-----END PUBLIC KEY-----"
-    )
-    return rsa.PublicKey.load_pkcs1_openssl_pem(key.encode())
+    
+def generate_hash(server_id, shared_secret, public_key):
+    client_hash = hashlib.sha1()
+    client_hash.update(server_id.encode('utf-8'))
+    client_hash.update(shared_secret)
+    client_hash.update(public_key)
+    return minecraft_hexdigest(client_hash)
 
 
 async def process_encryption_request(packet: EncryptionRequest, connection: Connection):
     """Process an encryption request packet."""
-    server_id = packet.server_id
-    server_public_key = packet.public_key
-    loaded_server_public_key = load_public_key(bytes(server_public_key))
-    client_shared_secret = generate_shared_secret()
-    encrypted_shared_secret = rsa.encrypt(
-        client_shared_secret, loaded_server_public_key
+    server_id = packet.server_id.value
+    server_public_key = packet.public_key.data
+    
+    shared_secret = generate_shared_secret()
+    verify_token = generate_verify_token()
+    
+    encrypted_shared_secret, encrypted_verify_token = encrypt_secret_and_token(
+        server_public_key, shared_secret, verify_token
     )
-    client_verify_token = generate_verify_token()
-    encrypted_verify_token = rsa.encrypt(client_verify_token, loaded_server_public_key)
-    # padding
-    encrypted_shared_secret += b"\x00" * (128 - len(encrypted_shared_secret))
-    encrypted_verify_token += b"\x00" * (128 - len(encrypted_verify_token))
-    sha1 = hashlib.sha1()
-    sha1.update(server_id.value.encode("ascii"))
-    sha1.update(client_shared_secret)
-    sha1.update(bytes(server_public_key))
-    client_hash = hexdigest(sha1)
+    
+    client_hash = generate_hash(server_id, shared_secret, server_public_key)
     async with aiohttp.ClientSession() as session:
         async with session.post(
             "https://sessionserver.mojang.com/session/minecraft/join",
@@ -100,7 +107,7 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
         ) as resp:
             resp.raise_for_status()
     return {
-        "shared_secret": client_shared_secret,
+        "shared_secret": shared_secret,
         "encrypted_shared_secret": encrypted_shared_secret,
         "encrypted_verify_token": encrypted_verify_token,
     }

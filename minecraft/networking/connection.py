@@ -114,6 +114,7 @@ class Connection:
             while True:
                 num_read = 0
                 result = 0
+                # Manually parse out a varint
                 while True:
                     read = await self.reader.read(1)
                     if read == b"":
@@ -127,22 +128,19 @@ class Connection:
                         break
                 packet_length = result
                 log.debug(f"Reader < Recieving packet of length {packet_length}")
-                untouched_packet_data = await self.reader.read(packet_length)
-
-                packet_data = self.decrypt(untouched_packet_data)
+                
+                packet_data = self.decrypt(await self.reader.read(packet_length))
                 try:
                     packet = get_packet(packet_data, state=self.state)
                 except KeyError:
-                    try:
-                        packet = get_packet(untouched_packet_data, state=self.state)
-                    except KeyError:
-                        log.error(
-                            f"Reader < Recieved unknown packet with id "
-                            f"{Varint.from_bytes(BytesIO(packet_data)).value}: {packet_data}"
-                        )
-                        continue
+                    log.error(
+                        f"Reader < Recieved unknown packet with id "
+                        f"{Varint.from_bytes(BytesIO(packet_data)).value}: {packet_data}"
+                    )
+                    continue
+
                 log.debug(
-                    f"Reader < Recieved {packet.__class__.__name__} ({packet.packet_id})"
+                    f"Reader < Recieved {packet.__class__.__name__}"
                 )
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
@@ -163,6 +161,7 @@ class Connection:
                     continue
                 if isinstance(packet, Handshake):
                     self.change_state(State.from_value(packet.next_state.value))
+                
                 log.debug(
                     f"Writer > Sending {packet.__class__.__name__} ({packet.packet_id})"
                 )
@@ -171,8 +170,10 @@ class Connection:
                     f"Writer > Raw packet data: {packet_data} ({len(packet_data)} - {len(packet)})"
                 )
                 packet_data = self.encrypt(packet_data)
+                
                 if isinstance(packet, EncryptionResponse):
                     self.use_encryption = True
+                
                 self.writer.write(packet_data)
                 await self.writer.drain()
         except asyncio.CancelledError:
