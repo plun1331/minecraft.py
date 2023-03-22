@@ -30,7 +30,7 @@ class Dispatcher:
             await self.connection.client.handler_error(e)
 
     def dispatch(self, packet):
-        log.debug(f"Dispatching {packet}")
+        log.debug(f"Dispatching {packet.__class__.__name__}")
         if packet.__class__ in self.handlers:
             for handler in self.handlers[packet.__class__]:
                 self.connection.loop.create_task(

@@ -29,26 +29,26 @@ from __future__ import annotations
 from typing import Callable, TYPE_CHECKING, TypeVar
 from ...packets.base import Packet
 
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self
-
 if TYPE_CHECKING:
     from ..connection import Connection
     from ...client import Client
 
+def react_to(packet: Packet) -> None:
+    def decorator(func: Callable[[Packet], None]) -> Callable[[Packet], None]:
+        func.__reacts_to__ = packet
+        return func
+    return decorator
+
 
 class Reactor:
-    def __new__(cls) -> Self:
-        reactor = super().__new__(cls)
-        for attr in cls.__dict__.values():
-            if hasattr(attr, "__reacts_to__"):
-                reactor.connection.dispatcher.register(attr.__reacts_to__, attr)
-        return reactor
-        
     def __init__(self, connection) -> None:
         self.connection: Connection = connection
+
+    def setup(self):
+        for name in dir(self):
+            attr = getattr(self, name)
+            if hasattr(attr, "__reacts_to__"):
+                self.connection.dispatcher.register(attr.__reacts_to__, attr)
 
     def __del__(self) -> None:
         self.destroy()
@@ -61,13 +61,6 @@ class Reactor:
     @property
     def client(self) -> Client:
         return self.connection.client
-
-    @staticmethod
-    def react_to(packet: Packet) -> None:
-        def decorator(func: Callable[[Packet], None]) -> Callable[[Packet], None]:
-            func.__reacts_to__ = packet
-            return func
-        return decorator
     
 
 REACTOR = TypeVar("REACTOR", bound=Reactor)

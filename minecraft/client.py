@@ -86,15 +86,16 @@ class Client:
     async def start(self, host: str, port: int = 25565) -> None:
         await self.setup()
         await self.connect(host, port)
+        await self.connection._running
     
     def run(self, host: str, port: int) -> None:
         loop = asyncio.get_event_loop()
 
         try:
             loop.run_until_complete(self.start(host, port))
-            loop.run_forever()
         except KeyboardInterrupt:
             log.info("Got KeyboardInterrupt")
         finally:
-            loop.run_until_complete(self.close())
-            loop.close()    
+            if not self.connection.closed:
+                loop.run_until_complete(self.close())
+            loop.close()

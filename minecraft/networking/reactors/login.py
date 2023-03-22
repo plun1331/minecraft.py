@@ -34,7 +34,7 @@ from ...enums import State
 from ...datatypes import ByteArray
 
 from ..encryption import process_encryption_request
-from .base import Reactor
+from .base import Reactor, react_to
 from ...packets import (
     EncryptionRequest, 
     EncryptionResponse, 
@@ -48,7 +48,7 @@ log = logging.getLogger(__name__)
 
 
 class LoginReactor(Reactor):
-    @Reactor.react_to(EncryptionRequest)
+    @react_to(EncryptionRequest)
     async def encryption_request(self, packet: EncryptionRequest):
         encryption_data = await process_encryption_request(packet, self.connection)
         await self.connection.send_packet(
@@ -60,7 +60,7 @@ class LoginReactor(Reactor):
         self.connection.shared_secret = encryption_data["shared_secret"]
         self.connection.cipher = Cipher(algorithms.AES(self.shared_secret), modes.CFB8(self.shared_secret))
 
-    @Reactor.react_to(LoginSuccess)
+    @react_to(LoginSuccess)
     async def login_success(self, packet: LoginSuccess):
         log.info(f"Successful login as {packet.username.value}")
         self.connection.change_state(State.PLAY)
@@ -68,12 +68,12 @@ class LoginReactor(Reactor):
         self.client.username = packet.username
         self.client.properties = packet.properties
 
-    @Reactor.react_to(DisconnectLogin)
+    @react_to(DisconnectLogin)
     async def disconnect_login(self, packet: DisconnectLogin):
-        log.info(f"Disconnected from server: {packet.reason.value}")
+        log.warning(f"Disconnected from server: {packet.reason.value}")
         await self.connection.close()
 
-    @Reactor.react_to(LoginPluginRequest)
+    @react_to(LoginPluginRequest)
     async def login_plugin_request(self, packet: LoginPluginRequest):
         await self.connection.send_packet(
             LoginPluginResponse(

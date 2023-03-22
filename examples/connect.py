@@ -1,17 +1,13 @@
-import asyncio
 import logging
 
 import minecraft
 
-client = minecraft.Client()
+logging.basicConfig(level=logging.DEBUG)
 
+class Client(minecraft.Client):
+    async def setup(self):
+        await self.microsoft_auth("CLIENT_ID")
 
-logging.basicConfig(level=logging.INFO)
+client = Client()
 
-
-async def main():
-    await client.microsoft_auth("CLIENT_ID")
-    await client.connect("IP", 25565)
-
-
-asyncio.run(main())
+client.run("localhost", 25565)
