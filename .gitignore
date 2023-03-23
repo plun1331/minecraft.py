@@ -1,2 +1,5 @@
 .devcontainer
 __pycache__
+docs/_build/**
+**.egg-info/**
+dist/**

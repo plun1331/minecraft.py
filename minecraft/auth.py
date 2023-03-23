@@ -58,16 +58,12 @@ async def _get_token_with_device_code(clientapp: msal.PublicClientApplication, f
 async def obtain_token_with_device_code(clientapp: msal.PublicClientApplication) -> dict:
     """
     Obtains a Microsoft access token using the device code flow.
+
+    :param clientapp: The MSAL client application.
+    :type clientapp: msal.PublicClientApplication
     
-    Parameters
-    ----------
-    clientapp: :class:`msal.PublicClientApplication`
-        The MSAL client application.
-    
-    Returns
-    -------
-    :class:`dict`
-        Authentication information returned by the Microsoft oauth2 server.
+    :return: Authentication information returned by the Microsoft OAuth2 server.
+    :rtype: dict
     """
     flow = await _start_device_code_flow(clientapp)
     return await _get_token_with_device_code(clientapp, flow)
@@ -77,15 +73,11 @@ async def get_access_token(token):
     """
     Exchanges a Microsoft access token for a Minecraft access token.
     
-    Parameters
-    ----------
-    token: :class:`str`
-        The Microsoft access token.
+    :param token: The Microsoft access token.
+    :type token: str
         
-    Returns
-    -------
-    :class:`str`
-        The Minecraft access token.
+    :return: The Minecraft access token, player UUID, and username.
+    :rtype: tuple[str, str, str]
     """
     sess = aiohttp.ClientSession()
     xbl_payload = {
@@ -141,16 +133,19 @@ async def get_access_token(token):
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     """
     Authenticates through Microsoft with a device code authentication flow.
+
+    .. note::
+        This requires that `msal <https://pypi.org/project/msal>`_ is installed.
     
-    Parameters
-    ----------
-    client_id: :class:`str`
-        The client ID of the application to authenticate with.
-        
-    Returns
-    -------
-    :class:`tuple`[:class:`str`, :class:`str`, :class:`str`]
-        A tuple containing the name, UUID, and access token of the authenticated user."""
+    :param client_id: The ID of the Microsoft OAuth2 client you want to authenticate with.
+    :type client_id: str
+
+    :return: A tuple containing the name, UUID, and access token of the authenticated user.
+    :rtype: tuple[str, str, str]
+
+    :raises RuntimeError: msal is not installed.
+    :raises AuthenticationError: Authentication failed.
+    """
     try:
         import msal
     except ImportError as exc:
