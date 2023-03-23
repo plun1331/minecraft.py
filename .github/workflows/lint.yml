@@ -44,4 +44,4 @@ jobs:
           too-few-public-methods,too-many-return-statements,protected-access,too-many-arguments,\
           too-many-branches,too-many-lines,duplicate-code,too-many-statements,too-many-nested-blocks,\
           invalid-name,unused-wildcard-import,wildcard-import,cyclic-import,redefined-builtin,\
-          redefined-outer-name,undefined-variable
+          redefined-outer-name,undefined-variable,import-outside-toplevel

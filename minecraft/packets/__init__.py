@@ -45,9 +45,33 @@ for obj in dict(globals()).values():
 def get_packet(
     data: bytes, *, state: State, bound: Literal["client", "server"] = "client"
 ) -> Packet:
+    """
+    Convert a packet's data into its respective packet object.
+
+    Parameters
+    ----------
+    data: :class:`bytes`
+        The packet's data.
+    state: :class:`State`
+        The state the connection was in when the packet arrived.
+    bound: :class:`str`
+        The destination of the packet. Can be either "client" or "server".
+
+    Returns
+    -------
+    :class:`Packet`
+        The packet object.
+
+    Raises
+    ------
+    :exc:`ValueError`
+        The bound was invalid.
+    """
     data = BytesIO(data)
     packet_id = Varint.from_bytes(data).value
     if bound == "client":
         return PACKETS_CLIENTBOUND[state][packet_id].from_bytes(data)
-    else:
+    elif bound == "server":
         return PACKETS_SERVERBOUND[state][packet_id].from_bytes(data)
+    else:
+        raise ValueError(f"Invalid bound: {bound}")

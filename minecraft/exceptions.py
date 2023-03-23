@@ -31,6 +31,14 @@ from .datatypes import Chat
 
 
 class DisconnectError(Exception):
+    """
+    Exception raised when the server disconnects the client.
+
+    Attributes
+    ----------
+    reason: :class:`Chat`
+        The reason for the disconnect.
+    """
     def __init__(self, reason):
         self.reason: Chat = reason
 
@@ -39,15 +47,40 @@ class DisconnectError(Exception):
 
 
 class LoginDisconnectError(DisconnectError):
+    """
+    Exception raised when the server disconnects the client during the login phase.
+    """
     pass
 
 
 class PacketTooLargeError(Exception):
+    """
+    Exception raised when a packet that is too large is recieved.
+    """
     pass
 
 
 class UnknownPacketError(Exception):
+    """
+    Exception raised when a packet with an unknown ID is recieved.
+    """
     def __init__(self, message: str, packet_id: int, data: bytes):
         self.message: str = message
         self.packet_id: int = packet_id
         self.data: bytes = data
+
+
+class AuthenticationError(Exception):
+    """
+    Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
+
+    Attributes
+    ----------
+    message: :class:`str`
+        The error message.
+    correlation_id: :class:`str`
+        The correlation ID.
+    """
+    def __init__(self, message: str, correlation_id: str | None = None) -> None:
+        super().__init__(message)
+        self.correlation_id = correlation_id

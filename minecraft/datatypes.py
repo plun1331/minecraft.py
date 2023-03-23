@@ -97,7 +97,7 @@ class DataType:
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__dict__})"
+        return f"{self.__class__.__name__}({' '.join([f'{k}={v}' for k, v in self.__dict__.items()])})"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):

@@ -29,40 +29,70 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
 import aiohttp
 
+from minecraft.exceptions import AuthenticationError
+
 log = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    import msal
 
-async def start_device_code_flow(clientapp):
+
+async def _start_device_code_flow(clientapp: msal.PublicClientApplication) -> dict:
     flow = clientapp.initiate_device_flow(scopes=["XboxLive.signin"])
     if "user_code" not in flow:
-        raise Exception(
-            "Failed to create device flow. Err: " + json.dumps(flow, indent=4)
+        raise AuthenticationError(
+            "Failed to create device flow.\n" + json.dumps(flow, indent=4)
         )
     print(flow["message"])
     return flow
 
 
-async def get_token_with_device_code(clientapp, flow):
-    result = clientapp.acquire_token_by_device_flow(flow)
-    return result
+async def _get_token_with_device_code(clientapp: msal.PublicClientApplication, flow: dict) -> dict:
+    return clientapp.acquire_token_by_device_flow(flow)
 
 
-async def obtain_token_with_device_code(clientapp):
-    flow = await start_device_code_flow(clientapp)
-    result = await get_token_with_device_code(clientapp, flow)
-    return result
+async def obtain_token_with_device_code(clientapp: msal.PublicClientApplication) -> dict:
+    """
+    Obtains a Microsoft access token using the device code flow.
+    
+    Parameters
+    ----------
+    clientapp: :class:`msal.PublicClientApplication`
+        The MSAL client application.
+    
+    Returns
+    -------
+    :class:`dict`
+        Authentication information returned by the Microsoft oauth2 server.
+    """
+    flow = await _start_device_code_flow(clientapp)
+    return await _get_token_with_device_code(clientapp, flow)
 
 
 async def get_access_token(token):
+    """
+    Exchanges a Microsoft access token for a Minecraft access token.
+    
+    Parameters
+    ----------
+    token: :class:`str`
+        The Microsoft access token.
+        
+    Returns
+    -------
+    :class:`str`
+        The Minecraft access token.
+    """
     sess = aiohttp.ClientSession()
     xbl_payload = {
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            "RpsTicket": "d={}".format(token) if not token.startswith("d=") else token,
+            "RpsTicket": f"d={token}" if not token.startswith("d=") else token,
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT",
@@ -109,11 +139,23 @@ async def get_access_token(token):
 
 
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
+    """
+    Authenticates through Microsoft with a device code authentication flow.
+    
+    Parameters
+    ----------
+    client_id: :class:`str`
+        The client ID of the application to authenticate with.
+        
+    Returns
+    -------
+    :class:`tuple`[:class:`str`, :class:`str`, :class:`str`]
+        A tuple containing the name, UUID, and access token of the authenticated user."""
     try:
         import msal
-    except ImportError:
-        raise RuntimeError("msal must be installed to use Microsoft authentication.")
-    log.debug(f"Starting Microsoft authentication flow with client ID {client_id}")
+    except ImportError as exc:
+        raise RuntimeError("msal must be installed to use Microsoft authentication.") from exc
+    log.debug("Starting Microsoft authentication flow with client ID %s", client_id)
     clientapp = msal.PublicClientApplication(
         client_id,
         authority="https://login.microsoftonline.com/consumers",
@@ -123,10 +165,10 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
         try:
             auth_token, uuid, name = await get_access_token(token["access_token"])
         except Exception as e:
-            raise Exception(f"Authentication failed - {e}") from e
+            raise AuthenticationError(str(e), correlation_id=token.get('correlation_id')) from e
     else:
-        raise Exception(
-            f"Authentication failed: '{token.get('error')}' ({token.get('error_description')}) - "
-            f"Correlation ID: {token.get('correlation_id')}"
+        raise AuthenticationError(
+            f"{token.get('error')}: {token.get('error_description')}",
+            correlation_id=token.get('correlation_id')
         )
     return name, uuid, auth_token
