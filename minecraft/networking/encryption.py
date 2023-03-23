@@ -56,14 +56,9 @@ def create_cipher(shared_secret):
     return cipher
 
 
-def generate_verify_token() -> bytes:
-    """Generate a random 4-byte verify token."""
-    return os.urandom(4)
-
-
 def encrypt_secret_and_token(
     public_key: bytes, shared_secret: bytes, verify_token: bytes
-) -> dict:
+) -> tuple[bytes, bytes]:
     pubkey = load_der_public_key(public_key)
     encrypted_shared_secret = pubkey.encrypt(shared_secret, PKCS1v15())
     encrypted_verify_token = pubkey.encrypt(verify_token, PKCS1v15())
@@ -91,12 +86,12 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
     """Process an encryption request packet."""
     server_id = packet.server_id.value
     server_public_key = packet.public_key.data
+    server_verify_token = packet.verify_token.data
 
     shared_secret = generate_shared_secret()
-    verify_token = generate_verify_token()
 
     encrypted_shared_secret, encrypted_verify_token = encrypt_secret_and_token(
-        server_public_key, shared_secret, verify_token
+        server_public_key, shared_secret, server_verify_token
     )
 
     client_hash = generate_hash(server_id, shared_secret, server_public_key)

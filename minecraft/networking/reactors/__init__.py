@@ -11,7 +11,7 @@ from .base import Reactor, REACTOR
 from .login import LoginReactor
 from ...enums import State
 
-REACTORS: dict[State, REACTOR] = {
+REACTORS: dict[State, type[Reactor]] = {
     State.HANDSHAKE: None,
     State.STATUS: None,
     State.LOGIN: LoginReactor,

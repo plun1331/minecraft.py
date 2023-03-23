@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Callable, Coroutine
 
-from ..packets.base import Packet
+from ..packets import PACKET, Packet
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class Dispatcher:
             self.temporary_handlers[packet.__class__].set_result(packet)
             self.temporary_handlers.pop(packet.__class__, None)
 
-    async def wait_for(self, packet_id, *, timeout=None):
+    async def wait_for(self, packet_id, *, timeout=None) -> PACKET:
         if packet_id not in self.temporary_handlers:
             self.temporary_handlers[packet_id] = asyncio.Future()
         return await asyncio.wait_for(

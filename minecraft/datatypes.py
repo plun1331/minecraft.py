@@ -276,15 +276,15 @@ class Varint(DataType):
         num_read = 0
         result = 0
         while True:
+            if num_read >= max_size:
+                raise ValueError(
+                    f"Varint is too big (exceeded max size of {max_size} bytes)"
+                )
             read = data.read(1)[0]
             value = read & 0b01111111
             result |= value << (7 * num_read)
 
             num_read += 1
-            if num_read > max_size:
-                raise ValueError(
-                    f"Varint is too big (exceeded max size of {max_size} bytes)"
-                )
 
             if (read & 0b10000000) == 0:
                 break

@@ -29,13 +29,12 @@ from __future__ import annotations
 
 import logging
 
-from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
-
 from .base import react_to, Reactor
-from ..encryption import process_encryption_request
-from ...datatypes import ByteArray
+from ..encryption import create_cipher, process_encryption_request
+from ... import SetCompression
+from ...datatypes import Boolean, ByteArray
 from ...enums import State
-from ...exceptions import LoginDisconnectException
+from ...exceptions import LoginDisconnectError
 from ...packets import (
     DisconnectLogin,
     EncryptionRequest,
@@ -59,10 +58,9 @@ class LoginReactor(Reactor):
             )
         )
         self.connection.shared_secret = encryption_data["shared_secret"]
-        self.connection.cipher = Cipher(
-            algorithms.AES(self.connection.shared_secret),
-            modes.CFB8(self.connection.shared_secret),
-        )
+        self.connection.cipher = create_cipher(self.connection.shared_secret)
+        self.connection.encryptor = self.connection.cipher.encryptor()
+        self.connection.decryptor = self.connection.cipher.decryptor()
 
     @react_to(LoginSuccess)
     async def login_success(self, packet: LoginSuccess):
@@ -75,13 +73,21 @@ class LoginReactor(Reactor):
     @react_to(DisconnectLogin)
     async def disconnect_login(self, packet: DisconnectLogin):
         log.warning(f"Disconnected from server during login: {packet.reason.json}")
-        await self.connection.close(error=LoginDisconnectException(packet.reason))
+        await self.connection.close(error=LoginDisconnectError(packet.reason))
 
     @react_to(LoginPluginRequest)
     async def login_plugin_request(self, packet: LoginPluginRequest):
         await self.connection.send_packet(
             LoginPluginResponse(
                 message_id=packet.message_id,
-                successful=False,
+                successful=Boolean(False),
             )
         )
+
+    @react_to(SetCompression)
+    async def set_compression(self, packet: SetCompression):
+        log.warning(
+            f"Server requested compression with threshold {packet.threshold.value}"
+        )
+        self.connection.compression_threshold = packet.threshold.value
+        self.connection.use_compression = packet.threshold.value >= 0

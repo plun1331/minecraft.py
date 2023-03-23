@@ -29,15 +29,17 @@ from __future__ import annotations
 
 from typing import Callable, TYPE_CHECKING, TypeVar
 
-from ...packets.base import Packet
+from ...packets import Packet, PACKET
 
 if TYPE_CHECKING:
     from ..connection import Connection
     from ...client import Client
 
 
-def react_to(packet: Packet) -> None:
-    def decorator(func: Callable[[Packet], None]) -> Callable[[Packet], None]:
+def react_to(
+    packet: type[Packet],
+) -> Callable[[Callable[[PACKET], None]], Callable[[PACKET], None]]:
+    def decorator(func: Callable[[PACKET], None]) -> Callable[[PACKET], None]:
         func.__reacts_to__ = packet
         return func
 

@@ -30,7 +30,7 @@ from __future__ import annotations
 from .datatypes import Chat
 
 
-class DisconnectException(Exception):
+class DisconnectError(Exception):
     def __init__(self, reason):
         self.reason: Chat = reason
 
@@ -38,5 +38,16 @@ class DisconnectException(Exception):
         return str(self.reason)
 
 
-class LoginDisconnectException(DisconnectException):
+class LoginDisconnectError(DisconnectError):
     pass
+
+
+class PacketTooLargeError(Exception):
+    pass
+
+
+class UnknownPacketError(Exception):
+    def __init__(self, message: str, packet_id: int, data: bytes):
+        self.message: str = message
+        self.packet_id: int = packet_id
+        self.data: bytes = data
