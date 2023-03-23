@@ -63,7 +63,7 @@ class Connection:
     """
     Handles sending and recieving packets from the server.
 
-    Attributes  
+    Attributes
     ----------
     client: :class:`Client`
         The client that this connection is attached to.
@@ -96,6 +96,7 @@ class Connection:
     reactor: :class:`Reactor`
         The reactor that currently has registered packet listeners.
     """
+
     def __init__(self, client):
         self.client: Client = client
         self.host: str | None = None
@@ -120,21 +121,20 @@ class Connection:
         self.compression_threshold: int = 0
         self.compression_object = zlib.compressobj()
         self.decompression_object = zlib.decompressobj()
-        
+
         self._running: asyncio.Future | None = None
         self._read_task: asyncio.Task | None = None
         self._write_task: asyncio.Task | None = None
 
-        
     def encrypt(self, data: bytes) -> bytes:
         """
         Encrypts the given data using the connection's cipher.
-        
+
         Parameters
         ----------
         data: :class:`bytes`
             The data to encrypt.
-            
+
         Returns
         -------
         :class:`bytes`
@@ -181,7 +181,7 @@ class Connection:
     async def connect(self, host: str, port: int) -> None:
         """
         Connects to the given host and port.
-        
+
         Parameters
         ----------
         host: :class:`str`
@@ -245,11 +245,14 @@ class Connection:
                         log.error(
                             "Reader x< Packet length %s does not match "
                             "expected uncompressed length %s, terminating connection",
-                            len(packet_data), data_length,
+                            len(packet_data),
+                            data_length,
                         )
                         await self.close(
                             error=PacketTooLargeError(
-                                f"Packet length of %s did not match expected length of %s", len(packet_data), data_length
+                                f"Packet length of %s did not match expected length of %s",
+                                len(packet_data),
+                                data_length,
                             )
                         )
                         return
@@ -257,8 +260,7 @@ class Connection:
                     packet = get_packet(packet_data, state=self.state)
                 except KeyError:
                     log.error(
-                        "Reader < Recieved unknown packet with id "
-                        "%s: %s",
+                        "Reader < Recieved unknown packet with id " "%s: %s",
                         Varint.from_bytes(BytesIO(packet_data)).value,
                     )
                     await self.close(
@@ -284,8 +286,7 @@ class Connection:
                 packet: PACKET = await self.outgoing_packets.get()
                 if packet.state != self.state:
                     log.error(
-                        "Writer x> Illegal packet %s "
-                        " during %s (expected state %s)",
+                        "Writer x> Illegal packet %s " " during %s (expected state %s)",
                         packet.__class__.__name__,
                         self.state.name,
                         packet.state.name,
@@ -295,7 +296,9 @@ class Connection:
                     self.change_state(State.from_value(packet.next_state.value))
 
                 log.debug(
-                    "Writer > Sending %s (%s)", packet.__class__.__name__, packet.packet_id
+                    "Writer > Sending %s (%s)",
+                    packet.__class__.__name__,
+                    packet.packet_id,
                 )
                 packet_length = len(packet)
                 if packet_length > 2097151:
@@ -342,7 +345,7 @@ class Connection:
             It instead adds the packet to a queue.
 
             If you want to ensure the packet is sent, you should consider using :meth:`wait_for`.
-        
+
         Parameters
         ----------
         packet: :class:`Packet`
@@ -388,7 +391,7 @@ class Connection:
         Changes the connection state.
 
         This method should never be used except when connecting to the server.
-        
+
         Parameters
         ----------
         state: :class:`State`
@@ -426,7 +429,9 @@ class Connection:
         while self.state != state:
             await asyncio.sleep(0.01)
             if timeout_at is not None and time.time() > timeout_at:
-                raise asyncio.TimeoutError("Timed out waiting for %s state" % state.name)
+                raise asyncio.TimeoutError(
+                    "Timed out waiting for %s state" % state.name
+                )
 
     # Login
     async def login(self):

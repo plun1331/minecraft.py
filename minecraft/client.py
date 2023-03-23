@@ -57,6 +57,7 @@ class Client:
     access_token: :class:`str`
         The access token of the client. Used to authenticate with Mojang.
     """
+
     def __init__(self):
         self.connection: Connection = Connection(self)
         self.username: str | None = None
@@ -87,7 +88,7 @@ class Client:
     async def setup(self):
         """
         A utility method that is called before the connection is started.
-        
+
         This takes no parameters and does nothing unless overridden.
         """
         pass
@@ -113,7 +114,7 @@ class Client:
         """
         Run the bot.
 
-        This will block until the connection is closed, 
+        This will block until the connection is closed,
         and will also handle keyboard interrupts and the event loop for you.
 
         Parameters
@@ -149,7 +150,7 @@ class Client:
     def set_auth_info(self, username: str, uuid: str, access_token: str) -> None:
         """
         Set the authentication information.
-        
+
         Parameters
         ----------
         username: :class:`str`
@@ -193,7 +194,7 @@ class Client:
             The packet ID to wait for.
         timeout: :class:`float`
             The amount of time to wait before timing out.
-        
+
         Returns
         -------
         :class:`Packet`
@@ -207,11 +208,13 @@ class Client:
         return await self.connection.dispatcher.wait_for(packet_type, timeout=timeout)
 
     def add_handler(
-        self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
+        self,
+        packet_type: type[Packet],
+        handler: Callable[[Packet], Coroutine[None, None, None]],
     ) -> None:
         """
         Add a packet handler.
-        
+
         Parameters
         ----------
         packet_type: :class:`type[Packet]`
@@ -223,7 +226,9 @@ class Client:
         self.connection.dispatcher.register(packet_type, handler)
 
     def remove_handler(
-        self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
+        self,
+        packet_type: type[Packet],
+        handler: Callable[[Packet], Coroutine[None, None, None]],
     ) -> None:
         """
         Removes a handler for a packet.
@@ -234,7 +239,7 @@ class Client:
             The packet that the handler is reacting to.
         handler: Callable[[Packet], Coroutine]
             The handler that should be removed.
-        
+
         Raises
         ------
         :exc:`ValueError`
@@ -242,7 +247,12 @@ class Client:
         """
         return self.connection.dispatcher.remove_handler(packet_type, handler)
 
-    def handle(self, packet_type: type[Packet]) -> Callable[[Callable[[Packet], Coroutine[None, None, None]]], Callable[[Packet], Coroutine[None, None, None]]]:
+    def handle(
+        self, packet_type: type[Packet]
+    ) -> Callable[
+        [Callable[[Packet], Coroutine[None, None, None]]],
+        Callable[[Packet], Coroutine[None, None, None]],
+    ]:
         """
         A decorator that adds a packet handler.
 
@@ -251,11 +261,15 @@ class Client:
         packet_type: :class:`type[Packet]`
             The type of packet to handle.
         """
-        def decorator(handler: Callable[[Packet], Coroutine[None, None, None]]) -> Callable[[Packet], Coroutine[None, None, None]]:
+
+        def decorator(
+            handler: Callable[[Packet], Coroutine[None, None, None]]
+        ) -> Callable[[Packet], Coroutine[None, None, None]]:
             self.add_handler(packet_type, handler)
             return handler
+
         return decorator
-    
+
     # Packets
     async def send_packet(self, packet: Packet) -> None:
         """

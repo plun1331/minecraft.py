@@ -51,19 +51,23 @@ async def _start_device_code_flow(clientapp: msal.PublicClientApplication) -> di
     return flow
 
 
-async def _get_token_with_device_code(clientapp: msal.PublicClientApplication, flow: dict) -> dict:
+async def _get_token_with_device_code(
+    clientapp: msal.PublicClientApplication, flow: dict
+) -> dict:
     return clientapp.acquire_token_by_device_flow(flow)
 
 
-async def obtain_token_with_device_code(clientapp: msal.PublicClientApplication) -> dict:
+async def obtain_token_with_device_code(
+    clientapp: msal.PublicClientApplication,
+) -> dict:
     """
     Obtains a Microsoft access token using the device code flow.
-    
+
     Parameters
     ----------
     clientapp: :class:`msal.PublicClientApplication`
         The MSAL client application.
-    
+
     Returns
     -------
     :class:`dict`
@@ -76,12 +80,12 @@ async def obtain_token_with_device_code(clientapp: msal.PublicClientApplication)
 async def get_access_token(token):
     """
     Exchanges a Microsoft access token for a Minecraft access token.
-    
+
     Parameters
     ----------
     token: :class:`str`
         The Microsoft access token.
-        
+
     Returns
     -------
     :class:`str`
@@ -141,20 +145,23 @@ async def get_access_token(token):
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     """
     Authenticates through Microsoft with a device code authentication flow.
-    
+
     Parameters
     ----------
     client_id: :class:`str`
         The client ID of the application to authenticate with.
-        
+
     Returns
     -------
     :class:`tuple`[:class:`str`, :class:`str`, :class:`str`]
-        A tuple containing the name, UUID, and access token of the authenticated user."""
+        A tuple containing the name, UUID, and access token of the authenticated user.
+    """
     try:
         import msal
     except ImportError as exc:
-        raise RuntimeError("msal must be installed to use Microsoft authentication.") from exc
+        raise RuntimeError(
+            "msal must be installed to use Microsoft authentication."
+        ) from exc
     log.debug("Starting Microsoft authentication flow with client ID %s", client_id)
     clientapp = msal.PublicClientApplication(
         client_id,
@@ -165,10 +172,12 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
         try:
             auth_token, uuid, name = await get_access_token(token["access_token"])
         except Exception as e:
-            raise AuthenticationError(str(e), correlation_id=token.get('correlation_id')) from e
+            raise AuthenticationError(
+                str(e), correlation_id=token.get("correlation_id")
+            ) from e
     else:
         raise AuthenticationError(
             f"{token.get('error')}: {token.get('error_description')}",
-            correlation_id=token.get('correlation_id')
+            correlation_id=token.get("correlation_id"),
         )
     return name, uuid, auth_token

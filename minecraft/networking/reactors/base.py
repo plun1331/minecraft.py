@@ -47,6 +47,7 @@ def react_to(
     packet: :class:`Packet`
         The packet that the method should react to.
     """
+
     def decorator(func: Callable[[PACKET], None]) -> Callable[[PACKET], None]:
         func.__reacts_to__ = packet
         return func
@@ -66,6 +67,7 @@ class Reactor:
     connection: :class:`Connection`
         The connection that this reactor is attached to.
     """
+
     def __init__(self, connection) -> None:
         self.connection: Connection = connection
 

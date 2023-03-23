@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Callable, Coroutine
 
-from ..packets import PACKET, Packet, PACKET
+from ..packets import Packet, PACKET
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +13,9 @@ class Dispatcher:
         self.handlers: dict[type[Packet], list] = {}
         self.temporary_handlers: dict[type[Packet], asyncio.Future] = {}
 
-    def register(self, packet: type[Packet], handler: Callable[[Packet], Coroutine]) -> None:
+    def register(
+        self, packet: type[Packet], handler: Callable[[Packet], Coroutine]
+    ) -> None:
         """
         Register a handler for a packet.
 
@@ -49,7 +51,9 @@ class Dispatcher:
         if packet in self.handlers:
             self.handlers[packet].remove(handler)
 
-    async def _handler_wrapper(self, packet: PACKET, handler: Callable[[Packet], Coroutine]) -> None:
+    async def _handler_wrapper(
+        self, packet: PACKET, handler: Callable[[Packet], Coroutine]
+    ) -> None:
         try:
             await handler(packet)
         except Exception as e:  # pylint: disable=broad-except
