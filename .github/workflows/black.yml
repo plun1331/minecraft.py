@@ -1,11 +1,6 @@
 name: Format Code with Black
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'release/**'
-  workflow_dispatch:
   pull_request:
     branches:
       - 'main'
@@ -34,11 +29,6 @@ jobs:
           pip install black
           pip install -r requirements.txt
 
-      - name: Ensure up-to-date
-        run: |
-          git fetch --all
-          git reset --hard origin/${{ github.base_ref }}
-
       - name: Format with black
         run: |
           black .
@@ -47,6 +37,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          git add *
           git commit -a -m "style: format code with black" || true
-          git push origin ${{ github.base_ref }} || true
+          git push || true
 
