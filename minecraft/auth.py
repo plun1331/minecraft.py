@@ -32,14 +32,16 @@ import logging
 
 import aiohttp
 
+from minecraft.exceptions import AuthenticationError
+
 log = logging.getLogger(__name__)
 
 
 async def start_device_code_flow(clientapp):
     flow = clientapp.initiate_device_flow(scopes=["XboxLive.signin"])
     if "user_code" not in flow:
-        raise Exception(
-            "Failed to create device flow. Err: " + json.dumps(flow, indent=4)
+        raise AuthenticationError(
+            "Failed to create device flow.\n" + json.dumps(flow, indent=4)
         )
     print(flow["message"])
     return flow
@@ -62,7 +64,7 @@ async def get_access_token(token):
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            "RpsTicket": "d={}".format(token) if not token.startswith("d=") else token,
+            "RpsTicket": f"d={token}" if not token.startswith("d=") else token,
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT",
@@ -111,8 +113,8 @@ async def get_access_token(token):
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     try:
         import msal
-    except ImportError:
-        raise RuntimeError("msal must be installed to use Microsoft authentication.")
+    except ImportError as exc:
+        raise RuntimeError("msal must be installed to use Microsoft authentication.") from exc
     log.debug(f"Starting Microsoft authentication flow with client ID {client_id}")
     clientapp = msal.PublicClientApplication(
         client_id,
@@ -123,10 +125,10 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
         try:
             auth_token, uuid, name = await get_access_token(token["access_token"])
         except Exception as e:
-            raise Exception(f"Authentication failed - {e}") from e
+            raise AuthenticationError(str(e), correlation_id=token.get('correlation_id')) from e
     else:
-        raise Exception(
-            f"Authentication failed: '{token.get('error')}' ({token.get('error_description')}) - "
-            f"Correlation ID: {token.get('correlation_id')}"
+        raise AuthenticationError(
+            f"{token.get('error')}: {token.get('error_description')}",
+            correlation_id=token.get('correlation_id')
         )
     return name, uuid, auth_token
