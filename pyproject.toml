@@ -1,0 +1,32 @@
+[project]
+name = "minecraft.py"
+version = "0.0.0a1"
+description = "A simple Minecraft client wrapper for Python 3.10+."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+  {name = "plun1331", email = "plun1331@gmail.com"},
+]
+keywords = ["minecraft"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Games/Entertainment",
+]
+dependencies = [
+  "nbt~=1.5.1",
+  "aiohttp~=3.8.4",
+  "cryptography~=39.0.2",
+]
+
+[project.optional-dependencies]
+microsoft-auth = ["msal~=1.21.0"]
+
+[project.urls]
+repository = "https://github.com/plun1331/minecraft.py"
+changelog = "https://github.com/plun1331/minecraft.py/blob/main/CHANGELOG.md"
