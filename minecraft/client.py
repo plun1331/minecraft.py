@@ -90,7 +90,7 @@ class Client:
 
     async def handler_error(self, handler, error: Exception) -> None:
         print(f"Error in handler {handler}:")
-        traceback.print_exc()
+        traceback.print_exception(type(error), error, error.__traceback__)
 
     async def wait_for_packet(
         self, packet_type: type[Packet], *, timeout: float = None
@@ -106,7 +106,7 @@ class Client:
         self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
     ) -> None:
         return self.connection.dispatcher.remove_handler(packet_type, handler)
-    
+
     def handle(self, packet_type: type[Packet]) -> Callable[[Callable[[Packet], Coroutine[None, None, None]]], Callable[[Packet], Coroutine[None, None, None]]]:
         def decorator(handler: Callable[[Packet], Coroutine[None, None, None]]) -> Callable[[Packet], Coroutine[None, None, None]]:
             self.add_handler(packet_type, handler)

@@ -27,11 +27,11 @@ class Dispatcher:
     async def handler_wrapper(self, packet, handler):
         try:
             await handler(packet)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             await self.connection.client.handler_error(handler, e)
 
     def dispatch(self, packet):
-        log.debug(f"Dispatching {packet.__class__.__name__}")
+        log.debug("Dispatching packet %s", packet)
         if packet.__class__ in self.handlers:
             for handler in self.handlers[packet.__class__]:
                 self.connection.loop.create_task(

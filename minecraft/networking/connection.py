@@ -125,24 +125,25 @@ class Connection:
                     if (read[0] & 0b10000000) == 0:
                         break
                 packet_length = result
-                log.debug(f"Reader < Recieving packet of length {packet_length}")
-
+                log.debug("Reader < Recieving packet of length %s", packet_length)
                 packet_data = self.decrypt(await self.reader.read(packet_length))
                 try:
                     packet = get_packet(packet_data, state=self.state)
                 except KeyError:
                     log.error(
-                        f"Reader < Recieved unknown packet with id "
-                        f"{Varint.from_bytes(BytesIO(packet_data)).value}: {packet_data}"
+                        "Reader < Recieved unknown packet with id "
+                        "%s: %s",
+                        Varint.from_bytes(BytesIO(packet_data)).value,
+                        packet_data,
                     )
                     continue
 
-                log.debug(f"Reader < Recieved {packet.__class__.__name__}")
+                log.debug("Reader < Recieved %s", packet.__class__.__name__)
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
             log.error("Reader : Read loop cancelled")
             self.reader.feed_eof()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             log.exception("Reader : Error in read loop")
 
     async def _write_loop(self):
@@ -151,20 +152,20 @@ class Connection:
                 packet: PACKET = await self.outgoing_packets.get()
                 if packet.state != self.state:
                     log.error(
-                        f"Writer x> Illegal packet {packet.__class__.__name__} "
-                        f" during {self.state.name} (expected state {packet.state.name})"
+                        "Writer x> Illegal packet %s "
+                        " during %s (expected state %s)",
+                        packet.__class__.__name__,
+                        self.state.name,
+                        packet.state.name,
                     )
                     continue
                 if isinstance(packet, Handshake):
                     self.change_state(State.from_value(packet.next_state.value))
 
                 log.debug(
-                    f"Writer > Sending {packet.__class__.__name__} ({packet.packet_id})"
+                    "Writer > Sending %s (%s)", packet.__class__.__name__, packet.packet_id
                 )
                 packet_data = bytes(Varint(len(packet))) + bytes(packet)
-                log.debug(
-                    f"Writer > Raw packet data: {packet_data} ({len(packet_data)} - {len(packet)})"
-                )
                 packet_data = self.encrypt(packet_data)
 
                 if isinstance(packet, EncryptionResponse):
@@ -175,14 +176,14 @@ class Connection:
         except asyncio.CancelledError:
             self.writer.close()
             log.error("Writer : Write loop cancelled")
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             log.exception("Writer : Error in write loop")
 
     async def send_packet(self, packet: PACKET, *, immediate: bool = False):
         if immediate:
-            log.debug(f"Writer > Immediately sending {packet.__class__.__name__}")
+            log.debug("Writer > Immediately sending %s", packet.__class__.__name__)
             packet_data = bytes(Varint(len(packet))) + bytes(packet)
-            log.debug(f"Writer > Raw packet data: {packet_data}")
+            log.debug("Writer > Raw packet data: %s", packet_data)
             if self.cipher is not None:
                 packet_data = self.encrypt(packet_data)
             self.writer.write(packet_data)
@@ -211,7 +212,7 @@ class Connection:
         self.reactor = REACTORS.get(state)(self)
         if self.reactor:
             self.reactor.setup()
-        log.info(f"Connection state changed to {state.name}")
+        log.info("Connection state changed to %s", state.name)
 
     async def wait_for(
         self, packet: type[Packet], *, timeout: float = None
@@ -225,7 +226,7 @@ class Connection:
         while self.state != state:
             await asyncio.sleep(0.01)
             if timeout_at is not None and time.time() > timeout_at:
-                raise asyncio.TimeoutError(f"Timed out waiting for state {state.name}")
+                raise asyncio.TimeoutError("Timed out waiting for %s state" % state.name)
 
     # Login
     async def login(self):

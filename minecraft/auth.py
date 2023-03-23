@@ -115,7 +115,7 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
         import msal
     except ImportError as exc:
         raise RuntimeError("msal must be installed to use Microsoft authentication.") from exc
-    log.debug(f"Starting Microsoft authentication flow with client ID {client_id}")
+    log.debug("Starting Microsoft authentication flow with client ID %s", client_id)
     clientapp = msal.PublicClientApplication(
         client_id,
         authority="https://login.microsoftonline.com/consumers",

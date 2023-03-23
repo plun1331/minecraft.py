@@ -66,7 +66,7 @@ class LoginReactor(Reactor):
 
     @react_to(LoginSuccess)
     async def login_success(self, packet: LoginSuccess):
-        log.info(f"Successful login as {packet.username.value}")
+        log.info("Successful login as %s", packet.username.value)
         self.connection.change_state(State.PLAY)
         self.client.uuid = packet.uuid
         self.client.username = packet.username
@@ -74,7 +74,7 @@ class LoginReactor(Reactor):
 
     @react_to(DisconnectLogin)
     async def disconnect_login(self, packet: DisconnectLogin):
-        log.warning(f"Disconnected from server during login: {packet.reason.json}")
+        log.warning("Disconnected from server during login: %s", packet.reason.json)
         await self.connection.close(error=LoginDisconnectException(packet.reason))
 
     @react_to(LoginPluginRequest)

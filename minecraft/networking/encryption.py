@@ -75,8 +75,7 @@ def minecraft_hexdigest(sha) -> str:
     output_int = int.from_bytes(output_bytes, byteorder="big", signed=True)
     if output_int < 0:
         return "-" + hex(abs(output_int))[2:]
-    else:
-        return hex(output_int)[2:]
+    return hex(output_int)[2:]
 
 
 def generate_hash(server_id, shared_secret, public_key):

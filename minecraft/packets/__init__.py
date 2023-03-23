@@ -49,5 +49,7 @@ def get_packet(
     packet_id = Varint.from_bytes(data).value
     if bound == "client":
         return PACKETS_CLIENTBOUND[state][packet_id].from_bytes(data)
-    else:
+    elif bound == "server":
         return PACKETS_SERVERBOUND[state][packet_id].from_bytes(data)
+    else:
+        raise ValueError(f"Invalid bound: {bound}")
