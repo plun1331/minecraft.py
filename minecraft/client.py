@@ -40,32 +40,89 @@ log = logging.getLogger(__name__)
 
 
 class Client:
+    """
+    The Minecraft client.
+
+    This abstracts away the connection and provides a simple interface for
+    sending and receiving packets.
+
+    Attributes
+    ----------
+    connection: :class:`Connection`
+        The connection that this client uses.
+    username: :class:`str`
+        The username of the client.
+    uuid: :class:`str`
+        The UUID of the client.
+    access_token: :class:`str`
+        The access token of the client. Used to authenticate with Mojang.
+    """
     def __init__(self):
         self.connection: Connection = Connection(self)
         self.username: str | None = None
         self.uuid: str | None = None
         self.access_token: str | None = None
-        self.listeners: dict[
-            type[Packet], list[Callable[[Packet], Coroutine[None, None, None]]]
-        ] = {}
 
     # Base connection methods
     async def connect(self, host: str, port: int = 25565) -> None:
+        """
+        Connect to the server.
+
+        Parameters
+        ----------
+        host: :class:`str`
+            The host to connect to.
+        port: :class:`int`
+            The port to connect to.
+        """
         await self.connection.connect(host, port)
         await self.connection.login()
 
     async def close(self) -> None:
+        """
+        Close the connection.
+        """
         await self.connection.close()
 
     async def setup(self):
+        """
+        A utility method that is called before the connection is started.
+        
+        This takes no parameters and does nothing unless overridden.
+        """
         pass
 
     async def start(self, host: str, port: int = 25565) -> None:
+        """
+        Setup the bot and connect to the server.
+
+        This will also wait until the connection is closed before returning.
+
+        Parameters
+        ----------
+        host: :class:`str`
+            The host to connect to.
+        port: :class:`int`
+            The port to connect to.
+        """
         await self.setup()
         await self.connect(host, port)
         await self.connection._running
 
     def run(self, host: str, port: int) -> None:
+        """
+        Run the bot.
+
+        This will block until the connection is closed, 
+        and will also handle keyboard interrupts and the event loop for you.
+
+        Parameters
+        ----------
+        host: :class:`str`
+            The host to connect to.
+        port: :class:`int`
+            The port to connect to.
+        """
         loop = asyncio.get_event_loop()
 
         try:
@@ -79,9 +136,29 @@ class Client:
 
     # Authentication
     async def microsoft_auth(self, client_id: str) -> None:
-        self.username, self.uuid, self.access_token = await microsoft_auth(client_id)
+        """
+        Authenticate with Microsoft.
+
+        Parameters
+        ----------
+        client_id: :class:`str`
+            The client ID to use for authentication.
+        """
+        self.set_auth_info(*await microsoft_auth(client_id))
 
     def set_auth_info(self, username: str, uuid: str, access_token: str) -> None:
+        """
+        Set the authentication information.
+        
+        Parameters
+        ----------
+        username: :class:`str`
+            The username of the client.
+        uuid: :class:`str`
+            The UUID of the client.
+        access_token: :class:`str`
+            The access token of the client. Used to authenticate with Mojang.
+        """
         self.username = username
         self.uuid = uuid
         self.access_token = access_token
@@ -89,26 +166,104 @@ class Client:
     # Handlers
 
     async def handler_error(self, handler, error: Exception) -> None:
+        """
+        Called whenever a packet handler raises an exception.
+
+        The default behavior is to print the traceback.
+
+        Parameters
+        ----------
+        handler: :class:`str`
+            The name of the handler.
+        error: :class:`Exception`
+            The exception that was raised.
+        """
         print(f"Error in handler {handler}:")
         traceback.print_exception(type(error), error, error.__traceback__)
 
     async def wait_for_packet(
         self, packet_type: type[Packet], *, timeout: float = None
     ) -> Packet:
-        return await self.connection.wait_for(packet_type, timeout=timeout)
+        """
+        Wait for a packet to be received.
+
+        Parameters
+        ----------
+        packet_id: :class:`int`
+            The packet ID to wait for.
+        timeout: :class:`float`
+            The amount of time to wait before timing out.
+        
+        Returns
+        -------
+        :class:`Packet`
+            The packet that was received.
+
+        Raises
+        ------
+        :exc:`asyncio.TimeoutError`
+            The packet was not received before the timeout.
+        """
+        return await self.connection.dispatcher.wait_for(packet_type, timeout=timeout)
 
     def add_handler(
         self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
     ) -> None:
-        return self.connection.dispatcher.register(packet_type, handler)
+        """
+        Add a packet handler.
+        
+        Parameters
+        ----------
+        packet_type: :class:`type[Packet]`
+            The type of packet to handle.
+        handler: :class:`Callable[[Packet], Coroutine[None, None, None]]`
+            The handler to call when the packet is received.
+            Must be an async function.
+        """
+        self.connection.dispatcher.register(packet_type, handler)
 
     def remove_handler(
         self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
     ) -> None:
+        """
+        Removes a handler for a packet.
+
+        Parameters
+        ----------
+        packet: :class:`Packet`
+            The packet that the handler is reacting to.
+        handler: Callable[[Packet], Coroutine]
+            The handler that should be removed.
+        
+        Raises
+        ------
+        :exc:`ValueError`
+            The handler is not registered for the packet.
+        """
         return self.connection.dispatcher.remove_handler(packet_type, handler)
 
     def handle(self, packet_type: type[Packet]) -> Callable[[Callable[[Packet], Coroutine[None, None, None]]], Callable[[Packet], Coroutine[None, None, None]]]:
+        """
+        A decorator that adds a packet handler.
+
+        Parameters
+        ----------
+        packet_type: :class:`type[Packet]`
+            The type of packet to handle.
+        """
         def decorator(handler: Callable[[Packet], Coroutine[None, None, None]]) -> Callable[[Packet], Coroutine[None, None, None]]:
             self.add_handler(packet_type, handler)
             return handler
         return decorator
+    
+    # Packets
+    async def send_packet(self, packet: Packet) -> None:
+        """
+        Send a packet to the server.
+
+        Parameters
+        ----------
+        packet: :class:`Packet`
+            The packet to send.
+        """
+        await self.connection.send_packet(packet)

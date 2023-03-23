@@ -42,6 +42,19 @@ class Packet:
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
+        """
+        Converts a packet's data into a packet object.
+
+        Parameters
+        ----------
+        data: :class:`io.BytesIO`
+            The packet's data.
+
+        Returns
+        -------
+        :class:`Packet`
+            The packet object.
+        """
         return cls()
 
     @classmethod
@@ -54,8 +67,8 @@ class Packet:
             )
         return cls.from_bytes(io)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(packet_id={self.packet_id})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(packet_id={self.packet_id} {' '.join([f'{k}={v}' for k, v in self.__dict__.items()])})"
 
     def __bytes__(self):
         return self.packet_id.to_bytes(1, "big")

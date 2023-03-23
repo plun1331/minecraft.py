@@ -37,6 +37,14 @@ if TYPE_CHECKING:
 
 
 def react_to(packet: Packet) -> None:
+    """
+    Decorator for specifying what packets a method in a :class:`Reactor` should react to.
+    
+    Parameters
+    ----------
+    packet: :class:`Packet`
+        The packet that the method should react to.
+    """
     def decorator(func: Callable[[Packet], None]) -> Callable[[Packet], None]:
         func.__reacts_to__ = packet
         return func
@@ -45,10 +53,26 @@ def react_to(packet: Packet) -> None:
 
 
 class Reactor:
+    """
+    Base class for all reactors.
+    
+    Reactors are used to handle packets internally, 
+    though they can be overwritten to change their behavior.
+
+    Attributes
+    ----------
+    connection: :class:`Connection`
+        The connection that this reactor is attached to.
+    """
     def __init__(self, connection) -> None:
         self.connection: Connection = connection
 
     def setup(self):
+        """
+        Setup the reactor.
+        
+        This method is called when the reactor is attached to a connection.
+        """
         for name in dir(self):
             attr = getattr(self, name)
             if hasattr(attr, "__reacts_to__"):
@@ -58,12 +82,24 @@ class Reactor:
         self.destroy()
 
     def destroy(self) -> None:
+        """
+        Destroy the reactor.
+
+        This method is called when the reactor is detached from a connection.
+        """
         for attr in self.__dict__.values():
             if hasattr(attr, "__reacts_to__"):
                 self.connection.dispatcher.remove_handler(attr.__reacts_to__, attr)
 
     @property
     def client(self) -> Client:
+        """
+        The client that this reactor's connection is attached to.
+        
+        Returns
+        -------
+        :class:`Client`
+        """
         return self.connection.client
 
 

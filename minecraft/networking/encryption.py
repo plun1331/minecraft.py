@@ -44,10 +44,33 @@ if TYPE_CHECKING:
 
 
 def generate_shared_secret():
+    """
+    Generate a random 16-byte shared secret.
+
+    This is just a convenience method, and only does ``os.urandom(16)``.
+
+    Returns
+    -------
+    :class:`bytes`
+        The shared secret.
+    """
     return os.urandom(16)
 
 
 def create_cipher(shared_secret):
+    """
+    Create a cipher for encrypting and decrypting packets.
+
+    Parameters
+    ----------
+    shared_secret: :class:`bytes`
+        The shared secret.
+    
+    Returns
+    -------
+    :class:`cryptography.hazmat.primitives.ciphers.Cipher`
+        The cipher.
+    """
     cipher = Cipher(
         algorithms.AES(shared_secret),
         modes.CFB8(shared_secret),
@@ -64,6 +87,23 @@ def generate_verify_token() -> bytes:
 def encrypt_secret_and_token(
     public_key: bytes, shared_secret: bytes, verify_token: bytes
 ) -> dict:
+    """
+    Encrypt the shared secret and verify token using the server's public key.
+
+    Parameters
+    ----------
+    public_key: :class:`bytes`
+        The server's public key.
+    shared_secret: :class:`bytes`
+        The shared secret.
+    verify_token: :class:`bytes`
+        The verify token.
+
+    Returns
+    -------
+    tuple[:class:`bytes`, :class:`bytes`]
+        The encrypted shared secret and verify token.
+    """
     pubkey = load_der_public_key(public_key)
     encrypted_shared_secret = pubkey.encrypt(shared_secret, PKCS1v15())
     encrypted_verify_token = pubkey.encrypt(verify_token, PKCS1v15())
@@ -71,6 +111,18 @@ def encrypt_secret_and_token(
 
 
 def minecraft_hexdigest(sha) -> str:
+    """
+    Convert a SHA1 hash to a Minecraft hexdigest.
+    
+    Parameters
+    ----------
+    sha: :class:`hashlib.sha1`
+        The SHA1 hash.
+    
+    Returns
+    -------
+    :class:`str`
+        The hexdigest."""
     output_bytes = sha.digest()
     output_int = int.from_bytes(output_bytes, byteorder="big", signed=True)
     if output_int < 0:
@@ -78,7 +130,24 @@ def minecraft_hexdigest(sha) -> str:
     return hex(output_int)[2:]
 
 
-def generate_hash(server_id, shared_secret, public_key):
+def generate_hash(server_id: str, shared_secret: bytes, public_key: bytes) -> str:
+    """
+    Generate the hash for the session server.
+
+    Parameters
+    ----------
+    server_id: :class:`str`
+        The server ID.
+    shared_secret: :class:`bytes`
+        The shared secret.
+    public_key: :class:`bytes`
+        The server's public key.
+
+    Returns
+    -------
+    :class:`str`
+        The hash.
+    """
     client_hash = hashlib.sha1()
     client_hash.update(server_id.encode("utf-8"))
     client_hash.update(shared_secret)
@@ -87,7 +156,21 @@ def generate_hash(server_id, shared_secret, public_key):
 
 
 async def process_encryption_request(packet: EncryptionRequest, connection: Connection):
-    """Process an encryption request packet."""
+    """
+    Processes an encryption request packet.
+
+    Parameters
+    ----------
+    packet: :class:`EncryptionRequest`
+        The packet.
+    connection: :class:`Connection`
+        The connection.
+
+    Returns
+    -------
+    dict[:class:`str`, :class:`bytes`]
+        A dictionary containing ``shared_secret``, ``encrypted_shared_secret``, and ``encrypted_verify_token``.
+    """
     server_id = packet.server_id.value
     server_public_key = packet.public_key.data
 

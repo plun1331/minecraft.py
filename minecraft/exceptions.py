@@ -31,6 +31,14 @@ from .datatypes import Chat
 
 
 class DisconnectException(Exception):
+    """
+    Exception raised when the server disconnects the client.
+    
+    Attributes
+    ----------
+    reason: :class:`Chat`
+        The reason for the disconnect.
+    """
     def __init__(self, reason):
         self.reason: Chat = reason
 
@@ -39,10 +47,23 @@ class DisconnectException(Exception):
 
 
 class LoginDisconnectException(DisconnectException):
+    """
+    Exception raised when the server disconnects the client during the login phase.
+    """
     pass
 
 
 class AuthenticationError(Exception):
+    """
+    Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
+
+    Attributes
+    ----------
+    message: :class:`str`
+        The error message.
+    correlation_id: :class:`str`
+        The correlation ID.
+    """
     def __init__(self, message: str, correlation_id: str | None = None) -> None:
         super().__init__(message)
         self.correlation_id = correlation_id
