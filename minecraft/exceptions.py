@@ -40,3 +40,9 @@ class DisconnectException(Exception):
 
 class LoginDisconnectException(DisconnectException):
     pass
+
+
+class AuthenticationError(Exception):
+    def __init__(self, message: str, correlation_id: str | None = None) -> None:
+        super().__init__(message)
+        self.correlation_id = correlation_id

@@ -49,36 +49,13 @@ class Client:
             type[Packet], list[Callable[[Packet], Coroutine[None, None, None]]]
         ] = {}
 
+    # Base connection methods
     async def connect(self, host: str, port: int = 25565) -> None:
         await self.connection.connect(host, port)
         await self.connection.login()
 
-    async def microsoft_auth(self, client_id: str) -> None:
-        self.username, self.uuid, self.access_token = await microsoft_auth(client_id)
-
     async def close(self) -> None:
         await self.connection.close()
-
-    async def _dispatch_listener(self, packet: Packet, listener: Callable) -> None:
-        log.debug(f"Dispatching {packet} to {listener}")
-        try:
-            await listener(packet)
-        except Exception as e:
-            await self.handle_listener_error(listener, e)
-
-    async def handler_error(self, handler, error: Exception) -> None:
-        print(f"Error in handler {handler}:")
-        traceback.print_exc()
-
-    async def handle_packet(self, packet: Packet) -> None:
-        log.debug(f"Dispatching {packet.__class__.__name__} to all listeners")
-        for listener in self.listeners.get(type(packet), []):
-            self.connection.loop.create_task(self._dispatch_listener(packet, listener))
-
-    async def wait_for_packet(
-        self, packet_type: type[Packet], *, timeout: float = None
-    ) -> Packet:
-        return await self.connection.wait_for(packet_type, timeout=timeout)
 
     async def setup(self):
         pass
@@ -99,3 +76,39 @@ class Client:
             if not self.connection.closed:
                 loop.run_until_complete(self.close())
             loop.close()
+
+    # Authentication
+    async def microsoft_auth(self, client_id: str) -> None:
+        self.username, self.uuid, self.access_token = await microsoft_auth(client_id)
+
+    def set_auth_info(self, username: str, uuid: str, access_token: str) -> None:
+        self.username = username
+        self.uuid = uuid
+        self.access_token = access_token
+
+    # Handlers
+
+    async def handler_error(self, handler, error: Exception) -> None:
+        print(f"Error in handler {handler}:")
+        traceback.print_exc()
+
+    async def wait_for_packet(
+        self, packet_type: type[Packet], *, timeout: float = None
+    ) -> Packet:
+        return await self.connection.wait_for(packet_type, timeout=timeout)
+
+    def add_handler(
+        self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
+    ) -> None:
+        return self.connection.dispatcher.register(packet_type, handler)
+
+    def remove_handler(
+        self, packet_type: type[Packet], handler: Callable[[Packet], Coroutine[None, None, None]]
+    ) -> None:
+        return self.connection.dispatcher.remove_handler(packet_type, handler)
+    
+    def handle(self, packet_type: type[Packet]) -> Callable[[Callable[[Packet], Coroutine[None, None, None]]], Callable[[Packet], Coroutine[None, None, None]]]:
+        def decorator(handler: Callable[[Packet], Coroutine[None, None, None]]) -> Callable[[Packet], Coroutine[None, None, None]]:
+            self.add_handler(packet_type, handler)
+            return handler
+        return decorator
