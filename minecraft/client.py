@@ -47,16 +47,12 @@ class Client:
     This abstracts away the connection and provides a simple interface for
     sending and receiving packets.
 
-    Attributes
-    ----------
-    connection: :class:`Connection`
-        The connection that this client uses.
-    username: :class:`str`
-        The username of the client.
-    uuid: :class:`str`
-        The UUID of the client.
-    access_token: :class:`str`
-        The access token of the client. Used to authenticate with Mojang.
+    :ivar connection: The connection that this client uses. (:class:`Connection`)
+    :ivar username: The username of the client. (:class:`str`)
+    :ivar uuid: The UUID of the client. (:class:`str`)
+    :ivar access_token: The access token of the client. 
+        Used for authentication with the Mojang session server. (:class:`str`)
+
     """
 
     def __init__(self):
@@ -189,23 +185,16 @@ class Client:
     ) -> Packet:
         """
         Wait for a packet to be received.
+        
+        :param packet_type: The type of packet to wait for.
+        :type packet_type: type[Packet]
+        :param timeout: The amount of time to wait before timing out.
+        :type timeout: float
+        
+        :return: The packet that was received.
+        :rtype: Packet
 
-        Parameters
-        ----------
-        packet_id: :class:`int`
-            The packet ID to wait for.
-        timeout: :class:`float`
-            The amount of time to wait before timing out.
-
-        Returns
-        -------
-        :class:`Packet`
-            The packet that was received.
-
-        Raises
-        ------
-        :exc:`asyncio.TimeoutError`
-            The packet was not received before the timeout.
+        :raises asyncio.TimeoutError: The packet was not received before the timeout.
         """
         return await self.connection.dispatcher.wait_for(packet_type, timeout=timeout)
 
@@ -216,14 +205,12 @@ class Client:
     ) -> None:
         """
         Add a packet handler.
-
-        Parameters
-        ----------
-        packet_type: :class:`type[Packet]`
-            The type of packet to handle.
-        handler: :class:`Callable[[Packet], Coroutine[None, None, None]]`
-            The handler to call when the packet is received.
+        
+        :param packet_type: The type of packet to handle.
+        :type packet_type: type[Packet]
+        :param handler: The handler to call when the packet is received.
             Must be an async function.
+        :type handler: Callable[[Packet], Coroutine[None, None, None]]
         """
         self.connection.dispatcher.register(packet_type, handler)
 
@@ -234,18 +221,13 @@ class Client:
     ) -> None:
         """
         Removes a handler for a packet.
+        
+        :param packet_type: The packet that the handler is reacting to.
+        :type packet_type: type[Packet]
+        :param handler: The handler that should be removed.
+        :type handler: Callable[[Packet], Coroutine[None, None, None]]
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet that the handler is reacting to.
-        handler: Callable[[Packet], Coroutine]
-            The handler that should be removed.
-
-        Raises
-        ------
-        :exc:`ValueError`
-            The handler is not registered for the packet.
+        :raises ValueError: The handler is not registered for the packet.
         """
         return self.connection.dispatcher.remove_handler(packet_type, handler)
 
@@ -258,10 +240,8 @@ class Client:
         """
         A decorator that adds a packet handler.
 
-        Parameters
-        ----------
-        packet_type: :class:`type[Packet]`
-            The type of packet to handle.
+        :param packet_type: The type of packet to handle.
+        :type packet_type: type[Packet]
         """
 
         def decorator(
@@ -277,9 +257,11 @@ class Client:
         """
         Send a packet to the server.
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet to send.
+        .. note::
+            This does not wait for the packet to send.
+            Instead, it adds it to a queue.
+
+        :param packet: The packet to send.
+        :type packet: Packet
         """
         await self.connection.send_packet(packet)

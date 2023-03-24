@@ -44,7 +44,6 @@ except ImportError:
     from typing_extensions import Self
 
 __all__ = (
-    "BytesIO",  # std lib, imported for typehints
     "DataType",
     "Boolean",
     "Byte",
@@ -89,6 +88,9 @@ __all__ = (
 
 
 class DataType:
+    """
+    The base class for all data types.
+    """
     def __bytes__(self) -> bytes:
         raise NotImplementedError
 
@@ -111,6 +113,11 @@ class DataType:
 
 
 class Boolean(DataType):
+    """
+    Represents a boolean value.
+
+    :ivar value: The value of this data type. (:class:`bool`)
+    """
     def __init__(self, value: bool):
         self.value = value
 
@@ -126,6 +133,11 @@ class Boolean(DataType):
 
 
 class Byte(DataType):
+    """
+    Represents a byte.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -138,6 +150,11 @@ class Byte(DataType):
 
 
 class UnsignedByte(DataType):
+    """
+    Represents an unsigned byte.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -150,6 +167,11 @@ class UnsignedByte(DataType):
 
 
 class Short(DataType):
+    """
+    Represents a short.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -162,6 +184,11 @@ class Short(DataType):
 
 
 class UnsignedShort(DataType):
+    """
+    Represents an unsigned short.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -174,6 +201,11 @@ class UnsignedShort(DataType):
 
 
 class Int(DataType):
+    """
+    Represents an integer.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -186,6 +218,11 @@ class Int(DataType):
 
 
 class Long(DataType):
+    """
+    Represents a long.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -210,6 +247,11 @@ class Float(DataType):
 
 
 class Double(DataType):
+    """
+    Represents a double.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: float):
         self.value = value
 
@@ -222,6 +264,11 @@ class Double(DataType):
 
 
 class String(DataType):
+    """
+    Represents a string.
+
+    :ivar value: The value of this data type. (:class:`str`)
+    """
     def __init__(self, value: str):
         self.value = value
 
@@ -242,8 +289,14 @@ class String(DataType):
 
 
 class Chat(String):
+    """
+    Represents chat data.
+
+    :ivar value: The value of this data type. (:class:`str`)
+    """
     @property
     def json(self):
+        """The parsed JSON data of this chat data. (:class:`dict`))"""
         return json.loads(self.value)
 
     @classmethod
@@ -252,12 +305,22 @@ class Chat(String):
 
 
 class Identifier(String):
+    """
+    Represents an identifier.
+
+    :ivar value: The value of this data type. (:class:`str`)
+    """
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         return super().from_bytes(data, max_length=32767)
 
 
 class Varint(DataType):
+    """
+    Represents a variable integer.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -294,6 +357,11 @@ class Varint(DataType):
 
 
 class Varlong(DataType):
+    """
+    Represents a variable long.
+
+    :ivar value: The value of this data type. (:class:`int`)
+    """
     def __init__(self, value: int):
         self.value = value
 
@@ -331,6 +399,13 @@ class Varlong(DataType):
 
 
 class EntityMetadataEntry:
+    """
+    Represents entity metadata.
+
+    :ivar index: The index key for this entry. (:class:`UnsignedByte`)
+    :ivar type: The type of index. (:class:`Varint`)
+    :ivar value: The value of this entry. (:class:`DataType`)
+    """
     def __init__(self, index: UnsignedByte, type: Varint, value: DataType):
         self.index = index
         self.type = type
@@ -372,6 +447,13 @@ class EntityMetadataEntry:
 
 
 class Rotation(DataType):
+    """
+    Represents the rotation of something.
+
+    :ivar x: The x rotation. (:class:`Float`)
+    :ivar y: The y rotation. (:class:`Float`)
+    :ivar z: The z rotation. (:class:`Float`)
+    """
     def __init__(self, x: Float, y: Float, z: Float):
         self.x = x
         self.y = y
