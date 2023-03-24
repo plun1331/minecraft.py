@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import logging
 import time
 import zlib
@@ -41,7 +42,7 @@ from .reactors import REACTORS
 from .reactors.base import REACTOR
 from ..datatypes import *
 from ..enums import NextState, State
-from ..exceptions import PacketTooLargeError, UnknownPacketError
+from ..exceptions import MalformedPacketSizeError, UnknownPacketError
 from ..packets import (
     get_packet,
     Handshake,
@@ -55,8 +56,8 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-PROTOCOL_VERSION: int = 761
-RELEASE_NAME: str = "1.19.3"
+PROTOCOL_VERSION: int = 762
+RELEASE_NAME: str = "1.19.4"
 
 
 class Connection:
@@ -119,8 +120,6 @@ class Connection:
 
         self.use_compression: bool = False
         self.compression_threshold: int = 0
-        self.compression_object = zlib.compressobj()
-        self.decompression_object = zlib.decompressobj()
 
         self._running: asyncio.Future | None = None
         self._read_task: asyncio.Task | None = None
@@ -171,12 +170,12 @@ class Connection:
             return data, False
         if len(data) < self.compression_threshold:
             return data, False
-        return self.compression_object.compress(data), True
+        return zlib.compress(data), True
 
     def decompress(self, data: bytes) -> bytes:
         if not self.use_compression:
             return data
-        return self.decompression_object.decompress(data)
+        return zlib.decompress(data)
 
     async def connect(self, host: str, port: int) -> None:
         """
@@ -202,43 +201,75 @@ class Connection:
         log.info("Started read/write tasks")
 
     async def parse_varint(self) -> int:
-        num_read = 0
-        result = 0
-        # Manually parse out a varint
+        value = 0
+        position = 0
         while True:
             read = await self.reader.read(1)
             if read == b"":
                 await asyncio.sleep(0.01)
                 continue
             read = self.decrypt(read)
-            value = read[0] & 0b01111111
-            result |= value << (7 * num_read)
-            num_read += 1
-            if (read[0] & 0b10000000) == 0:
+            currentByte = read[0]
+            value |= (currentByte & 0x7F) << position
+            if (currentByte & 0x80) == 0:
                 break
-        return result
+            position += 7
+            if position >= 32:
+                raise ValueError("VarInt is too big")
+        return value
 
     async def _read_loop(self) -> None:
         try:
             while True:
                 packet_length = await self.parse_varint()
-                data_length = 0
-                if self.use_compression:
-                    data_length = await self.parse_varint()
                 log.debug("Reader < Recieving packet of length %s", packet_length)
-                log.debug("         Decompressed length %s", data_length)
-                if packet_length > 2097151 or data_length > 2097151:
+                if packet_length > 2097151:
                     log.error(
                         f"Reader x< Packet length {packet_length} is too large, terminating connection"
                     )
                     await self.close(
-                        error=PacketTooLargeError(
+                        error=MalformedPacketSizeError(
                             f"Packet length of {packet_length} is too large"
                         )
                     )
                     return
 
                 packet_data = self.decrypt(await self.reader.readexactly(packet_length))
+                if len(packet_data) != packet_length:
+                    log.error(
+                        "Reader x< Packet length %s does not match "
+                        "expected length %s, terminating connection",
+                        len(packet_data),
+                        packet_length,
+                    )
+                    await self.close(
+                        error=MalformedPacketSizeError(
+                            f"Packet length of {len(packet_data)} did not match expected length of {packet_length}"
+                        )
+                    )
+                    return
+
+                buffer = io.BytesIO(packet_data)
+
+                data_length = 0
+                if self.use_compression:
+                    data_length = Varint.from_bytes(buffer).value
+                    log.debug(
+                        "Reader < Recieving packet of decompressed length %s",
+                        data_length,
+                    )
+                    packet_data = buffer.read()
+                if data_length > 2097151:
+                    log.error(
+                        "Reader x< Packet length %s is too large, terminating connection",
+                        data_length,
+                    )
+                    await self.close(
+                        error=MalformedPacketSizeError(
+                            f"Packet length of {data_length} is too large"
+                        )
+                    )
+                    return
                 if data_length > 0:
                     packet_data = self.decompress(packet_data)
                     if len(packet_data) != data_length:
@@ -249,7 +280,7 @@ class Connection:
                             data_length,
                         )
                         await self.close(
-                            error=PacketTooLargeError(
+                            error=MalformedPacketSizeError(
                                 f"Packet length of %s did not match expected length of %s",
                                 len(packet_data),
                                 data_length,
@@ -260,8 +291,9 @@ class Connection:
                     packet = get_packet(packet_data, state=self.state)
                 except KeyError:
                     log.error(
-                        "Reader < Recieved unknown packet with id " "%s: %s",
+                        "Reader < Recieved unknown packet with id %s: %s",
                         Varint.from_bytes(BytesIO(packet_data)).value,
+                        packet_data,
                     )
                     await self.close(
                         error=UnknownPacketError(
@@ -271,8 +303,16 @@ class Connection:
                         )
                     )
                     return
+                except Exception as e:
+                    log.exception(
+                        "Reader < Failed to parse packet with id %s",
+                        Varint.from_bytes(BytesIO(packet_data)).value,
+                    )
+                    continue
 
                 log.debug("Reader < Recieved %s", packet.__class__.__name__)
+                if self.reactor and packet.__class__ in self.reactor.handlers:
+                    await self.reactor.handlers[packet.__class__](packet)
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
             log.error("Reader : Read loop cancelled")
@@ -306,7 +346,7 @@ class Connection:
                         f"Writer x> Packet length {packet_length} is too large, terminating connection"
                     )
                     await self.close(
-                        error=PacketTooLargeError(
+                        error=MalformedPacketSizeError(
                             f"Packet length of {packet_length} is too large"
                         )
                     )
@@ -398,8 +438,6 @@ class Connection:
             The new state to change to.
         """
         self.state = state
-        if self.reactor:
-            self.reactor.destroy()
         reactor = REACTORS.get(state)
         if reactor:
             reactor = reactor(self)

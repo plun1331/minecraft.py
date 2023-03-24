@@ -55,7 +55,7 @@ class LoginDisconnectError(DisconnectError):
     pass
 
 
-class PacketTooLargeError(Exception):
+class MalformedPacketSizeError(Exception):
     """
     Exception raised when a packet that is too large is recieved.
     """

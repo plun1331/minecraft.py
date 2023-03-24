@@ -54,9 +54,13 @@ from ..enums import (
 )
 
 
-class SpawnEntity(Packet):
+class BundleDelimiter(Packet):
     """
-    Sent by the server when a vehicle or other non-living entity is created.
+    The delimeter for a bundle of packets.
+    When received, the client should store every subsequent
+    packet it receives, and wait until another delimiter is
+    received. Once that happens, the client is guaranteed to
+    process every packet in the bundle on the same tick.
 
     Packet ID: 0x00
     State: Play
@@ -64,6 +68,30 @@ class SpawnEntity(Packet):
     """
 
     packet_id = 0x00
+    bound_to = "client"
+    state = State.PLAY
+
+    def __init__(self):
+        pass
+
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big")
+
+    @classmethod
+    def from_bytes(cls) -> BundleDelimiter:
+        return cls()
+
+
+class SpawnEntity(Packet):
+    """
+    Sent by the server when a vehicle or other non-living entity is created.
+
+    Packet ID: 0x01
+    State: Play
+    Bound to: Client
+    """
+
+    packet_id = 0x01
     bound_to = "client"
     state = State.PLAY
 
@@ -165,12 +193,12 @@ class SpawnExperienceOrb(Packet):
     """
     Spawns one or more experience orbs.
 
-    Packet ID: 0x01
+    Packet ID: 0x02
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x01
+    packet_id = 0x02
     bound_to = "client"
     state = State.PLAY
 
@@ -213,12 +241,12 @@ class SpawnPlayer(Packet):
     """
     This packet is sent by the server when a player comes into visible range, **not** when a player joins.
 
-    Packet ID: 0x02
+    Packet ID: 0x03
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x02
+    packet_id = 0x03
     bound_to = "client"
     state = State.PLAY
 
@@ -276,12 +304,12 @@ class EntityAnimation(Packet):
     """
     Sent whenever an entity should change animation.
 
-    Packet ID: 0x03
+    Packet ID: 0x04
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x03
+    packet_id = 0x04
     bound_to = "client"
     state = State.PLAY
 
@@ -311,12 +339,12 @@ class AwardStats(Packet):
     Sent as a response to Client Command (id 1).
     Will only send the changed values if previously requested.
 
-    Packet ID: 0x04
+    Packet ID: 0x05
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x04
+    packet_id = 0x05
     bound_to = "client"
     state = State.PLAY
 
@@ -343,12 +371,12 @@ class AcknowledgeBlockChange(Packet):
     After receiving this packet, the client should display the block state
     sent by the server instead of the one predicted by the client.
 
-    Packet ID: 0x05
+    Packet ID: 0x06
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x05
+    packet_id = 0x06
     bound_to = "client"
     state = State.PLAY
 
@@ -371,12 +399,12 @@ class SetBlockDestroyStage(Packet):
     0-9 are the displayable destroy stages and each other
     number means that there is no animation on this coordinate.
 
-    Packet ID: 0x06
+    Packet ID: 0x07
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x06
+    packet_id = 0x07
     bound_to = "client"
     state = State.PLAY
 
@@ -409,12 +437,12 @@ class BlockEntityData(Packet):
     """
     Sets the block entity associated with the block at the given location.
 
-    Packet ID: 0x07
+    Packet ID: 0x08
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x07
+    packet_id = 0x08
     bound_to = "client"
     state = State.PLAY
 
@@ -450,12 +478,12 @@ class BlockAction(Packet):
     The client should ignore the provided block type and instead uses the block state
     in their world.
 
-    Packet ID: 0x08
+    Packet ID: 0x09
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x08
+    packet_id = 0x09
     bound_to = "client"
     state = State.PLAY
 
@@ -498,12 +526,12 @@ class BlockUpdate(Packet):
     """
     Fired whenever a block is changed within the render distance.
 
-    Packet ID: 0x09
+    Packet ID: 0x0A
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x09
+    packet_id = 0x0A
     bound_to = "client"
     state = State.PLAY
 
@@ -532,12 +560,12 @@ class BossBar(Packet):
     """
     Sent by the server to update the boss bar on the client.
 
-    Packet ID: 0x0A
+    Packet ID: 0x0B
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0A
+    packet_id = 0x0B
     bound_to = "client"
     state = State.PLAY
 
@@ -624,12 +652,12 @@ class ChangeDifficulty(Packet):
     """
     Changes the difficulty setting in the client's option menu.
 
-    Packet ID: 0x0B
+    Packet ID: 0x0C
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0B
+    packet_id = 0x0C
     bound_to = "client"
     state = State.PLAY
 
@@ -638,29 +666,81 @@ class ChangeDifficulty(Packet):
         self.locked: Boolean = locked
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + bytes(self.difficulty)
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.difficulty)
+            + bytes(self.locked)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
-        # Fields: difficulty (unsigned byte)
+        # Fields: difficulty (unsigned byte), locked (boolean)
         # difficulty
         difficulty = UnsignedByte.from_bytes(data)
-        locked = Boolean(False)
-        if data.read(1):
-            locked = Boolean.from_bytes(data)
+
+        locked = Boolean.from_bytes(data)
         return cls(difficulty, locked)
+
+
+class ChunkBiomes(Packet):
+    """
+    Sent by the server to update the biomes within a chunk.
+
+    Packet ID: 0x0D
+    State: Play
+    Bound to: Client
+    """
+
+    packet_id = 0x0D
+    bound_to = "client"
+    state = State.PLAY
+
+    def __init__(self, chunk_biome_data: list[_DataProxy]):
+        self.chunk_biome_data: list[_DataProxy] = chunk_biome_data
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.chunk_biome_data)))
+            + b"".join(
+                (
+                    bytes(biome.chunk_x)
+                    + bytes(biome.chunk_z)
+                    + bytes(len(biome.data))
+                    + bytes(biome.data)
+                )
+                for biome in self.chunk_biome_data
+            )
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: chunk_biome_data (list of chunk biome data)
+        # chunk_biome_data
+        chunk_biome_data = []
+        for _ in range(Varint.from_bytes(data).value):
+            chunk_biome_data.append(
+                _DataProxy(
+                    chunk_x=Int.from_bytes(data),
+                    chunk_z=Int.from_bytes(data),
+                    data=ByteArray.from_bytes(
+                        data, length=Varint.from_bytes(data).value
+                    ),
+                ),
+            )
+        return cls(chunk_biome_data)
 
 
 class ClearTitles(Packet):
     """
     Clear the client's current title information, with the option to also reset it.
 
-    Packet ID: 0x0C
+    Packet ID: 0x0E
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0C
+    packet_id = 0x0E
     bound_to = "client"
     state = State.PLAY
 
@@ -682,12 +762,12 @@ class CommandSuggestionsResponse(Packet):
     """
     The server responds with a list of auto-completions of the last word sent to it.
 
-    Packet ID: 0x0D
+    Packet ID: 0x0F
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0D
+    packet_id = 0x0F
     bound_to = "client"
     state = State.PLAY
 
@@ -732,12 +812,12 @@ class Commands(Packet):
     """
     lists all of the commands on the server, and how they are parsed.
 
-    Packet ID: 0x0E
+    Packet ID: 0x10
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0E
+    packet_id = 0x10
     bound_to = "client"
     state = State.PLAY
 
@@ -771,12 +851,12 @@ class CloseContainer(Packet):
     This packet is sent from the server to the client when a window is forcibly closed,
     such as when a chest is destroyed while it's open.
 
-    Packet ID: 0x0F
+    Packet ID: 0x11
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x0F
+    packet_id = 0x11
     bound_to = "client"
     state = State.PLAY
 
@@ -801,12 +881,12 @@ class SetContainerContents(Packet):
     This packet with Window ID set to "0" is sent during the player joining sequence
     to initialise the player's inventory.
 
-    Packet ID: 0x10
+    Packet ID: 0x12
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x10
+    packet_id = 0x12
     bound_to = "client"
     state = State.PLAY
 
@@ -853,12 +933,12 @@ class SetContainerProperty(Packet):
     """
     This packet is used to inform the client that part of a GUI window should be updated.
 
-    Packet ID: 0x11
+    Packet ID: 0x13
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x11
+    packet_id = 0x13
     bound_to = "client"
     state = State.PLAY
 
@@ -891,12 +971,12 @@ class SetContainerSlot(Packet):
     """
     Sent by the server when an item in a slot (in a window) is added/removed.
 
-    Packet ID: 0x12
+    Packet ID: 0x14
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x12
+    packet_id = 0x14
     bound_to = "client"
     state = State.PLAY
 
@@ -933,12 +1013,12 @@ class SetCooldown(Packet):
     """
     This packet is used to inform the client that a cooldown should be started for an item.
 
-    Packet ID: 0x13
+    Packet ID: 0x15
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x13
+    packet_id = 0x15
     bound_to = "client"
     state = State.PLAY
 
@@ -968,12 +1048,12 @@ class ChatSuggestions(Packet):
     Unused by the default server.
     Likely provided for custom servers to send chat message completions to clients.
 
-    Packet ID: 0x14
+    Packet ID: 0x16
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x14
+    packet_id = 0x16
     bound_to = "client"
     state = State.PLAY
 
@@ -1008,12 +1088,12 @@ class PluginMessageClientbound(Packet):
     Minecraft itself uses several plugin channels.
     These internal channels are in the minecraft namespace.
 
-    Packet ID: 0x15
+    Packet ID: 0x17
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x15
+    packet_id = 0x17
     bound_to = "client"
     state = State.PLAY
 
@@ -1036,16 +1116,100 @@ class PluginMessageClientbound(Packet):
         return cls(channel, data)
 
 
-class DeleteMessage(Packet):
+class DamageEvent(Packet):
     """
-    Sent by the server to delete a message from the client's chat.
+    Sent by the server to make the player take damage.
 
-    Packet ID: 0x16
+    Packet ID: 0x18
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x16
+    packet_id = 0x18
+    bound_to = "client"
+    state = State.PLAY
+
+    def __init__(
+        self,
+        entity_id: Varint,
+        source_type_id: Varint,
+        source_cause_id: Varint,
+        source_direct_id: Varint,
+        source_position_x: Double | None = None,
+        source_position_y: Double | None = None,
+        source_position_z: Double | None = None,
+    ):
+        self.entity_id: Varint = entity_id
+        self.source_type_id: Varint = source_type_id
+        self.source_cause_id: Varint = source_cause_id
+        self.source_direct_id: Varint = source_direct_id
+        self.source_position_x: Double | None = source_position_x
+        self.source_position_y: Double | None = source_position_y
+        self.source_position_z: Double | None = source_position_z
+
+    def __bytes__(self):
+        ret = (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.entity_id)
+            + bytes(self.source_type_id)
+            + bytes(self.source_cause_id)
+            + bytes(self.source_direct_id)
+            + bytes(Boolean(self.source_position_x is not None))
+        )
+        if self.source_position_x is not None:
+            ret += (
+                bytes(self.source_position_x)
+                + bytes(self.source_position_y)
+                + bytes(self.source_position_z)
+            )
+        return ret
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), source_type_id (varint),
+        # source_cause_id (varint), source_direct_id (varint),
+        # source_position_x (double), source_position_y (double),
+        # source_position_z (double)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # source_type_id
+        source_type_id = Varint.from_bytes(data)
+        # source_cause_id
+        source_cause_id = Varint.from_bytes(data)
+        # source_direct_id
+        source_direct_id = Varint.from_bytes(data)
+        # source position
+        source_position_x = None
+        source_position_y = None
+        source_position_z = None
+        if Boolean.from_bytes(data).value:
+            # source_position_x
+            source_position_x = Double.from_bytes(data)
+            # source_position_y
+            source_position_y = Double.from_bytes(data)
+            # source_position_z
+            source_position_z = Double.from_bytes(data)
+        return cls(
+            entity_id,
+            source_type_id,
+            source_cause_id,
+            source_direct_id,
+            source_position_x,
+            source_position_y,
+            source_position_z,
+        )
+
+
+class DeleteMessage(Packet):
+    """
+    Sent by the server to delete a message from the client's chat.
+
+    Packet ID: 0x19
+    State: Play
+    Bound to: Client
+    """
+
+    packet_id = 0x19
     bound_to = "client"
     state = State.PLAY
 
@@ -1074,12 +1238,12 @@ class DisconnectPlay(Packet):
     The client should assume that the server has already
     closed the connection by the time the packet arrives.
 
-    Packet ID: 0x17
+    Packet ID: 0x1A
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x17
+    packet_id = 0x1A
     bound_to = "client"
     state = State.PLAY
 
@@ -1101,12 +1265,12 @@ class DisguisedChatMessage(Packet):
     """
     Used to send system chat messages to the client.
 
-    Packet ID: 0x18
+    Packet ID: 0x1B
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x18
+    packet_id = 0x1B
     bound_to = "client"
     state = State.PLAY
 
@@ -1128,12 +1292,12 @@ class EntityEvent(Packet):
     """
     Entity statuses generally trigger an animation for an entity.
 
-    Packet ID: 0x19
+    Packet ID: 0x1C
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x19
+    packet_id = 0x1C
     bound_to = "client"
     state = State.PLAY
 
@@ -1162,12 +1326,12 @@ class Explosion(Packet):
     """
     Sent when an explosion occurs (creepers, TNT, and ghast fireballs).
 
-    Packet ID: 0x1A
+    Packet ID: 0x1D
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1A
+    packet_id = 0x1D
     bound_to = "client"
     state = State.PLAY
 
@@ -1249,12 +1413,12 @@ class UnloadChunk(Packet):
     """
     Tells the client to unload a chunk.
 
-    Packet ID: 0x1B
+    Packet ID: 0x1E
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1B
+    packet_id = 0x1E
     bound_to = "client"
     state = State.PLAY
 
@@ -1279,12 +1443,12 @@ class GameEvent(Packet):
     """
     Used for a wide variety of game events, from weather to bed use to gamemode to demo messages.
 
-    Packet ID: 0x1C
+    Packet ID: 0x1F
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1C
+    packet_id = 0x1F
     bound_to = "client"
     state = State.PLAY
 
@@ -1313,12 +1477,12 @@ class OpenHorseScreen(Packet):
     """
     Opens the horse inventory screen.
 
-    Packet ID: 0x1D
+    Packet ID: 0x20
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1D
+    packet_id = 0x20
     bound_to = "client"
     state = State.PLAY
 
@@ -1347,16 +1511,48 @@ class OpenHorseScreen(Packet):
         return cls(window_id, slot_count, entity_id)
 
 
-class InitializeWorldBorder(Packet):
+class HurtAnimation(Packet):
     """
-    Initializes the world border.
+    Plays a bobbing animation for the entity receiving damage.
 
-    Packet ID: 0x1E
+    Packet ID: 0x21
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1E
+    packet_id = 0x21
+    bound_to = "client"
+    state = State.PLAY
+
+    def __init__(self, entity_id: Varint, yaw: Float):
+        self.entity_id: Varint = entity_id
+        self.yaw: Float = yaw
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big") + bytes(self.entity_id) + bytes(self.yaw)
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: entity_id (varint), yaw (float)
+        # entity_id
+        entity_id = Varint.from_bytes(data)
+        # yaw
+        yaw = Float.from_bytes(data)
+        return cls(entity_id, yaw)
+
+
+class InitializeWorldBorder(Packet):
+    """
+    Initializes the world border.
+
+    Packet ID: 0x22
+    State: Play
+    Bound to: Client
+    """
+
+    packet_id = 0x22
     bound_to = "client"
     state = State.PLAY
 
@@ -1426,7 +1622,7 @@ class InitializeWorldBorder(Packet):
         )
 
 
-class KeepAliveServer(Packet):
+class KeepAliveClientbound(Packet):
     """
     The server will frequently send out a keep-alive, each containing a random ID.
     The client must respond with the same payload (see serverbound Keep Alive).
@@ -1435,12 +1631,12 @@ class KeepAliveServer(Packet):
     Vice versa, if the server does not send any keep-alives for 20 seconds,
     the client will disconnect and yields a "Timed out" exception.
 
-    Packet ID: 0x1F
+    Packet ID: 0x23
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x1F
+    packet_id = 0x23
     bound_to = "client"
     state = State.PLAY
 
@@ -1462,12 +1658,12 @@ class ChunkDataAndUpdateLight(Packet):
     """
     A chunk data packet with the light data included.
 
-    Packet ID: 0x20
+    Packet ID: 0x24
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x20
+    packet_id = 0x24
     bound_to = "client"
     state = State.PLAY
 
@@ -1582,12 +1778,12 @@ class WorldEvent(Packet):
     """
     Sent when a client is to play a sound or particle effect.
 
-    Packet ID: 0x21
+    Packet ID: 0x25
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x21
+    packet_id = 0x25
     bound_to = "client"
     state = State.PLAY
 
@@ -1631,12 +1827,12 @@ class Particle(Packet):
     """
     Displays the named particle.
 
-    Packet ID: 0x22
+    Packet ID: 0x26
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x22
+    packet_id = 0x26
     bound_to = "client"
     state = State.PLAY
 
@@ -1729,12 +1925,12 @@ class UpdateLight(Packet):
     """
     Updates light levels for a chunk.
 
-    Packet ID: 0x23
+    Packet ID: 0x27
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x23
+    packet_id = 0x27
     bound_to = "client"
     state = State.PLAY
 
@@ -1825,12 +2021,12 @@ class LoginPlay(Packet):
     """
     Updates some data about the player.
 
-    Packet ID: 0x24
+    Packet ID: 0x28
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x24
+    packet_id = 0x28
     bound_to = "client"
     state = State.PLAY
 
@@ -1981,12 +2177,12 @@ class MapDataPacket(Packet):
     """
     Updates a rectangular area on a map item.
 
-    Packet ID: 0x25
+    Packet ID: 0x29
     State: Play
     Bound to: Client
     """
 
-    packet_id = 0x25
+    packet_id = 0x29
     bound_to = "client"
     state = State.PLAY
 
@@ -2075,12 +2271,12 @@ class MerchantOffers(Packet):
     """
     The list of trades a villager NPC is offering.
 
-    Packet ID: 0x26
+    Packet ID: 0x2A
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x26
+    packet_id = 0x2A
     bound_to = "client"
     state = State.PLAY
 
@@ -2147,12 +2343,12 @@ class UpdateEntityPosition(Packet):
     This packet is sent by the server when an entity moves less then 8 blocks;
     if an entity moves more than 8 blocks Teleport Entity should be sent instead.
 
-    Packet ID: 0x27
+    Packet ID: 0x2B
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x27
+    packet_id = 0x2B
     bound_to = "client"
     state = State.PLAY
 
@@ -2210,12 +2406,12 @@ class UpdateEntityPositionAndRotation(Packet):
     This packet is sent by the server when an entity rotates and moves.
     A maximum of 8 blocks can be moved.
 
-    Packet ID: 0x28
+    Packet ID: 0x2C
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x28
+    packet_id = 0x2C
     bound_to = "client"
     state = State.PLAY
 
@@ -2282,12 +2478,12 @@ class UpdateEntityRotation(Packet):
     """
     This packet is sent by the server when an entity rotates.
 
-    Packet ID: 0x29
+    Packet ID: 0x2D
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x29
+    packet_id = 0x2D
     bound_to = "client"
     state = State.PLAY
 
@@ -2325,12 +2521,12 @@ class MoveVehicle(Packet):
     """
     This packet is sent by the server when a vehicle moves.
 
-    Packet ID: 0x2A
+    Packet ID: 0x2E
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2A
+    packet_id = 0x2E
     bound_to = "client"
     state = State.PLAY
 
@@ -2385,12 +2581,12 @@ class OpenBook(Packet):
     Sent when a player right clicks with a signed book.
     This tells the client to open the book GUI.
 
-    Packet ID: 0x2B
+    Packet ID: 0x2F
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2B
+    packet_id = 0x2F
     bound_to = "client"
     state = State.PLAY
 
@@ -2413,12 +2609,12 @@ class OpenScreen(Packet):
     This is sent to the client when it should open an inventory,
     such as a chest, workbench, furnace, or other container.
 
-    Packet ID: 0x2C
+    Packet ID: 0x30
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2C
+    packet_id = 0x30
     bound_to = "client"
     state = State.PLAY
 
@@ -2457,12 +2653,12 @@ class OpenSignEditor(Packet):
     """
     Sent when the client has placed a sign and is allowed to send Update Sign.
 
-    Packet ID: 0x2D
+    Packet ID: 0x31
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2D
+    packet_id = 0x31
     bound_to = "client"
     state = State.PLAY
 
@@ -2485,12 +2681,12 @@ class Ping(Packet):
     An unused packet by the default server.
     The client should respond with a Pong when recieved.
 
-    Packet ID: 0x2E
+    Packet ID: 0x32
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2E
+    packet_id = 0x32
     bound_to = "client"
     state = State.PLAY
 
@@ -2512,12 +2708,12 @@ class PlaceGhostRecipe(Packet):
     """
     Sent when the client has placed a ghost recipe in a crafting table.
 
-    Packet ID: 0x2F
+    Packet ID: 0x33
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x2F
+    packet_id = 0x33
     bound_to = "client"
     state = State.PLAY
 
@@ -2542,17 +2738,17 @@ class PlaceGhostRecipe(Packet):
         return cls(window_id, recipe)
 
 
-class PlayerAbilities(Packet):
+class ClientPlayerAbilities(Packet):
     """
     This packet is sent by the server to update the client's
     abilities and flags.
 
-    Packet ID: 0x30
+    Packet ID: 0x34
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x30
+    packet_id = 0x34
     bound_to = "client"
     state = State.PLAY
 
@@ -2602,12 +2798,12 @@ class PlayerChatMessage(Packet):
     """
     Sends the client a message from a player.
 
-    Packet ID: 0x31
+    Packet ID: 0x35
     State: Play
     Bound To: Server
     """
 
-    packet_id = 0x31
+    packet_id = 0x35
     bound_to = "client"
     state = State.PLAY
 
@@ -2755,12 +2951,12 @@ class EndCombat(Packet):
     """
     Unused by the default client.
 
-    Packet ID: 0x32
+    Packet ID: 0x36
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x32
+    packet_id = 0x36
     bound_to = "client"
     state = State.PLAY
 
@@ -2789,12 +2985,12 @@ class EnterCombat(Packet):
     """
     Unused by the default client.
 
-    Packet ID: 0x33
+    Packet ID: 0x37
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x33
+    packet_id = 0x37
     bound_to = "client"
     state = State.PLAY
 
@@ -2803,12 +2999,12 @@ class CombatDeath(Packet):
     """
     Used to send a respawn screen.
 
-    Packet ID: 0x34
+    Packet ID: 0x38
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x34
+    packet_id = 0x38
     bound_to = "client"
     state = State.PLAY
 
@@ -2841,12 +3037,12 @@ class PlayerInfoRemove(Packet):
     """
     Used by the server to remove players from the player list.
 
-    Packet ID: 0x35
+    Packet ID: 0x39
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x35
+    packet_id = 0x39
     bound_to = "client"
     state = State.PLAY
 
@@ -2875,12 +3071,12 @@ class PlayerInfoUpdate(Packet):
     """
     Sent by the server to update the user list (<tab> in the client).
 
-    Packet ID: 0x36
+    Packet ID: 0x3A
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x36
+    packet_id = 0x3A
     bound_to = "client"
     state = State.PLAY
 
@@ -2913,12 +3109,12 @@ class LookAt(Packet):
     """
     Used to change the player's look direction.
 
-    Packet ID: 0x37
+    Packet ID: 0x3B
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x37
+    packet_id = 0x3B
     bound_to = "client"
     state = State.PLAY
 
@@ -2987,12 +3183,12 @@ class SynchronizePlayerPosition(Packet):
     """
     Used to synchronize the player's position with the server.
 
-    Packet ID: 0x38
+    Packet ID: 0x3C
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x38
+    packet_id = 0x3C
     bound_to = "client"
     state = State.PLAY
 
@@ -3004,7 +3200,6 @@ class SynchronizePlayerPosition(Packet):
         feet_eyes: FeetEyes,
         flags: Byte,
         teleport_id: Varint,
-        dismount_vehicle: Boolean,
     ):
         self.x = x
         self.y = y
@@ -3012,7 +3207,6 @@ class SynchronizePlayerPosition(Packet):
         self.feet_eyes = feet_eyes
         self.flags = flags
         self.teleport_id = teleport_id
-        self.dismount_vehicle = dismount_vehicle
 
     def __bytes__(self):
         return (
@@ -3023,7 +3217,6 @@ class SynchronizePlayerPosition(Packet):
             + bytes(self.feet_eyes)
             + bytes(self.flags)
             + bytes(self.teleport_id)
-            + bytes(self.dismount_vehicle)
         )
 
     @classmethod
@@ -3051,12 +3244,12 @@ class UpdateRecipeBook(Packet):
     """
     Used to update the recipe book.
 
-    Packet ID: 0x39
+    Packet ID: 0x3D
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x39
+    packet_id = 0x3D
     bound_to = "client"
     state = State.PLAY
 
@@ -3164,12 +3357,12 @@ class RemoveEntities(Packet):
     """
     Sent by the server when an entity is to be destroyed on the client.
 
-    Packet ID: 0x3A
+    Packet ID: 0x3E
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3A
+    packet_id = 0x3E
     bound_to = "client"
     state = State.PLAY
 
@@ -3200,12 +3393,12 @@ class RemoveEntityEffect(Packet):
     """
     Sent by the server when an entity effect is to be removed from an entity.
 
-    Packet ID: 0x3B
+    Packet ID: 0x3F
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3B
+    packet_id = 0x3F
     bound_to = "client"
     state = State.PLAY
 
@@ -3238,12 +3431,12 @@ class ResourcePack(Packet):
     """
     Sent by the server when a resource pack is to be sent to the client.
 
-    Packet ID: 0x3C
+    Packet ID: 0x40
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3C
+    packet_id = 0x40
     bound_to = "client"
     state = State.PLAY
 
@@ -3294,12 +3487,12 @@ class Respawn(Packet):
     and finally a position and look packet.
     You do not need to unload chunks, the client will do it automatically.
 
-    Packet ID: 0x3D
+    Packet ID: 0x41
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3D
+    packet_id = 0x41
     bound_to = "client"
     state = State.PLAY
 
@@ -3314,8 +3507,8 @@ class Respawn(Packet):
         is_flat: Boolean,
         copy_metadata: Boolean,
         has_death_location: Boolean,
-        death_dimension: Identifier | None,
-        death_location: Position | None,
+        death_dimension: Identifier | None = None,
+        death_location: Position | None = None,
     ):
         self.dimension_type = dimension_type
         self.dimension_name = dimension_name
@@ -3397,12 +3590,12 @@ class SetHeadRotation(Packet):
     """
     Changes the direction an entity's head is facing.
 
-    Packet ID: 0x3E
+    Packet ID: 0x42
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3E
+    packet_id = 0x42
     bound_to = "client"
     state = State.PLAY
 
@@ -3435,12 +3628,12 @@ class UpdateSectionBlocks(Packet):
     """
     Sent whenever 2 or more blocks are changed within the same chunk on the same tick.
 
-    Packet ID: 0x3F
+    Packet ID: 0x43
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x3F
+    packet_id = 0x43
     bound_to = "client"
     state = State.PLAY
 
@@ -3503,12 +3696,12 @@ class SelectAdvancementsTab(Packet):
     Sent by the server to indicate that the client should switch advancement tab.
     Sent either when the client switches tab in the GUI or when an advancement in another tab is made.
 
-    Packet ID: 0x40
+    Packet ID: 0x44
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x40
+    packet_id = 0x44
     bound_to = "client"
     state = State.PLAY
 
@@ -3543,18 +3736,18 @@ class ServerData(Packet):
     """
     Sent by the server to the client to send information about the server.
 
-    Packet ID: 0x41
+    Packet ID: 0x45
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x41
+    packet_id = 0x45
     bound_to = "client"
     state = State.PLAY
 
     def __init__(
         self,
-        motd: Chat | None = None,
+        motd: Chat,
         icon: String | None = None,
         enforces_secure_chat: Boolean = Boolean(False),
     ):
@@ -3565,8 +3758,7 @@ class ServerData(Packet):
     def __bytes__(self):
         return (
             self.packet_id.to_bytes(1, "big")
-            + bytes(Boolean(self.motd is not None))
-            + (bytes(self.motd) if self.motd is not None else b"")
+            + bytes(self.motd)
             + bytes(Boolean(self.icon is not None))
             + (bytes(self.icon) if self.icon is not None else b"")
             + bytes(self.enforces_secure_chat)
@@ -3576,9 +3768,7 @@ class ServerData(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: motd (chat), icon (string), enforces_secure_chat (boolean)
         # motd
-        motd = None
-        if Boolean.from_bytes(data).value:
-            motd = Chat.from_bytes(data)
+        motd = Chat.from_bytes(data)
         # icon
         icon = None
         if Boolean.from_bytes(data).value:
@@ -3593,12 +3783,12 @@ class SetActionBarText(Packet):
     Sent by the server to the client to set the action bar text.
     The action bar text is displayed as a message above the hotbar.
 
-    Packet ID: 0x42
+    Packet ID: 0x46
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x42
+    packet_id = 0x46
     bound_to = "client"
     state = State.PLAY
 
@@ -3623,12 +3813,12 @@ class SetBorderCenter(Packet):
     """
     Sent by the server to the client to set the center of the world border.
 
-    Packet ID: 0x43
+    Packet ID: 0x47
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x43
+    packet_id = 0x47
     bound_to = "client"
     state = State.PLAY
 
@@ -3657,12 +3847,12 @@ class SetBorderLerpSize(Packet):
     """
     Sent by the server to the client to set the size of the world border.
 
-    Packet ID: 0x44
+    Packet ID: 0x48
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x44
+    packet_id = 0x48
     bound_to = "client"
     state = State.PLAY
 
@@ -3700,12 +3890,12 @@ class SetBorderSize(Packet):
     """
     Sent by the server to the client to set the size of the world border.
 
-    Packet ID: 0x45
+    Packet ID: 0x49
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x45
+    packet_id = 0x49
     bound_to = "client"
     state = State.PLAY
 
@@ -3730,12 +3920,12 @@ class SetBorderWarningDelay(Packet):
     """
     Sent by the server to the client to set the warning delay of the world border.
 
-    Packet ID: 0x46
+    Packet ID: 0x4A
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x46
+    packet_id = 0x4A
     bound_to = "client"
     state = State.PLAY
 
@@ -3760,12 +3950,12 @@ class SetBorderWarningDistance(Packet):
     """
     Sent by the server to the client to set the warning distance of the world border.
 
-    Packet ID: 0x47
+    Packet ID: 0x4B
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x47
+    packet_id = 0x4B
     bound_to = "client"
     state = State.PLAY
 
@@ -3791,12 +3981,12 @@ class SetCamera(Packet):
     Sets the entity that the player renders from.
     This is normally used when the player left-clicks an entity while in spectator mode.
 
-    Packet ID: 0x48
+    Packet ID: 0x4C
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x48
+    packet_id = 0x4C
     bound_to = "client"
     state = State.PLAY
 
@@ -3817,16 +4007,16 @@ class SetCamera(Packet):
         return cls(entity_id)
 
 
-class SetHeldItem(Packet):
+class ClientSetHeldItem(Packet):
     """
     Sent by the server to the client to set the held item of the player.
 
-    Packet ID: 0x49
+    Packet ID: 0x4D
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x49
+    packet_id = 0x4D
     bound_to = "client"
     state = State.PLAY
 
@@ -3857,12 +4047,12 @@ class SetCenterChunk(Packet):
     and also (according to testing) for any integer change in the vertical axis,
     even if it doesn't go across a chunk section border.
 
-    Packet ID: 0x4A
+    Packet ID: 0x4E
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4A
+    packet_id = 0x4E
     bound_to = "client"
     state = State.PLAY
 
@@ -3896,12 +4086,12 @@ class SetRenderDistance(Packet):
     Sent by the integrated singleplayer server when changing render distance.
     This packet is sent by the server when the client reappears in the overworld after leaving the end.
 
-    Packet ID: 0x4B
+    Packet ID: 0x4F
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4B
+    packet_id = 0x4F
     bound_to = "client"
     state = State.PLAY
 
@@ -3928,12 +4118,12 @@ class SetDefaultSpawnLocation(Packet):
     (the point at which players spawn at, and which the compass points to).
     It can be sent at any time to update the point compasses point at.
 
-    Packet ID: 0x4C
+    Packet ID: 0x50
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4C
+    packet_id = 0x50
     bound_to = "client"
     state = State.PLAY
 
@@ -3960,12 +4150,12 @@ class DisplayObjective(Packet):
     """
     Sent by the server to the client to display an objective on the scoreboard.
 
-    Packet ID: 0x4D
+    Packet ID: 0x51
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4D
+    packet_id = 0x51
     bound_to = "client"
     state = State.PLAY
 
@@ -3999,12 +4189,12 @@ class SetEntityMetadata(Packet):
     Sent by the server to the client to update the metadata of an entity.
     Any properties not included in the Metadata field are left unchanged.
 
-    Packet ID: 0x4E
+    Packet ID: 0x52
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4E
+    packet_id = 0x52
     bound_to = "client"
     state = State.PLAY
 
@@ -4038,12 +4228,12 @@ class LinkEntities(Packet):
     Sent by the server to the client to link two entities together.
     This is used to link a leash to a mob and the player holding it.
 
-    Packet ID: 0x4F
+    Packet ID: 0x53
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x4F
+    packet_id = 0x53
     bound_to = "client"
     state = State.PLAY
 
@@ -4079,14 +4269,12 @@ class SetEntityVelocity(Packet):
     Velocity is believed to be in units of 1/8000 of a block per server tick (50ms);
     for example, -1343 would move (-1343 / 8000) = ~0.167875 blocks per tick (or ~3.3575 blocks per second).
 
-
-
-    Packet ID: 0x50
+    Packet ID: 0x54
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x50
+    packet_id = 0x54
     bound_to = "client"
     state = State.PLAY
 
@@ -4129,12 +4317,12 @@ class SetEquipment(Packet):
     """
     Sent by the server to the client to update the equipment of an entity.
 
-    Packet ID: 0x51
+    Packet ID: 0x55
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x51
+    packet_id = 0x55
     bound_to = "client"
     state = State.PLAY
 
@@ -4173,12 +4361,12 @@ class SetExperience(Packet):
     """
     Sent by the server when the client should change XP levels.
 
-    Packet ID: 0x52
+    Packet ID: 0x56
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x52
+    packet_id = 0x56
     bound_to = "client"
     state = State.PLAY
 
@@ -4216,12 +4404,12 @@ class SetHealth(Packet):
     """
     Sent by the server when the client should change their health.
 
-    Packet ID: 0x53
+    Packet ID: 0x57
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x53
+    packet_id = 0x57
     bound_to = "client"
     state = State.PLAY
 
@@ -4259,12 +4447,12 @@ class UpdateObjectives(Packet):
     """
     Sent by the server to the client to update the scoreboard objectives.
 
-    Packet ID: 0x54
+    Packet ID: 0x58
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x54
+    packet_id = 0x58
     bound_to = "client"
     state = State.PLAY
 
@@ -4315,12 +4503,12 @@ class SetPassengers(Packet):
     """
     Sent by the server to the client to set the passengers of an entity.
 
-    Packet ID: 0x55
+    Packet ID: 0x59
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x55
+    packet_id = 0x59
     bound_to = "client"
     state = State.PLAY
 
@@ -4356,12 +4544,12 @@ class UpdateTeams(Packet):
     """
     Sent by the server to the client to update the scoreboard teams.
 
-    Packet ID: 0x56
+    Packet ID: 0x5A
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x56
+    packet_id = 0x5A
     bound_to = "client"
     state = State.PLAY
 
@@ -4467,12 +4655,12 @@ class UpdateScore(Packet):
     """
     Sent by the server to the client to update the scoreboard scores.
 
-    Packet ID: 0x57
+    Packet ID: 0x5B
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x57
+    packet_id = 0x5B
     bound_to = "client"
     state = State.PLAY
 
@@ -4522,12 +4710,12 @@ class SetSimulationDistance(Packet):
     Sent by the server to the client to set the distance at
     which the client will receive simulation updates.
 
-    Packet ID: 0x58
+    Packet ID: 0x5C
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x58
+    packet_id = 0x5C
     bound_to = "client"
     state = State.PLAY
 
@@ -4552,12 +4740,12 @@ class SetSubtitleText(Packet):
     """
     Sent by the server to the client to set the subtitle text.
 
-    Packet ID: 0x59
+    Packet ID: 0x5D
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x59
+    packet_id = 0x5D
     bound_to = "client"
     state = State.PLAY
 
@@ -4586,12 +4774,12 @@ class UpdateTime(Packet):
     The time of day is based on the timestamp modulo 24000.
     0 is sunrise, 6000 is noon, 12000 is sunset, and 18000 is midnight.
 
-    Packet ID: 0x5A
+    Packet ID: 0x5E
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x5A
+    packet_id = 0x5E
     bound_to = "client"
     state = State.PLAY
 
@@ -4624,12 +4812,12 @@ class SetTitleText(Packet):
     """
     Sent by the server to the client to set the title text.
 
-    Packet ID: 0x5B
+    Packet ID: 0x5F
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x5B
+    packet_id = 0x5F
     bound_to = "client"
     state = State.PLAY
 
@@ -4654,12 +4842,12 @@ class SetTitleAnimationTimes(Packet):
     """
     Sent by the server to the client to set the title animation times.
 
-    Packet ID: 0x5C
+    Packet ID: 0x60
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x5C
+    packet_id = 0x60
     bound_to = "client"
     state = State.PLAY
 
@@ -4698,12 +4886,12 @@ class EntitySoundEffect(Packet):
     Sent by the server to the client to play a sound effect
     for an entity.
 
-    Packet ID: 0x5D
+    Packet ID: 0x61
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x5D
+    packet_id = 0x61
     bound_to = "client"
     state = State.PLAY
 
@@ -4761,7 +4949,7 @@ class SoundEffect(Packet):
     Bound To: Client
     """
 
-    packet_id = 0x5E
+    packet_id = 0x62
     bound_to = "client"
     state = State.PLAY
 
@@ -4824,12 +5012,12 @@ class StopSound(Packet):
     """
     Sent by the server to the client to stop a sound effect.
 
-    Packet ID: 0x5F
+    Packet ID: 0x63
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x5F
+    packet_id = 0x63
     bound_to = "client"
     state = State.PLAY
 
@@ -4867,12 +5055,12 @@ class SystemChatMessage(Packet):
     """
     Sent by the server to the client to send a chat message.
 
-    Packet ID: 0x60
+    Packet ID: 0x64
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x60
+    packet_id = 0x64
     bound_to = "client"
     state = State.PLAY
 
@@ -4905,12 +5093,12 @@ class SetTabListHeaderAndFooter(Packet):
     """
     Sent by the server to the client to set the header and footer of the tab list.
 
-    Packet ID: 0x61
+    Packet ID: 0x65
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x61
+    packet_id = 0x65
     bound_to = "client"
     state = State.PLAY
 
@@ -4941,12 +5129,12 @@ class TagQueryResponse(Packet):
     """
     Sent in response to Query Block Entity Tag or Query Entity Tag.
 
-    Packet ID: 0x62
+    Packet ID: 0x66
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x62
+    packet_id = 0x66
     bound_to = "client"
     state = State.PLAY
 
@@ -4979,12 +5167,12 @@ class PickupItem(Packet):
     """
     Sent by the server to the client to spawn a pickup item.
 
-    Packet ID: 0x63
+    Packet ID: 0x67
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x63
+    packet_id = 0x67
     bound_to = "client"
     state = State.PLAY
 
@@ -5022,12 +5210,12 @@ class TeleportEntity(Packet):
     """
     Sent by the server to the client to teleport an entity.
 
-    Packet ID: 0x64
+    Packet ID: 0x68
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x64
+    packet_id = 0x68
     bound_to = "client"
     state = State.PLAY
 
@@ -5085,12 +5273,12 @@ class UpdateAdvancements(Packet):
     """
     Sent by the server to the client to update the advancements.
 
-    Packet ID: 0x65
+    Packet ID: 0x69
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x65
+    packet_id = 0x69
     bound_to = "client"
     state = State.PLAY
 
@@ -5147,12 +5335,12 @@ class UpdateAttributes(Packet):
     """
     Sets attributes on the given entity.
 
-    Packet ID: 0x66
+    Packet ID: 0x6A
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x66
+    packet_id = 0x6A
     bound_to = "client"
     state = State.PLAY
 
@@ -5188,11 +5376,11 @@ class UpdateAttributes(Packet):
         entity_id = Varint.from_bytes(data)
         # attributes
         attributes = []
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             key = Identifier.from_bytes(data)
             value = Double.from_bytes(data)
             modifiers = []
-            for _ in range(Varint.from_bytes(data)):
+            for _ in range(Varint.from_bytes(data).value):
                 uuid = UUID.from_bytes(data)
                 amount = Double.from_bytes(data)
                 operation = Varint.from_bytes(data)
@@ -5207,12 +5395,12 @@ class FeatureFlags(Packet):
     """
     Used to enable and disable features, generally experimental ones, on the client.
 
-    Packet ID: 0x67
+    Packet ID: 0x6B
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x67
+    packet_id = 0x6B
     bound_to = "client"
     state = State.PLAY
 
@@ -5234,7 +5422,7 @@ class FeatureFlags(Packet):
         # Fields: features (list)
         # features
         features = []
-        for _ in range(Varint.from_bytes(data)):
+        for _ in range(Varint.from_bytes(data).value):
             features.append(Identifier.from_bytes(data))
         return cls(features)
 
@@ -5243,12 +5431,12 @@ class EntityEffect(Packet):
     """
     Applies an effect to the given entity.
 
-    Packet ID: 0x68
+    Packet ID: 0x6C
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x68
+    packet_id = 0x6C
     bound_to = "client"
     state = State.PLAY
 
@@ -5302,12 +5490,12 @@ class UpdateRecipes(Packet):
     """
     Updates the recipes on the client.
 
-    Packet ID: 0x69
+    Packet ID: 0x6D
     State: Play
     Bound To: Client
     """
 
-    packet_id = 0x69
+    packet_id = 0x6D
     bound_to = "client"
     state = State.PLAY
 
@@ -5329,6 +5517,58 @@ class UpdateRecipes(Packet):
         # Fields: recipes (list)
         # recipes
         recipes = []
-        for _ in range(Varint.from_bytes(data).value):
+        total_len = Varint.from_bytes(data).value
+        for _ in range(total_len):
             recipes.append(Recipe.from_bytes(data))
         return cls(recipes)
+
+
+class UpdateTags(Packet):
+    """
+    Updates the tags on the client.
+
+    Packet ID: 0x6E
+    State: Play
+    Bound To: Client
+    """
+
+    packet_id = 0x6E
+    bound_to = "client"
+    state = State.PLAY
+
+    def __init__(
+        self,
+        tags: list[_DataProxy],
+    ):
+        self.tags = tags
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(Varint(len(self.tags)))
+            + b"".join(
+                (
+                    bytes(tag.tag_name)
+                    + bytes(Varint(len(tag.entries)))
+                    + b"".join(bytes(entry) for entry in tag.entries)
+                )
+                for tag in self.tags
+            )
+        )
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: tags (list)
+        # tags
+        tags = []
+        for _ in range(Varint.from_bytes(data).value):
+            tags.append(
+                _DataProxy(
+                    tag_name=Identifier.from_bytes(data),
+                    entries=[
+                        Varint.from_bytes(data)
+                        for _ in range(Varint.from_bytes(data).value)
+                    ],
+                )
+            )
+        return cls(tags)

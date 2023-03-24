@@ -68,7 +68,7 @@ class Dispatcher:
         packet: :class:`Packet`
             The packet to dispatch.
         """
-        log.debug("Dispatching packet %s", packet)
+        log.debug("Dispatching packet %s", packet.__class__.__name__)
         if packet.__class__ in self.handlers:
             for handler in self.handlers[packet.__class__]:
                 self.connection.loop.create_task(

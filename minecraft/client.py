@@ -33,6 +33,7 @@ import traceback
 from typing import Callable, Coroutine
 
 from .auth import microsoft_auth
+from .datatypes import Property
 from .networking.connection import Connection
 from .packets import Packet
 
@@ -63,6 +64,7 @@ class Client:
         self.username: str | None = None
         self.uuid: str | None = None
         self.access_token: str | None = None
+        self.properties: list[Property] = []
 
     # Base connection methods
     async def connect(self, host: str, port: int = 25565) -> None:

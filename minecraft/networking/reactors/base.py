@@ -62,6 +62,8 @@ class Reactor:
     Reactors are used to handle packets internally,
     though they can be overwritten to change their behavior.
 
+    They act a bit differently than handlers, in that they force the read loop to wait for processing to finish.
+
     Attributes
     ----------
     connection: :class:`Connection`
@@ -70,6 +72,7 @@ class Reactor:
 
     def __init__(self, connection) -> None:
         self.connection: Connection = connection
+        self.handlers = {}
 
     def setup(self):
         """
@@ -80,20 +83,7 @@ class Reactor:
         for name in dir(self):
             attr = getattr(self, name)
             if hasattr(attr, "__reacts_to__"):
-                self.connection.dispatcher.register(attr.__reacts_to__, attr)
-
-    def __del__(self) -> None:
-        self.destroy()
-
-    def destroy(self) -> None:
-        """
-        Destroy the reactor.
-
-        This method is called when the reactor is detached from a connection.
-        """
-        for attr in self.__dict__.values():
-            if hasattr(attr, "__reacts_to__"):
-                self.connection.dispatcher.remove_handler(attr.__reacts_to__, attr)
+                self.handlers[attr.__reacts_to__] = attr
 
     @property
     def client(self) -> Client:
