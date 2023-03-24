@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
   "nbt~=1.5.1",
   "aiohttp~=3.8.4",
-  "cryptography~=39.0.2",
+  "cryptography~=40.0.0",
 ]
 
 [project.optional-dependencies]
