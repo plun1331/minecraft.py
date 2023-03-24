@@ -13,7 +13,9 @@ class Dispatcher:
         self.handlers: dict[type[Packet], list] = {}
         self.temporary_handlers: dict[type[Packet], asyncio.Future] = {}
 
-    def register(self, packet: type[Packet], handler: Callable[[Packet], Coroutine]) -> None:
+    def register(
+        self, packet: type[Packet], handler: Callable[[Packet], Coroutine]
+    ) -> None:
         """
         Register a handler for a packet.
 
@@ -40,7 +42,7 @@ class Dispatcher:
             The packet that the handler is reacting to.
         handler: Callable[[Packet], Coroutine]
             The handler that should be removed.
-        
+
         Raises
         ------
         :exc:`ValueError`
@@ -49,7 +51,9 @@ class Dispatcher:
         if packet in self.handlers:
             self.handlers[packet].remove(handler)
 
-    async def _handler_wrapper(self, packet: PACKET, handler: Callable[[Packet], Coroutine]) -> None:
+    async def _handler_wrapper(
+        self, packet: PACKET, handler: Callable[[Packet], Coroutine]
+    ) -> None:
         try:
             await handler(packet)
         except Exception as e:  # pylint: disable=broad-except
@@ -58,13 +62,13 @@ class Dispatcher:
     def dispatch(self, packet) -> None:
         """
         Dispatch a packet to the appropriate handlers.
-        
+
         Parameters
         ----------
         packet: :class:`Packet`
             The packet to dispatch.
         """
-        log.debug("Dispatching packet %s", packet)
+        log.debug("Dispatching packet %s", packet.__class__.__name__)
         if packet.__class__ in self.handlers:
             for handler in self.handlers[packet.__class__]:
                 self.connection.loop.create_task(
@@ -75,7 +79,7 @@ class Dispatcher:
             self.temporary_handlers[packet.__class__].set_result(packet)
             self.temporary_handlers.pop(packet.__class__, None)
 
-    async def wait_for(self, packet_id, *, timeout=None):
+    async def wait_for(self, packet_id, *, timeout=None) -> PACKET:
         """
         Wait for a packet to be received.
 
@@ -85,7 +89,7 @@ class Dispatcher:
             The packet ID to wait for.
         timeout: :class:`float`
             The amount of time to wait before timing out.
-        
+
         Returns
         -------
         :class:`Packet`

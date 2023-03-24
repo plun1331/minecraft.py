@@ -51,11 +51,15 @@ async def _start_device_code_flow(clientapp: msal.PublicClientApplication) -> di
     return flow
 
 
-async def _get_token_with_device_code(clientapp: msal.PublicClientApplication, flow: dict) -> dict:
+async def _get_token_with_device_code(
+    clientapp: msal.PublicClientApplication, flow: dict
+) -> dict:
     return clientapp.acquire_token_by_device_flow(flow)
 
 
-async def obtain_token_with_device_code(clientapp: msal.PublicClientApplication) -> dict:
+async def obtain_token_with_device_code(
+    clientapp: msal.PublicClientApplication,
+) -> dict:
     """
     Obtains a Microsoft access token using the device code flow.
 
@@ -133,7 +137,7 @@ async def get_access_token(token):
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     """
     Authenticates through Microsoft with a device code authentication flow.
-
+    
     .. note::
         This requires that `msal <https://pypi.org/project/msal>`_ is installed.
     
@@ -149,7 +153,9 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     try:
         import msal
     except ImportError as exc:
-        raise RuntimeError("msal must be installed to use Microsoft authentication.") from exc
+        raise RuntimeError(
+            "msal must be installed to use Microsoft authentication."
+        ) from exc
     log.debug("Starting Microsoft authentication flow with client ID %s", client_id)
     clientapp = msal.PublicClientApplication(
         client_id,
@@ -160,10 +166,12 @@ async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
         try:
             auth_token, uuid, name = await get_access_token(token["access_token"])
         except Exception as e:
-            raise AuthenticationError(str(e), correlation_id=token.get('correlation_id')) from e
+            raise AuthenticationError(
+                str(e), correlation_id=token.get("correlation_id")
+            ) from e
     else:
         raise AuthenticationError(
             f"{token.get('error')}: {token.get('error_description')}",
-            correlation_id=token.get('correlation_id')
+            correlation_id=token.get("correlation_id"),
         )
     return name, uuid, auth_token

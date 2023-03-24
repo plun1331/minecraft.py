@@ -282,7 +282,10 @@ class String(DataType):
             raise ValueError(
                 f"String length {length.value} exceeds max length {max_length}"
             )
-        return cls(data.read(length.value).decode("utf-8"))
+        data = data.read(length.value)
+        if len(data) != length.value:
+            raise ValueError("String length mismatch")
+        return cls(data.decode("utf-8"))
 
 
 class Chat(String):
@@ -322,48 +325,77 @@ class Varint(DataType):
         self.value = value
 
     def __bytes__(self) -> bytes:
-        val = self.value
-        out = bytearray()
+        value = self.value
+        data = bytes()
         while True:
-            temp = val & 0b01111111
-            val >>= 7
-            if val != 0:
-                temp |= 0b10000000
-            out.append(temp)
-            if val == 0:
+            if (value & ~0x7F) == 0:
+                data += bytes([value])
                 break
-        return bytes(out)
+            data += bytes([(value & 0x7F) | 0x80])
+            value >>= 7
+        return bytes(data)
 
     @classmethod
     def from_bytes(cls, data: BytesIO, *, max_size: int = 5) -> Self:
-        num_read = 0
-        result = 0
+        value = 0
+        bits_read = 0
+
         while True:
-            read = data.read(1)[0]
-            value = read & 0b01111111
-            result |= value << (7 * num_read)
+            current_byte = data.read(1)[0]
+            value |= (current_byte & 0x7F) << bits_read
+            bits_read += 7
 
-            num_read += 1
-            if num_read > max_size:
-                raise ValueError(
-                    f"Varint is too big (exceeded max size of {max_size} bytes)"
-                )
+            if bits_read > 35:
+                raise ValueError("Varint is too big")
 
-            if (read & 0b10000000) == 0:
+            if (current_byte & 0x80) == 0:
                 break
 
-        return cls(result)
+        if (value & 0x80000000) != 0:
+            value = -((value ^ 0xFFFFFFFF) + 1)
+        return cls(value)
 
 
-class Varlong(Varint):
+class Varlong(DataType):
     """
     Represents a variable long.
 
     :ivar value: The value of this data type. (:class:`int`)
     """
+    def __init__(self, value: int):
+        self.value = value
+
+    def __bytes__(self) -> bytes:
+        value = self.value
+        data = bytes()
+        while True:
+            if (value & ~0x7F) == 0:
+                data += bytes([value])
+                break
+            data += bytes([(value & 0x7F) | 0x80])
+            value >>= 7
+        return bytes(data)
+
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:
-        return super().from_bytes(data, max_size=10)
+    def from_bytes(cls, data: BytesIO, *, max_size: int = 5) -> Self:
+        value = 0
+        bits_read = 0
+
+        while True:
+            current_byte = data.read(1)[0]
+            value |= (current_byte & 0x7F) << bits_read
+            bits_read += 7
+
+            if bits_read > 64:
+                raise Exception("Varlong is too big")
+
+            if (current_byte & 0x80) == 0:
+                break
+
+        if (value & 0x8000000000000000) != 0:
+            value = -((value ^ 0xFFFFFFFFFFFFFFFF) + 1)
+
+        return cls(value)
 
 
 class EntityMetadataEntry:
@@ -961,15 +993,20 @@ class Trade(DataType):
         )
 
 
-class _DataProxy(dict):
+class _DataProxy:
     def __init__(self, **attrs):
-        self.__dict__.update(attrs)
+        self.attrs = {k: v for k, v in attrs.items() if k != "attrs"}
 
     def __getattr__(self, name):
-        return self[name]
+        return self.attrs[name]
 
     def __setattr__(self, name, value):
-        self[name] = value
+        if name == "attrs":
+            return super().__setattr__(name, value)
+        self.attrs[name] = value
+
+    def __repr__(self):
+        return f"_DataProxy({', '.join(f'{k}={v!r}' for k, v in self.attrs.items())})"
 
 
 class PlayerInfoUpdatePlayer(DataType):
@@ -1314,7 +1351,11 @@ class Recipe(DataType):
             for ingredient in self.data.ingredients:
                 res += bytes(ingredient)
             res += bytes(self.data.result)
-        elif self.recipe_type.value.startswith("minecraft:crafting_special_"):
+            res += bytes(self.data.show_notification)
+        elif (
+            self.recipe_type.value.startswith("minecraft:crafting_special_")
+            or self.recipe_type.value == "minecraft:crafting_decorated_pot"
+        ):
             res += bytes(Varint(self.data.category))
         elif self.recipe_type.value in (
             "minecraft:smelting",
@@ -1338,70 +1379,103 @@ class Recipe(DataType):
             res += bytes(self.data.base)
             res += bytes(self.data.addition)
             res += bytes(self.data.result)
+        elif self.recipe_type.value == "minecraft:smithing_transform":
+            res += bytes(self.data.template)
+            res += bytes(self.data.base)
+            res += bytes(self.data.addition)
+            res += bytes(self.data.result)
+        elif self.recipe_type.value == "minecraft:smithing_trim":
+            res += bytes(self.data.template)
+            res += bytes(self.data.base)
+            res += bytes(self.data.addition)
         else:
             raise ValueError(f"Unknown recipe type {self.recipe_type}")
         return res
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        recipe_type = Identifier.from_bytes(data)
-        recipe_id = Identifier.from_bytes(data)
-        if recipe_type.value == "minecraft:crafting_shapeless":
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredients=[
-                    Ingredient.from_bytes(data)
-                    for _ in range(Varint.from_bytes(data).value)
-                ],
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:crafting_shaped":
-            data = _DataProxy(
-                width=Varint.from_bytes(data).value,
-                height=Varint.from_bytes(data).value,
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredients=[
-                    Ingredient.from_bytes(data)
-                    for _ in range(Varint.from_bytes(data).value)
-                ],
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value.startswith("minecraft:crafting_special_"):
-            data = _DataProxy(
-                category=Varint.from_bytes(data),
-            )
-        elif recipe_type.value in (
-            "minecraft:smelting",
-            "minecraft:blasting",
-            "minecraft:smoking",
-            "minecraft:campfire_cooking",
-        ):
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                category=Varint.from_bytes(data),
-                ingredient=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-                experience=Float.from_bytes(data),
-                cooking_time=Varint.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:stonecutting":
-            data = _DataProxy(
-                group=String.from_bytes(data),
-                ingredient=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-            )
-        elif recipe_type.value == "minecraft:smithing":
-            data = _DataProxy(
-                base=Ingredient.from_bytes(data),
-                addition=Ingredient.from_bytes(data),
-                result=Slot.from_bytes(data),
-            )
-        else:
-            raise ValueError(f"Unknown recipe type: {recipe_type}")
+        try:
+            recipe_type = Identifier.from_bytes(data)
+        except (ValueError, IndexError):
+            recipe_type = None
+        try:
+            recipe_id = Identifier.from_bytes(data)
+        except (ValueError, IndexError):
+            recipe_id = None
+        _data = None
+        if recipe_type:
+            if recipe_type.value == "minecraft:crafting_shapeless":
+                _data = _DataProxy(
+                    group=String.from_bytes(data),
+                    category=Varint.from_bytes(data),
+                    ingredients=[
+                        Ingredient.from_bytes(data)
+                        for _ in range(Varint.from_bytes(data).value)
+                    ],
+                    result=Slot.from_bytes(data),
+                )
+            elif recipe_type.value == "minecraft:crafting_shaped":
+                width = Varint.from_bytes(data).value
+                height = Varint.from_bytes(data).value
+                _data = _DataProxy(
+                    width=width,
+                    height=height,
+                    group=String.from_bytes(data),
+                    category=Varint.from_bytes(data),
+                    ingredients=[
+                        Ingredient.from_bytes(data) for _ in range(width * height)
+                    ],
+                    result=Slot.from_bytes(data),
+                    show_notification=Boolean.from_bytes(data),
+                )
+            elif (
+                recipe_type.value.startswith("minecraft:crafting_special_")
+                or recipe_type.value == "minecraft:crafting_decorated_pot"
+            ):
+                _data = _DataProxy(
+                    category=Varint.from_bytes(data),
+                )
+            elif recipe_type.value in (
+                "minecraft:smelting",
+                "minecraft:blasting",
+                "minecraft:smoking",
+                "minecraft:campfire_cooking",
+            ):
+                _data = _DataProxy(
+                    group=String.from_bytes(data),
+                    category=Varint.from_bytes(data),
+                    ingredient=Ingredient.from_bytes(data),
+                    result=Slot.from_bytes(data),
+                    experience=Float.from_bytes(data),
+                    cooking_time=Varint.from_bytes(data),
+                )
+            elif recipe_type.value == "minecraft:stonecutting":
+                _data = _DataProxy(
+                    group=String.from_bytes(data),
+                    ingredient=Ingredient.from_bytes(data),
+                    result=Slot.from_bytes(data),
+                )
+            elif recipe_type.value == "minecraft:smithing":
+                _data = _DataProxy(
+                    base=Ingredient.from_bytes(data),
+                    addition=Ingredient.from_bytes(data),
+                    result=Slot.from_bytes(data),
+                )
+            elif recipe_type.value == "minecraft:smithing_transform":
+                _data = _DataProxy(
+                    template=Ingredient.from_bytes(data),
+                    base=Ingredient.from_bytes(data),
+                    addition=Ingredient.from_bytes(data),
+                    result=Slot.from_bytes(data),
+                )
+            elif recipe_type.value == "minecraft:smithing_trim":
+                _data = _DataProxy(
+                    template=Ingredient.from_bytes(data),
+                    base=Ingredient.from_bytes(data),
+                    addition=Ingredient.from_bytes(data),
+                )
         return cls(
             recipe_type,
             recipe_id,
-            data,
+            _data,
         )

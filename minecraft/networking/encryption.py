@@ -65,7 +65,7 @@ def create_cipher(shared_secret):
     ----------
     shared_secret: :class:`bytes`
         The shared secret.
-    
+
     Returns
     -------
     :class:`cryptography.hazmat.primitives.ciphers.Cipher`
@@ -79,14 +79,9 @@ def create_cipher(shared_secret):
     return cipher
 
 
-def generate_verify_token() -> bytes:
-    """Generate a random 4-byte verify token."""
-    return os.urandom(4)
-
-
 def encrypt_secret_and_token(
     public_key: bytes, shared_secret: bytes, verify_token: bytes
-) -> dict:
+) -> tuple[bytes, bytes]:
     """
     Encrypt the shared secret and verify token using the server's public key.
 
@@ -113,12 +108,12 @@ def encrypt_secret_and_token(
 def minecraft_hexdigest(sha) -> str:
     """
     Convert a SHA1 hash to a Minecraft hexdigest.
-    
+
     Parameters
     ----------
     sha: :class:`hashlib.sha1`
         The SHA1 hash.
-    
+
     Returns
     -------
     :class:`str`
@@ -173,12 +168,12 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
     """
     server_id = packet.server_id.value
     server_public_key = packet.public_key.data
+    server_verify_token = packet.verify_token.data
 
     shared_secret = generate_shared_secret()
-    verify_token = generate_verify_token()
 
     encrypted_shared_secret, encrypted_verify_token = encrypt_secret_and_token(
-        server_public_key, shared_secret, verify_token
+        server_public_key, shared_secret, server_verify_token
     )
 
     client_hash = generate_hash(server_id, shared_secret, server_public_key)

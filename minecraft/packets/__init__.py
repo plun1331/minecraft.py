@@ -7,7 +7,7 @@ Contains all the packets used in the Minecraft protocol, as documented at https:
 :copyright: (c) 2023-present plun1331
 :license: BSD 3-Clause, see LICENSE for more details.
 """
-
+import logging
 from typing import TypeVar
 
 from .base import *
@@ -20,6 +20,8 @@ from .status_clientbound import *
 from .status_serverbound import *
 
 PACKET = TypeVar("PACKET", bound=Packet)
+
+log = logging.getLogger(__name__)
 
 PACKETS_CLIENTBOUND: dict[State, dict[int, type[Packet]]] = {
     State.HANDSHAKE: {},
@@ -69,6 +71,7 @@ def get_packet(
     """
     data = BytesIO(data)
     packet_id = Varint.from_bytes(data).value
+    log.debug("Processing packet with ID %s", packet_id)
     if bound == "client":
         return PACKETS_CLIENTBOUND[state][packet_id].from_bytes(data)
     elif bound == "server":
