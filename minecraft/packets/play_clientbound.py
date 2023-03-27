@@ -697,12 +697,20 @@ class ChangeDifficulty(Packet):
             + bytes(self.difficulty)
             + bytes(self.locked)
         )
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.difficulty)
+            + bytes(self.locked)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: difficulty (unsigned byte), locked (boolean)
+        # Fields: difficulty (unsigned byte), locked (boolean)
         # difficulty
         difficulty = UnsignedByte.from_bytes(data)
+
+        locked = Boolean.from_bytes(data)
 
         locked = Boolean.from_bytes(data)
         return cls(difficulty, locked)
@@ -1692,6 +1700,7 @@ class InitializeWorldBorder(Packet):
         )
 
 
+class KeepAliveClientbound(Packet):
 class KeepAliveClientbound(Packet):
     """
     The server will frequently send out a keep-alive, each containing a random ID.
@@ -2843,6 +2852,7 @@ class PlaceGhostRecipe(Packet):
 
 
 class ClientPlayerAbilities(Packet):
+class ClientPlayerAbilities(Packet):
     """
     This packet is sent by the server to update the client's
     abilities and flags.
@@ -3641,6 +3651,8 @@ class Respawn(Packet):
         has_death_location: Boolean,
         death_dimension: Identifier | None = None,
         death_location: Position | None = None,
+        death_dimension: Identifier | None = None,
+        death_location: Position | None = None,
     ):
         self.dimension_type = dimension_type
         self.dimension_name = dimension_name
@@ -3888,6 +3900,7 @@ class ServerData(Packet):
     def __init__(
         self,
         motd: Chat,
+        motd: Chat,
         icon: String | None = None,
         enforces_secure_chat: Boolean = Boolean(False),
     ):
@@ -3899,6 +3912,7 @@ class ServerData(Packet):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.motd)
+            + bytes(self.motd)
             + bytes(Boolean(self.icon is not None))
             + (bytes(self.icon) if self.icon is not None else b"")
             + bytes(self.enforces_secure_chat)
@@ -3908,6 +3922,7 @@ class ServerData(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: motd (chat), icon (string), enforces_secure_chat (boolean)
         # motd
+        motd = Chat.from_bytes(data)
         motd = Chat.from_bytes(data)
         # icon
         icon = None
@@ -4161,6 +4176,7 @@ class SetCamera(Packet):
         return cls(entity_id)
 
 
+class ClientSetHeldItem(Packet):
 class ClientSetHeldItem(Packet):
     """
     Sent by the server to the client to set the held item of the player.
@@ -5591,9 +5607,11 @@ class UpdateAttributes(Packet):
         # attributes
         attributes = []
         for _ in range(Varint.from_bytes(data).value):
+        for _ in range(Varint.from_bytes(data).value):
             key = Identifier.from_bytes(data)
             value = Double.from_bytes(data)
             modifiers = []
+            for _ in range(Varint.from_bytes(data).value):
             for _ in range(Varint.from_bytes(data).value):
                 uuid = UUID.from_bytes(data)
                 amount = Double.from_bytes(data)
@@ -5638,6 +5656,7 @@ class FeatureFlags(Packet):
         # Fields: features (list)
         # features
         features = []
+        for _ in range(Varint.from_bytes(data).value):
         for _ in range(Varint.from_bytes(data).value):
             features.append(Identifier.from_bytes(data))
         return cls(features)
@@ -5737,6 +5756,8 @@ class UpdateRecipes(Packet):
         # Fields: recipes (list)
         # recipes
         recipes = []
+        total_len = Varint.from_bytes(data).value
+        for _ in range(total_len):
         total_len = Varint.from_bytes(data).value
         for _ in range(total_len):
             recipes.append(Recipe.from_bytes(data))

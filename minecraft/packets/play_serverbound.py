@@ -367,7 +367,7 @@ class ClientCommand(Packet):
     """
     Sent by client to send a command.
 
-    **Packet ID**: ``0x06``
+    **Packet ID**: ``0x07``
 
     **State**: :attr:`.State.PLAY`
 
