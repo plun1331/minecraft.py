@@ -10,10 +10,11 @@ A Python library for Minecraft clients.
 
 import logging
 
+from .client import *
 from .datatypes import *
 from .enums import *
+from .networking import *
 from .packets import *
-from .client import *
 
 __title__ = "minecraft.py"
 __author__ = "plun1331"

@@ -19,12 +19,10 @@ class Dispatcher:
         """
         Register a handler for a packet.
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet that the handler should react to.
-        handler: Callable[[Packet], Coroutine]
-            The handler that should be called when the packet is received.
+        :param packet: The packet that the handler should react to.
+        :type packet: Packet
+        :param handler: The handler that should be called when the packet is received.
+        :type handler: Callable[[Packet], Coroutine]
         """
         if packet not in self.handlers:
             self.handlers[packet] = []
@@ -36,17 +34,12 @@ class Dispatcher:
         """
         Remove a handler for a packet.
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet that the handler is reacting to.
-        handler: Callable[[Packet], Coroutine]
-            The handler that should be removed.
+        :param packet: The packet that the handler is reacting to.
+        :type packet: Packet
+        :param handler: The handler that should be called when the packet is received.
+        :type handler: Callable[[Packet], Coroutine]
 
-        Raises
-        ------
-        :exc:`ValueError`
-            The handler is not registered for the packet.
+        :raises ValueError: The handler is not registered for the packet.
         """
         if packet in self.handlers:
             self.handlers[packet].remove(handler)
@@ -63,10 +56,8 @@ class Dispatcher:
         """
         Dispatch a packet to the appropriate handlers.
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet to dispatch.
+        :param packet: The packet to dispatch.
+        :type packet: Packet
         """
         log.debug("Dispatching packet %s", packet.__class__.__name__)
         if packet.__class__ in self.handlers:
@@ -79,29 +70,22 @@ class Dispatcher:
             self.temporary_handlers[packet.__class__].set_result(packet)
             self.temporary_handlers.pop(packet.__class__, None)
 
-    async def wait_for(self, packet_id, *, timeout=None) -> PACKET:
+    async def wait_for(self, packet: type[Packet], *, timeout=None) -> PACKET:
         """
         Wait for a packet to be received.
 
-        Parameters
-        ----------
-        packet_id: :class:`int`
-            The packet ID to wait for.
-        timeout: :class:`float`
-            The amount of time to wait before timing out.
+        :param packet_id: The packet ID to wait for.
+        :type packet_id: type[Packet]
+        :param timeout: The amount of time to wait before timing out.
+        :type timeout: float
 
-        Returns
-        -------
-        :class:`Packet`
-            The packet that was received.
-
-        Raises
-        ------
-        :exc:`asyncio.TimeoutError`
-            The packet was not received before the timeout.
+        :returns: The packet that was received.
+        :rtype: Packet
+        
+        :raises asyncio.TimeoutError: The packet was not received before the timeout.
         """
-        if packet_id not in self.temporary_handlers:
-            self.temporary_handlers[packet_id] = asyncio.Future()
+        if packet not in self.temporary_handlers:
+            self.temporary_handlers[packet] = asyncio.Future()
         return await asyncio.wait_for(
-            self.temporary_handlers[packet_id], timeout=timeout
+            self.temporary_handlers[packet], timeout=timeout
         )

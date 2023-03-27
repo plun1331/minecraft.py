@@ -36,36 +36,22 @@ from ..enums import State
 class Packet:
     """Represents a Minecraft packet."""
 
-    packet_id: int = None
-    bound_to: Literal["client", "server"] = None
-    state: State = None
+    packet_id: int = None  # :meta public:
+    bound_to: Literal["client", "server"] = None  # :meta public:
+    state: State = None  # :meta public:
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
         """
         Converts a packet's data into a packet object.
 
-        Parameters
-        ----------
-        data: :class:`io.BytesIO`
-            The packet's data.
+        :param data: The packet's data.
+        :type data: io.BytesIO
 
-        Returns
-        -------
-        :class:`Packet`
-            The packet object.
+        :return: The packet object.
+        :rtype: Packet
         """
         return cls()
-
-    @classmethod
-    def decode(cls, data: bytes) -> Self:
-        io = BytesIO(data)
-        packet_id = int(io.read(1)[0])
-        if packet_id != cls.packet_id:
-            raise ValueError(
-                f"Packet ID ({packet_id}) does not match expected packet ID ({cls.packet_id})"
-            )
-        return cls.from_bytes(io)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(packet_id={self.packet_id} {' '.join([f'{k}={v}' for k, v in self.__dict__.items()])})"

@@ -42,10 +42,8 @@ def react_to(
     """
     Decorator for specifying what packets a method in a :class:`Reactor` should react to.
 
-    Parameters
-    ----------
-    packet: :class:`Packet`
-        The packet that the method should react to.
+    :param packet: The packet type to react to.
+    :type packet: type[Packet]
     """
 
     def decorator(func: Callable[[PACKET], None]) -> Callable[[PACKET], None]:
@@ -64,10 +62,10 @@ class Reactor:
 
     They act a bit differently than handlers, in that they force the read loop to wait for processing to finish.
 
-    Attributes
-    ----------
-    connection: :class:`Connection`
-        The connection that this reactor is attached to.
+    :ivar connection: The connection that this reactor is attached to.
+    :vartype connection: Connection
+    :ivar handlers: A dictionary of packet types to methods that handle them.
+    :vartype handlers: dict[Packet, Callable]
     """
 
     def __init__(self, connection) -> None:
@@ -90,9 +88,7 @@ class Reactor:
         """
         The client that this reactor's connection is attached to.
 
-        Returns
-        -------
-        :class:`Client`
+        :rtype: Client
         """
         return self.connection.client
 

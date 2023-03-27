@@ -9,13 +9,17 @@
 import os
 import sys
 
+# copy ../CHANGELOG.md to ./changelog.md
+with open('../CHANGELOG.md', 'r') as file:
+    with open('./changelog.md', 'w') as dest:
+        dest.write(file.read())
 
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'minecraft.py'
 copyright = '2023-present plun1331'
 author = 'plun1331'
-release = '0.0.0a1'
+release = '0.0.0-alpha'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -23,10 +27,17 @@ release = '0.0.0a1'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "myst_parser",
 ]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 
 # -- Options for extensions ---------------------------------------------------

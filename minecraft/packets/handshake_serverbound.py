@@ -36,9 +36,11 @@ class Handshake(Packet):
     """
     Handshake packet sent by the client to the server to initiate a connection.
 
-    Packet ID: 0x00
-    State: Handshaking
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.HANDSHAKE`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00

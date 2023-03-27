@@ -36,9 +36,11 @@ class StatusRequest(Packet):
     """
     Status request packet sent by the client to the server to request the server's status.
 
-    Packet ID: 0x00
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
@@ -58,9 +60,11 @@ class PingRequest(Packet):
     """
     Ping request packet sent by the client to the server to request the server's ping.
 
-    Packet ID: 0x01
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01

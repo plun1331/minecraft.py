@@ -12,3 +12,8 @@ The following section outlines the API of minecraft.py.
     auth
     client
     datatypes
+    enums
+    exceptions
+    nbt
+    networking/index
+    packets/index

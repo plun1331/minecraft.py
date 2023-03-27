@@ -34,10 +34,8 @@ class DisconnectError(Exception):
     """
     Exception raised when the server disconnects the client.
 
-    Attributes
-    ----------
-    reason: :class:`Chat`
-        The reason for the disconnect.
+    :ivar reason: The reason for the disconnect. 
+    :vartype reason: Chat
     """
 
     def __init__(self, reason):
@@ -78,12 +76,10 @@ class AuthenticationError(Exception):
     """
     Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
 
-    Attributes
-    ----------
-    message: :class:`str`
-        The error message.
-    correlation_id: :class:`str`
-        The correlation ID.
+    :ivar message: The error message.
+    :vartype message: str
+    :ivar correlation_id: The correlation ID.
+    :vartype correlation_id: str | None
     """
 
     def __init__(self, message: str, correlation_id: str | None = None) -> None:
