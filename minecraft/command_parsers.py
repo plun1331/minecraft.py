@@ -26,6 +26,7 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from typing import Self, TYPE_CHECKING
 
@@ -125,7 +126,6 @@ class _OneFlag:
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         flags = Byte.from_bytes(data)
-        _flags = flags.value
         return cls(flags)
 
 
@@ -141,7 +141,7 @@ class MinecraftScoreHolder(_OneFlag):
 
 class _Identifier:
     def __init__(self, value: Identifier):
-        self.registry: Identifier = value
+        self.value: Identifier = value
 
     def __repr__(self):
         return f"{self.__class__.__name__}(value={self.value})"

@@ -36,9 +36,11 @@ class DisconnectLogin(Packet):
     """
     Sent by the server when the client is disconnected.
 
-    Packet ID: 0x00
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x00
@@ -64,9 +66,11 @@ class EncryptionRequest(Packet):
     """
     Sent by the server to request encryption.
 
-    Packet ID: 0x01
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x01
@@ -113,9 +117,11 @@ class LoginSuccess(Packet):
     """
     Sent by the server to indicate that the client has successfully logged in.
 
-    Packet ID: 0x02
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x02
@@ -154,9 +160,11 @@ class SetCompression(Packet):
     """
     Sent by the server to indicate that the client should use compression.
 
-    Packet ID: 0x03
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x03``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x03
@@ -182,9 +190,11 @@ class LoginPluginRequest(Packet):
     Used to implement a custom handshaking flow together with Login Plugin Response.
     Our client should always respond that it hasn't understood the request.
 
-    Packet ID: 0x04
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x04``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x04

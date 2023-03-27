@@ -31,7 +31,6 @@ import logging
 
 from .base import react_to, Reactor
 from ..encryption import create_cipher, process_encryption_request
-from ... import SetCompression
 from ...datatypes import Boolean, ByteArray
 from ...enums import State
 from ...exceptions import LoginDisconnectError
@@ -42,12 +41,16 @@ from ...packets import (
     LoginPluginRequest,
     LoginPluginResponse,
     LoginSuccess,
+    SetCompression,
 )
 
 log = logging.getLogger(__name__)
 
 
 class LoginReactor(Reactor):
+    """
+    Reacts to packets sent during the login state.
+    """
     @react_to(EncryptionRequest)
     async def encryption_request(self, packet: EncryptionRequest):
         encryption_data = await process_encryption_request(packet, self.connection)

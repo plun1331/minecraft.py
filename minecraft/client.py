@@ -67,12 +67,10 @@ class Client:
         """
         Connect to the server.
 
-        Parameters
-        ----------
-        host: :class:`str`
-            The host to connect to.
-        port: :class:`int`
-            The port to connect to.
+        :param host: The host to connect to.
+        :type host: str
+        :param port: The port to connect to.
+        :type port: int
         """
         await self.connection.connect(host, port)
         await self.connection.login()
@@ -89,7 +87,6 @@ class Client:
 
         This takes no parameters and does nothing unless overridden.
         """
-        pass
 
     async def start(self, host: str, port: int = 25565) -> None:
         """
@@ -97,12 +94,10 @@ class Client:
 
         This will also wait until the connection is closed before returning.
 
-        Parameters
-        ----------
-        host: :class:`str`
-            The host to connect to.
-        port: :class:`int`
-            The port to connect to.
+        :param host: The host to connect to.
+        :type host: str
+        :param port: The port to connect to.
+        :type port: int
         """
         await self.setup()
         await self.connect(host, port)
@@ -115,12 +110,10 @@ class Client:
         This will block until the connection is closed,
         and will also handle keyboard interrupts and the event loop for you.
 
-        Parameters
-        ----------
-        host: :class:`str`
-            The host to connect to.
-        port: :class:`int`
-            The port to connect to.
+        :param host: The host to connect to.
+        :type host: str
+        :param port: The port to connect to.
+        :type port: int
         """
         loop = asyncio.get_event_loop()
 
@@ -138,10 +131,8 @@ class Client:
         """
         Authenticate with Microsoft.
 
-        Parameters
-        ----------
-        client_id: :class:`str`
-            The client ID to use for authentication.
+        :param client_id: The client ID of the application.
+        :type client_id: str
         """
         self.set_auth_info(*await microsoft_auth(client_id))
 
@@ -149,14 +140,12 @@ class Client:
         """
         Set the authentication information.
 
-        Parameters
-        ----------
-        username: :class:`str`
-            The username of the client.
-        uuid: :class:`str`
-            The UUID of the client.
-        access_token: :class:`str`
-            The access token of the client. Used to authenticate with Mojang.
+        :param username: The username of the client.
+        :type username: str
+        :param uuid: The UUID of the client.
+        :type uuid: str
+        :param access_token: The access token of the client.
+        :type access_token: str
         """
         self.username = username
         self.uuid = uuid
@@ -170,12 +159,10 @@ class Client:
 
         The default behavior is to print the traceback.
 
-        Parameters
-        ----------
-        handler: :class:`str`
-            The name of the handler.
-        error: :class:`Exception`
-            The exception that was raised.
+        :param handler: The handler that raised the exception.
+        :type handler: function
+        :param error: The exception that was raised.
+        :type error: Exception
         """
         print(f"Error in handler {handler}:")
         traceback.print_exception(type(error), error, error.__traceback__)

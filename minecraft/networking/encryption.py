@@ -49,10 +49,8 @@ def generate_shared_secret():
 
     This is just a convenience method, and only does ``os.urandom(16)``.
 
-    Returns
-    -------
-    :class:`bytes`
-        The shared secret.
+    :return: The random 16-byte shared secret.
+    :rtype: bytes
     """
     return os.urandom(16)
 
@@ -61,15 +59,11 @@ def create_cipher(shared_secret):
     """
     Create a cipher for encrypting and decrypting packets.
 
-    Parameters
-    ----------
-    shared_secret: :class:`bytes`
-        The shared secret.
+    :param shared_secret: The shared secret.
+    :type shared_secret: bytes
 
-    Returns
-    -------
-    :class:`cryptography.hazmat.primitives.ciphers.Cipher`
-        The cipher.
+    :return: The cipher to use for encryption and decryption.
+    :rtype: cryptography.hazmat.primitives.ciphers.Cipher
     """
     cipher = Cipher(
         algorithms.AES(shared_secret),
@@ -85,19 +79,15 @@ def encrypt_secret_and_token(
     """
     Encrypt the shared secret and verify token using the server's public key.
 
-    Parameters
-    ----------
-    public_key: :class:`bytes`
-        The server's public key.
-    shared_secret: :class:`bytes`
-        The shared secret.
-    verify_token: :class:`bytes`
-        The verify token.
+    :param public_key: The server's public key.
+    :type public_key: bytes
+    :param shared_secret: The shared secret.
+    :type shared_secret: bytes
+    :param verify_token: The verify token.
+    :type verify_token: bytes
 
-    Returns
-    -------
-    tuple[:class:`bytes`, :class:`bytes`]
-        The encrypted shared secret and verify token.
+    :return: The encrypted shared secret and verify token.
+    :rtype: tuple[bytes, bytes]
     """
     pubkey = load_der_public_key(public_key)
     encrypted_shared_secret = pubkey.encrypt(shared_secret, PKCS1v15())
@@ -109,15 +99,12 @@ def minecraft_hexdigest(sha) -> str:
     """
     Convert a SHA1 hash to a Minecraft hexdigest.
 
-    Parameters
-    ----------
-    sha: :class:`hashlib.sha1`
-        The SHA1 hash.
+    :param sha: The SHA1 hash to convert.
+    :type sha: hashlib.sha1
 
-    Returns
-    -------
-    :class:`str`
-        The hexdigest."""
+    :return: The hexdigest.
+    :rtype: str
+    """
     output_bytes = sha.digest()
     output_int = int.from_bytes(output_bytes, byteorder="big", signed=True)
     if output_int < 0:
@@ -129,19 +116,15 @@ def generate_hash(server_id: str, shared_secret: bytes, public_key: bytes) -> st
     """
     Generate the hash for the session server.
 
-    Parameters
-    ----------
-    server_id: :class:`str`
-        The server ID.
-    shared_secret: :class:`bytes`
-        The shared secret.
-    public_key: :class:`bytes`
-        The server's public key.
+    :param server_id: The server ID.
+    :type server_id: str
+    :param shared_secret: The shared secret.
+    :type shared_secret: bytes
+    :param public_key: The server's public key.
+    :type public_key: bytes
 
-    Returns
-    -------
-    :class:`str`
-        The hash.
+    :return: The hash that should be sent to the session server.
+    :rtype: str
     """
     client_hash = hashlib.sha1()
     client_hash.update(server_id.encode("utf-8"))
@@ -154,17 +137,11 @@ async def process_encryption_request(packet: EncryptionRequest, connection: Conn
     """
     Processes an encryption request packet.
 
-    Parameters
-    ----------
-    packet: :class:`EncryptionRequest`
-        The packet.
-    connection: :class:`Connection`
-        The connection.
+    :param packet: The packet to process.
+    :param connection: The connection that the packet was recieved on.
 
-    Returns
-    -------
-    dict[:class:`str`, :class:`bytes`]
-        A dictionary containing ``shared_secret``, ``encrypted_shared_secret``, and ``encrypted_verify_token``.
+    :return: A dictionary containing ``shared_secret``, ``encrypted_shared_secret``, and ``encrypted_verify_token``.
+    :rtype: dict[str, bytes]
     """
     server_id = packet.server_id.value
     server_public_key = packet.public_key.data

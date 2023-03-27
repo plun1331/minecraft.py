@@ -3,3 +3,4 @@ __pycache__
 docs/_build/**
 **.egg-info/**
 dist/**
+docs/changelog.md

@@ -36,9 +36,11 @@ class LoginStart(Packet):
     """
     Sent by the client to start the login process.
 
-    Packet ID: 0x00
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
@@ -81,9 +83,11 @@ class EncryptionResponse(Packet):
     """
     Sent by the client to respond to the encryption request.
 
-    Packet ID: 0x01
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01
@@ -125,9 +129,11 @@ class LoginPluginResponse(Packet):
     Sent in response to a plugin message request.
     Our client should always respond with a `successful=False` with no further payload.
 
-    Packet ID: 0x02
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x02

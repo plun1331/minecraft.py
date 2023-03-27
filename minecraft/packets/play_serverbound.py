@@ -54,9 +54,11 @@ class ConfirmTeleportation(Packet):
     """
     Sent by client as confirmation of Synchronize Player Position.
 
-    Packet ID: 0x00
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
@@ -81,9 +83,11 @@ class QueryBlockEntityTag(Packet):
     """
     Used when ``Shift+F3+I`` is pressed while looking at a block.
 
-    Packet ID: 0x01
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01
@@ -116,9 +120,11 @@ class ChangeServerDifficulty(Packet):
     Only be used on singleplayer;
     the difficulty buttons are disabled in multiplayer.
 
-    Packet ID: 0x02
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x02
@@ -143,9 +149,11 @@ class MessageAcknowledgement(Packet):
     """
     Sent by client to acknowledge a message.
 
-    Packet ID: 0x03
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x03``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x03
@@ -170,9 +178,11 @@ class ChatCommand(Packet):
     """
     Sent by client to send a command.
 
-    Packet ID: 0x04
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x04``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x04
@@ -246,9 +256,11 @@ class ChatMessage(Packet):
     """
     Send a chat message.
 
-    Packet ID: 0x05
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x05``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x05
@@ -316,9 +328,11 @@ class PlayerSession(Packet):
     """
     Sent by client to send information about the player session.
 
-    Packet ID: 0x06
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x06``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x06
@@ -353,9 +367,11 @@ class ClientCommand(Packet):
     """
     Sent by client to send a command.
 
-    Packet ID: 0x06
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x07``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x07
@@ -383,9 +399,11 @@ class ClientInformation(Packet):
     """
     Sent by client to send information about the client.
 
-    Packet ID: 0x08
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x08``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x08
@@ -462,9 +480,11 @@ class CommandSuggestionsRequest(Packet):
     """
     Sent when the client needs to tab-complete a minecraft:ask_server suggestion type.
 
-    Packet ID: 0x09
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x09``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x09
@@ -500,9 +520,11 @@ class ClickContainerButton(Packet):
     """
     Used when clicking on window buttons.
 
-    Packet ID: 0x0A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0A
@@ -538,9 +560,11 @@ class ClickContainer(Packet):
     """
     Sent by the client when the player clicks on a slot in a window.
 
-    Packet ID: 0x0B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0B
@@ -615,9 +639,11 @@ class CloseContainer(Packet):
     """
     Sent by the client when the player closes a window.
 
-    Packet ID: 0x0C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0C
@@ -645,9 +671,11 @@ class PluginMessageServerbound(Packet):
     """
     Sent by the client when it wants to send a plugin message to the server.
 
-    Packet ID: 0x0D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0D
@@ -681,9 +709,11 @@ class EditBook(Packet):
     """
     Sent by the client when the player edits a book.
 
-    Packet ID: 0x0E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0E
@@ -727,9 +757,11 @@ class QueryEntityTag(Packet):
     """
     Sent by the client when the player queries an entity's tags.
 
-    Packet ID: 0x0F
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x0F
@@ -765,9 +797,11 @@ class Interact(Packet):
     """
     Sent by the client when the player interacts with an entity.
 
-    Packet ID: 0x10
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x10``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x10
@@ -837,9 +871,11 @@ class JigsawGenerate(Packet):
     """
     Sent by the client when the player generates a jigsaw structure.
 
-    Packet ID: 0x11
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x11``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x11
@@ -880,9 +916,11 @@ class KeepAliveServerbound(Packet):
     """
     Sent by the client to keep the connection alive.
 
-    Packet ID: 0x12
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x12``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x12
@@ -910,9 +948,11 @@ class LockDifficulty(Packet):
     """
     Sent by the client when the player locks the difficulty.
 
-    Packet ID: 0x13
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x13``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x13
@@ -940,9 +980,11 @@ class SetPlayerPosition(Packet):
     """
     Updates the player's XYZ position on the server.
 
-    Packet ID: 0x14
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x14``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x14
@@ -988,9 +1030,11 @@ class SetPlayerPositionAndRotation(Packet):
     """
     Sent by the client when the player moves and rotates.
 
-    Packet ID: 0x15
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x15``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x15
@@ -1046,9 +1090,11 @@ class SetPlayerRotation(Packet):
     """
     Sent by the client when the player rotates.
 
-    Packet ID: 0x16
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x16``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x16
@@ -1089,9 +1135,11 @@ class SetPlayerOnGround(Packet):
     """
     Sent by the client when the player moves on the ground.
 
-    Packet ID: 0x17
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x17``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x17
@@ -1119,9 +1167,11 @@ class MoveVehicle(Packet):
     """
     Sent by the client when the player moves the vehicle.
 
-    Packet ID: 0x18
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x18``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x18
@@ -1172,9 +1222,11 @@ class PaddleBoat(Packet):
     """
     Sent by the client when the player paddles the boat.
 
-    Packet ID: 0x19
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x19``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x19
@@ -1210,9 +1262,11 @@ class PickItem(Packet):
     """
     Sent by the client when the player picks an item.
 
-    Packet ID: 0x1A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1A
@@ -1240,9 +1294,11 @@ class PlaceRecipe(Packet):
     """
     Sent by the client when the player places a recipe.
 
-    Packet ID: 0x1B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1B
@@ -1284,9 +1340,11 @@ class ServerPlayerAbilities(Packet):
     The vanilla client sends this packet when the
     player starts/stops flying with the Flags parameter changed accordingly.
 
-    Packet ID: 0x1C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1C
@@ -1314,9 +1372,11 @@ class PlayerAction(Packet):
     """
     Sent by the client when the player performs an action.
 
-    Packet ID: 0x1D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1D
@@ -1362,9 +1422,11 @@ class PlayerCommand(Packet):
     """
     Sent by the client when the player uses a command.
 
-    Packet ID: 0x1E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1E
@@ -1405,9 +1467,11 @@ class PlayerInput(Packet):
     """
     Also known as 'Input' packet.
 
-    Packet ID: 0x1F
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x1F
@@ -1448,9 +1512,11 @@ class Pong(Packet):
     """
     Response to the clientbound packet (Ping) with the same id.
 
-    Packet ID: 0x20
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x20``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x20
@@ -1478,9 +1544,11 @@ class ChangeRecipeBookSettings(Packet):
     """
     Sent by the client when the player changes the recipe book settings.
 
-    Packet ID: 0x21
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x21``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x21
@@ -1521,9 +1589,11 @@ class SetSeenRecipe(Packet):
     """
     Sent by the client when the player sees a recipe.
 
-    Packet ID: 0x22
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x22``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x22
@@ -1552,9 +1622,11 @@ class RenameItem(Packet):
     Sent as a player is renaming an item in an anvil.
     Each keypress in the anvil UI sends a new packet.
 
-    Packet ID: 0x23
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x23``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x23
@@ -1582,9 +1654,11 @@ class ResourcePack(Packet):
     """
     Sends the resource pack status to the server.
 
-    Packet ID: 0x24
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x24``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x24
@@ -1614,9 +1688,11 @@ class SeenAdvancements(Packet):
     """
     Sent by the client when the player sees an advancement.
 
-    Packet ID: 0x25
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x25``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x25
@@ -1656,9 +1732,11 @@ class SelectTrade(Packet):
     """
     Sent by the client when the player selects a trade in a villager's trade UI.
 
-    Packet ID: 0x26
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x26``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x26
@@ -1686,9 +1764,11 @@ class SetBeaconEffect(Packet):
     """
     Sent by the client when the player sets the beacon effect.
 
-    Packet ID: 0x27
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x27``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x27
@@ -1726,9 +1806,11 @@ class ServerSetHeldItem(Packet):
     """
     Sent by the client when the player changes their held item.
 
-    Packet ID: 0x28
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x28``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x28
@@ -1756,9 +1838,11 @@ class ProgramCommandBlock(Packet):
     """
     Sent by the client when the player programs a command block.
 
-    Packet ID: 0x29
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x29``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x29
@@ -1800,9 +1884,11 @@ class ProgramCommandBlockMinecart(Packet):
     """
     Sent by the client when the player programs a command block minecart.
 
-    Packet ID: 0x2A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2A
@@ -1843,9 +1929,11 @@ class SetCreativeModeSlot(Packet):
     """
     Sent by the client when the player sets a slot in the creative inventory.
 
-    Packet ID: 0x2B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2B
@@ -1877,9 +1965,11 @@ class ProgramJigsawBlock(Packet):
     """
     Sent when Done is pressed on the Jigsaw Block interface.
 
-    Packet ID: 0x2C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2C
@@ -1935,9 +2025,11 @@ class ProgramStructureBlock(Packet):
     """
     Programs a structure block.
 
-    Packet ID: 0x2D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2D
@@ -2064,9 +2156,11 @@ class UpdateSign(Packet):
     """
     Updates a sign.
 
-    Packet ID: 0x2E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2E
@@ -2117,9 +2211,11 @@ class SwingArm(Packet):
     """
     Swings the player's arm.
 
-    Packet ID: 0x2F
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2F
@@ -2144,9 +2240,11 @@ class TeleportToEntity(Packet):
     """
     Teleports the player to the entity.
 
-    Packet ID: 0x30
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x30``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x30
@@ -2171,9 +2269,11 @@ class UseItemOn(Packet):
     """
     Uses an item on a block or entity.
 
-    Packet ID: 0x31
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x31``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x31
@@ -2241,9 +2341,11 @@ class UseItem(Packet):
     """
     Uses an item.
 
-    Packet ID: 0x32
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x32``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x32

@@ -64,38 +64,36 @@ class Connection:
     """
     Handles sending and recieving packets from the server.
 
-    Attributes
-    ----------
-    client: :class:`Client`
-        The client that this connection is attached to.
-    host: :class:`str`
-        The host that the connection is connected to.
-    port: :class:`int`
-        The port that the connection is on.
-    state: :class:`State`
-        The current state of the connection.
-    closed: :class:`bool`
-        Whether or not the connection has been closed.
-    loop: :class:`asyncio.AbstractEventLoop`
-        The event loop that the connection is running on.
-    reader: :class:`asyncio.StreamReader`
-        The reader that the connection is using to read packets.
-    writer: :class:`asyncio.StreamWriter`
-        The writer that the connection is using to write packets.
-    outgoing_packets: :class:`asyncio.Queue`
-        The queue of packets that are waiting to be sent.
-    dispatcher: :class:`Dispatcher`
-        The dispatcher that is handling incoming packets.
-    using_compression: :class:`bool`
-        Whether or not the connection is using compression.
-    use_encryption: :class:`bool`
-        Whether or not the connection is using encryption.
-    shared_secret: :class:`bytes`
-        The shared secret that is being used for encryption.
-    cipher: :class:`cryptography.hazmat.primitives.ciphers.Cipher`
-        The cipher that is being used for encryption.
-    reactor: :class:`Reactor`
-        The reactor that currently has registered packet listeners.
+    :ivar client: The client that this connection is attached to.
+    :vartype client: Client
+    :ivar host: The host that the connection is connected to.
+    :vartype host: str
+    :ivar port: The port that the connection is on.
+    :vartype port: int
+    :ivar state: The current state of the connection.
+    :vartype state: State
+    :ivar closed: Whether or not the connection has been closed.
+    :vartype closed: bool
+    :ivar loop: The event loop that the connection is running on.
+    :vartype loop: asyncio.AbstractEventLoop
+    :ivar reader: The reader that the connection is using to read packets.
+    :vartype reader: asyncio.StreamReader
+    :ivar writer: The writer that the connection is using to write packets.
+    :vartype writer: asyncio.StreamWriter
+    :ivar outgoing_packets: The queue of packets that are waiting to be sent.
+    :vartype outgoing_packets: asyncio.Queue
+    :ivar dispatcher: The dispatcher that is handling incoming packets.
+    :vartype dispatcher: Dispatcher
+    :ivar using_compression: Whether or not the connection is using compression.
+    :vartype using_compression: bool
+    :ivar use_encryption: Whether or not the connection is using encryption.
+    :vartype use_encryption: bool
+    :ivar shared_secret: The shared secret that is being used for encryption.
+    :vartype shared_secret: bytes
+    :ivar cipher: The cipher that is being used for encryption.
+    :vartype cipher: cryptography.hazmat.primitives.ciphers.Cipher
+    :ivar reactor: The reactor that is currently handling packets.
+    :vartype reactor: Reactor
     """
 
     def __init__(self, client):
@@ -129,15 +127,11 @@ class Connection:
         """
         Encrypts the given data using the connection's cipher.
 
-        Parameters
-        ----------
-        data: :class:`bytes`
-            The data to encrypt.
+        :params data: The data to encrypt.
+        :type data: bytes
 
-        Returns
-        -------
-        :class:`bytes`
-            The encrypted data.
+        :return: The encrypted data.
+        :rtype: bytes
         """
         if not self.use_encryption:
             return data
@@ -149,15 +143,11 @@ class Connection:
         """
         Decrypts the given data using the connection's cipher.
 
-        Parameters
-        ----------
-        data: :class:`bytes`
-            The data to decrypt.
+        :params data: The data to decrypt.
+        :type data: bytes
 
-        Returns
-        -------
-        :class:`bytes`
-            The decrypted data.
+        :return: The decrypted data.
+        :rtype: bytes
         """
         if not self.use_encryption:
             return data
@@ -166,6 +156,16 @@ class Connection:
         return self.decryptor.update(data)
 
     def compress(self, data: bytes) -> tuple[bytes, bool]:
+        """
+        Compresses the given data, if necessary.
+
+        :params data: The data to compress.
+        :type data: bytes
+
+        :return: The compressed data, as well as a boolean indicating 
+                 whether or not the data was actually compressed.
+        :rtype: tuple[bytes, bool]
+        """
         if not self.use_compression:
             return data, False
         if len(data) < self.compression_threshold:
@@ -173,6 +173,15 @@ class Connection:
         return zlib.compress(data), True
 
     def decompress(self, data: bytes) -> bytes:
+        """
+        Decompresses the given data, if compression is enabled.
+
+        :params data: The data to decompress.
+        :type data: bytes
+
+        :return: The decompressed data.
+        :rtype: bytes
+        """
         if not self.use_compression:
             return data
         return zlib.decompress(data)
@@ -181,12 +190,10 @@ class Connection:
         """
         Connects to the given host and port.
 
-        Parameters
-        ----------
-        host: :class:`str`
-            The host to connect to.
-        port: :class:`int`
-            The port to connect to.
+        :params host: The host to connect to.
+        :type host: str
+        :params port: The port to connect to.
+        :type port: int
         """
         log.info(
             f"Connecting to {host}:{port} with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})"
@@ -381,17 +388,16 @@ class Connection:
         Sends the given packet to the server.
 
         .. note::
-            Unless ``immediate`` is ``True`, this does not wait for the packet to be sent.
-            It instead adds the packet to a queue.
+            Unless ``immediate`` is ``True``, this does not wait for the packet to be sent.
+            It instead adds the packet to a queue. 
+            Keep in mind that immediate will skip the queue and write the packet directly.
 
             If you want to ensure the packet is sent, you should consider using :meth:`wait_for`.
 
-        Parameters
-        ----------
-        packet: :class:`Packet`
-            The packet to send.
-        immediate: :class:`bool`
-            Whether to immediately write the packet or not.
+        :param packet: The packet to send.
+        :type packet: Packet
+        :param immediate: Whether to immediately write the packet or not.
+        :type immediate: bool
         """
         if immediate:
             log.debug("Writer > Immediately sending %s", packet.__class__.__name__)
@@ -408,10 +414,8 @@ class Connection:
         """
         Closes the connection.
 
-        Parameters
-        ----------
-        error: :class:`Exception`
-            An error to raise after the connection is closed.
+        :param error: An error to raise after the connection is closed.
+        :type error: Exception
         """
         log.info("Closing connection")
         if self._read_task:
@@ -427,16 +431,6 @@ class Connection:
         self.closed = True
 
     def change_state(self, state: State):
-        """
-        Changes the connection state.
-
-        This method should never be used except when connecting to the server.
-
-        Parameters
-        ----------
-        state: :class:`State`
-            The new state to change to.
-        """
         self.state = state
         reactor = REACTORS.get(state)
         if reactor:
@@ -449,17 +443,12 @@ class Connection:
         """
         Waits for the connection to change to the given state.
 
-        Parameters
-        ----------
-        state: :class:`State`
-            The state to wait for.
-        timeout: :class:`float`
-            The timeout in seconds.
+        :param state: The state to wait for.
+        :type state: State
+        :param timeout: The timeout in seconds.
+        :type timeout: float
 
-        Raises
-        ------
-        :exc:`asyncio.TimeoutError`
-            The timeout was reached.
+        :raises asyncio.TimeoutError: The timeout was reached.
         """
         if self.state == state:
             return
@@ -476,12 +465,8 @@ class Connection:
         """
         Begins the login flow.
 
-        Raises
-        ------
-        :exc:`RuntimeError`
-            The connection is not in the handshake state.
-        :exc:`RuntimeError`
-            The client does not have an access token set.
+        :raises RuntimeError: The connection is not in the handshake state.
+        :raises RuntimeError: The client does not have an access token set.
         """
         if self.state != State.HANDSHAKE:
             raise RuntimeError("Cannot begin login when not in handshake state")
