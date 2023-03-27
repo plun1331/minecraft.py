@@ -37,7 +37,14 @@ from ..enums import (
     MainHand,
     PlayerActionStatus,
     PlayerCommandAction,
-    CommandBlockMode, ProgramStructureBlockAction, ProgramStructureBlockMirror, ProgramStructureBlockMode, ProgramStructureBlockRotation, RecipeBookID, ResourcePackStatus, SeenAdvancementsAction
+    CommandBlockMode,
+    ProgramStructureBlockAction,
+    ProgramStructureBlockMirror,
+    ProgramStructureBlockMode,
+    ProgramStructureBlockRotation,
+    RecipeBookID,
+    ResourcePackStatus,
+    SeenAdvancementsAction,
 )
 from ..datatypes import *
 
@@ -593,8 +600,7 @@ class PluginMessageServerbound(Packet):
 
     def __bytes__(self):
         return (
-            self.packet_id.to_bytes(1, "big") +
-            bytes(self.channel) + bytes(self.data)
+            self.packet_id.to_bytes(1, "big") + bytes(self.channel) + bytes(self.data)
         )
 
     @classmethod
@@ -1408,11 +1414,11 @@ class PlayerSession(Packet):
         # public_key_expires_at
         public_key_expires_at = Long.from_bytes(data)
         # public_key
-        public_key = ByteArray.from_bytes(
-            data, length=Varint.from_bytes(data).value)
+        public_key = ByteArray.from_bytes(data, length=Varint.from_bytes(data).value)
         # public_key_signature
         public_key_signature = ByteArray.from_bytes(
-            data, length=Varint.from_bytes(data).value)
+            data, length=Varint.from_bytes(data).value
+        )
         return cls(session_id, public_key_expires_at, public_key, public_key_signature)
 
 
@@ -1532,7 +1538,9 @@ class ResourcePack(Packet):
         self.resource_pack_status = resource_pack_status
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + bytes(self.resource_pack_status.value)
+        return self.packet_id.to_bytes(1, "big") + bytes(
+            self.resource_pack_status.value
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -1574,8 +1582,11 @@ class SeenAdvancements(Packet):
         # action
         action = SeenAdvancementsAction(Varint.from_bytes(data))
         # tab_id
-        tab_id = Identifier.from_bytes(
-            data) if action == SeenAdvancementsAction.OPENED_TAB else None
+        tab_id = (
+            Identifier.from_bytes(data)
+            if action == SeenAdvancementsAction.OPENED_TAB
+            else None
+        )
         return cls(action, tab_id)
 
 
@@ -1639,11 +1650,9 @@ class SetBeaconEffect(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: primary_effect (Varint), secondary_effect (Varint)
         # primary_effect
-        primary_effect = Varint.from_bytes(
-            data) if Boolean.from_bytes(data) else None
+        primary_effect = Varint.from_bytes(data) if Boolean.from_bytes(data) else None
         # secondary_effect
-        secondary_effect = Varint.from_bytes(
-            data) if Boolean.from_bytes(data) else None
+        secondary_effect = Varint.from_bytes(data) if Boolean.from_bytes(data) else None
         return cls(primary_effect, secondary_effect)
 
 
@@ -1687,11 +1696,7 @@ class ProgramCommandBlock(Packet):
     packet_id = 0x29
 
     def __init__(
-        self,
-        location: Position,
-        command: String,
-        mode: CommandBlockMode,
-        flags: Byte
+        self, location: Position, command: String, mode: CommandBlockMode, flags: Byte
     ):
         self.location = location
         self.command = command
@@ -1955,7 +1960,24 @@ class ProgramStructureBlock(Packet):
         seed = Varlong.from_bytes(data)
         # flags
         flags = Byte.from_bytes(data)
-        return cls(location, action, mode, name, offset_x, offset_y, offset_z, size_x, size_y, size_z, mirror, rotation, metadata, integrity, seed, flags)
+        return cls(
+            location,
+            action,
+            mode,
+            name,
+            offset_x,
+            offset_y,
+            offset_z,
+            size_x,
+            size_y,
+            size_z,
+            mirror,
+            rotation,
+            metadata,
+            integrity,
+            seed,
+            flags,
+        )
 
 
 class UpdateSign(Packet):
@@ -2122,7 +2144,9 @@ class UseItemOn(Packet):
         inside_block = Boolean.from_bytes(data)
         # sequence
         sequence = Varint.from_bytes(data)
-        return cls(hand, location, face, cursor_x, cursor_y, cursor_z, inside_block, sequence)
+        return cls(
+            hand, location, face, cursor_x, cursor_y, cursor_z, inside_block, sequence
+        )
 
 
 class UseItem(Packet):
@@ -2141,7 +2165,9 @@ class UseItem(Packet):
         self.sequence = sequence
 
     def __bytes__(self):
-        return self.packet_id.to_bytes(1, "big") + bytes(self.hand) + bytes(self.sequence)
+        return (
+            self.packet_id.to_bytes(1, "big") + bytes(self.hand) + bytes(self.sequence)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
