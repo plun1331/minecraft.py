@@ -3358,9 +3358,7 @@ class SynchronizePlayerPosition(Packet):
         flags = Byte.from_bytes(data)
         # teleport_id
         teleport_id = Varint.from_bytes(data)
-        # dismount_vehicle
-        dismount_vehicle = Boolean.from_bytes(data)
-        return cls(x, y, z, feet_eyes, flags, teleport_id, dismount_vehicle)
+        return cls(x, y, z, feet_eyes, flags, teleport_id)
 
 
 class UpdateRecipeBook(Packet):

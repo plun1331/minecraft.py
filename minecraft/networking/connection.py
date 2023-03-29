@@ -424,10 +424,11 @@ class Connection:
         if self._write_task:
             if not self._read_task.done():
                 self._write_task.cancel()
-        if error:
-            self._running.set_exception(error)
-        else:
-            self._running.set_result(None)
+        if self._running:
+            if error:
+                self._running.set_exception(error)
+            else:
+                self._running.set_result(None)
         self.closed = True
 
     def change_state(self, state: State):
