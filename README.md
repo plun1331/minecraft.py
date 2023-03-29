@@ -37,3 +37,8 @@ Note that this requires that you have [`git`](https://git-scm.com/) installed.
 ### Optional Requirements
 - `microsoft-auth`
     - [`msal`](https://pypi.org/project/msal/) for Microsoft authentication
+    
+
+## Support
+
+For support, please join my Discord server at https://plun.is-a.dev/discord and visit the `#help` channel under `minecraft.py`.
