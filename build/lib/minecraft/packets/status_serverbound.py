@@ -26,62 +26,61 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
-from .datatypes import Chat
+from .base import Packet
+from ..datatypes import *
+from ..enums import State
 
 
-class DisconnectError(Exception):
+class StatusRequest(Packet):
     """
-    Exception raised when the server disconnects the client.
+    Status request packet sent by the client to the server to request the server's status.
 
-    :ivar reason: The reason for the disconnect.
-    :vartype reason: Chat
-    """
+    **Packet ID**: ``0x00``
 
-    def __init__(self, reason):
-        self.reason: Chat = reason
+    **State**: :attr:`.State.STATUS`
 
-    def __str__(self):
-        return str(self.reason)
-
-
-class LoginDisconnectError(DisconnectError):
-    """
-    Exception raised when the server disconnects the client during the login phase.
+    **Bound to**: Server
     """
 
-    pass
+    packet_id = 0x00
+    bound_to = "server"
+    state = State.STATUS
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: None
+        return cls()
+
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big")
 
 
-class MalformedPacketSizeError(Exception):
+class PingRequest(Packet):
     """
-    Exception raised when a packet that is too large is recieved.
-    """
+    Ping request packet sent by the client to the server to request the server's ping.
 
-    pass
+    **Packet ID**: ``0x01``
 
+    **State**: :attr:`.State.STATUS`
 
-class UnknownPacketError(Exception):
-    """
-    Exception raised when a packet with an unknown ID is recieved.
-    """
-
-    def __init__(self, message: str, packet_id: int, data: bytes):
-        self.message: str = message
-        self.packet_id: int = packet_id
-        self.data: bytes = data
-
-
-class AuthenticationError(Exception):
-    """
-    Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
-
-    :ivar message: The error message.
-    :vartype message: str
-    :ivar correlation_id: The correlation ID.
-    :vartype correlation_id: str | None
+    **Bound to**: Server
     """
 
-    def __init__(self, message: str, correlation_id: str | None = None) -> None:
-        super().__init__(message)
-        self.correlation_id = correlation_id
+    packet_id = 0x01
+    bound_to = "server"
+    state = State.STATUS
+
+    def __init__(self, payload: Long):
+        self.payload: Long = payload
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: payload (long)
+        # payload
+        payload = Long.from_bytes(data)
+        return cls(payload)
+
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big") + bytes(self.payload)

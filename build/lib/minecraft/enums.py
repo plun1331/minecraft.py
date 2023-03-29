@@ -40,7 +40,6 @@ from .datatypes import Byte, Int, String, UnsignedByte, Varint
 
 class Enum(_Enum):
     """The base Enum class. All enums should inherit from this class."""
-
     def __bytes__(self):
         return bytes(self.value)
 
@@ -69,7 +68,6 @@ class Enum(_Enum):
 
 class NextState(Enum):
     """The next state of the connection."""
-
     STATUS = Varint(1)
     LOGIN = Varint(2)
 

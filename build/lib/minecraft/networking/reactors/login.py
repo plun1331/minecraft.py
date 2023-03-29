@@ -51,7 +51,6 @@ class LoginReactor(Reactor):
     """
     Reacts to packets sent during the login state.
     """
-
     @react_to(EncryptionRequest)
     async def encryption_request(self, packet: EncryptionRequest):
         encryption_data = await process_encryption_request(packet, self.connection)

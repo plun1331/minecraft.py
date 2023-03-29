@@ -27,61 +27,71 @@
 
 from __future__ import annotations
 
-from .datatypes import Chat
+import json
+from io import BytesIO
+
+from .base import Packet
+from ..datatypes import *
+from ..enums import State
 
 
-class DisconnectError(Exception):
+class StatusResponse(Packet):
     """
-    Exception raised when the server disconnects the client.
+    Status response packet sent by the server to the client in response to a status request.
 
-    :ivar reason: The reason for the disconnect.
-    :vartype reason: Chat
-    """
+    **Packet ID**: ``0x00``
 
-    def __init__(self, reason):
-        self.reason: Chat = reason
+    **State**: :attr:`.State.STATUS`
 
-    def __str__(self):
-        return str(self.reason)
-
-
-class LoginDisconnectError(DisconnectError):
-    """
-    Exception raised when the server disconnects the client during the login phase.
+    **Bound to**: Client
     """
 
-    pass
+    packet_id = 0x00
+    bound_to = "client"
+    state = State.STATUS
+
+    def __init__(self, json_response: String):
+        self.json_response = json_response
+
+    @property
+    def json(self):
+        return json.loads(self.json_response.value)
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: json_response (string)
+        # json_response
+        json_response = String.from_bytes(data)
+        return cls(json_response)
+
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big") + bytes(self.json_response)
 
 
-class MalformedPacketSizeError(Exception):
+class PingResponse(Packet):
     """
-    Exception raised when a packet that is too large is recieved.
+    Ping response packet sent by the server to the client in response to a ping request.
+
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Client
     """
 
-    pass
+    packet_id = 0x01
+    bound_to = "client"
+    state = State.STATUS
 
+    def __init__(self, payload: Varint):
+        self.payload: Varint = payload
 
-class UnknownPacketError(Exception):
-    """
-    Exception raised when a packet with an unknown ID is recieved.
-    """
+    @classmethod
+    def from_bytes(cls, data: BytesIO):
+        # Fields: payload (long)
+        # payload
+        payload = Varint.from_bytes(data)
+        return cls(payload)
 
-    def __init__(self, message: str, packet_id: int, data: bytes):
-        self.message: str = message
-        self.packet_id: int = packet_id
-        self.data: bytes = data
-
-
-class AuthenticationError(Exception):
-    """
-    Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
-
-    :ivar message: The error message.
-    :vartype message: str
-    :ivar correlation_id: The correlation ID.
-    :vartype correlation_id: str | None
-    """
-
-    def __init__(self, message: str, correlation_id: str | None = None) -> None:
-        super().__init__(message)
-        self.correlation_id = correlation_id
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big") + bytes(self.payload)

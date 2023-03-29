@@ -162,7 +162,7 @@ class Connection:
         :params data: The data to compress.
         :type data: bytes
 
-        :return: The compressed data, as well as a boolean indicating
+        :return: The compressed data, as well as a boolean indicating 
                  whether or not the data was actually compressed.
         :rtype: tuple[bytes, bool]
         """
@@ -389,7 +389,7 @@ class Connection:
 
         .. note::
             Unless ``immediate`` is ``True``, this does not wait for the packet to be sent.
-            It instead adds the packet to a queue.
+            It instead adds the packet to a queue. 
             Keep in mind that immediate will skip the queue and write the packet directly.
 
             If you want to ensure the packet is sent, you should consider using :meth:`wait_for`.

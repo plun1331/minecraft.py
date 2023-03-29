@@ -25,12 +25,11 @@ __version__ = "0.0.0-alpha"
 
 
 class VersionInfo(NamedTuple):
-    major: int
+    major: int 
     minor: int
     micro: int
     releaselevel: Literal["alpha", "beta", "candidate", "final"]
     serial: int
-
 
 try:
     releaselevel = str(__version__.split("-")[1].split(".")[0])
@@ -41,7 +40,7 @@ try:
 except IndexError:
     serial = 0
 
-version_info = VersionInfo(
+version_info = VersionInfo( 
     major=int(__version__.split(".", maxsplit=1)[0]),
     minor=int(__version__.split(".", maxsplit=2)[1]),
     micro=int(__version__.split("-", maxsplit=3)[0].split(".")[2]),

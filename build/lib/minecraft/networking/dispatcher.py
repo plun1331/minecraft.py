@@ -81,9 +81,11 @@ class Dispatcher:
 
         :returns: The packet that was received.
         :rtype: Packet
-
+        
         :raises asyncio.TimeoutError: The packet was not received before the timeout.
         """
         if packet not in self.temporary_handlers:
             self.temporary_handlers[packet] = asyncio.Future()
-        return await asyncio.wait_for(self.temporary_handlers[packet], timeout=timeout)
+        return await asyncio.wait_for(
+            self.temporary_handlers[packet], timeout=timeout
+        )

@@ -65,7 +65,7 @@ async def obtain_token_with_device_code(
 
     :param clientapp: The MSAL client application.
     :type clientapp: msal.PublicClientApplication
-
+    
     :return: Authentication information returned by the Microsoft OAuth2 server.
     :rtype: dict
     """
@@ -76,10 +76,10 @@ async def obtain_token_with_device_code(
 async def get_access_token(token):
     """
     Exchanges a Microsoft access token for a Minecraft access token.
-
+    
     :param token: The Microsoft access token.
     :type token: str
-
+        
     :return: The Minecraft access token, player UUID, and username.
     :rtype: tuple[str, str, str]
     """
@@ -137,10 +137,10 @@ async def get_access_token(token):
 async def microsoft_auth(client_id: str) -> tuple[str, str, str]:
     """
     Authenticates through Microsoft with a device code authentication flow.
-
+    
     .. note::
         This requires that `msal <https://pypi.org/project/msal>`_ is installed.
-
+    
     :param client_id: The ID of the Microsoft OAuth2 client you want to authenticate with.
     :type client_id: str
 
