@@ -37,3 +37,7 @@ Note that this requires that you have [`git`](https://git-scm.com/) installed.
 ### Optional Requirements
 - `microsoft-auth`
     - [`msal`](https://pypi.org/project/msal/) for Microsoft authentication
+- `docs`
+    - [`sphinx`](https://pypi.org/project/sphinx/) for documentation generation.
+    - [`furo`](https://pypi.org/project/furo/) for our documentation styling.
+    - [`myst-parser`](https://pypi.org/project/myst-parser/) for parsing markdown files.
