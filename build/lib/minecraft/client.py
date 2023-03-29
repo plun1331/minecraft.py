@@ -50,7 +50,7 @@ class Client:
     :ivar connection: The connection that this client uses. (:class:`Connection`)
     :ivar username: The username of the client. (:class:`str`)
     :ivar uuid: The UUID of the client. (:class:`str`)
-    :ivar access_token: The access token of the client.
+    :ivar access_token: The access token of the client. 
         Used for authentication with the Mojang session server. (:class:`str`)
 
     """
@@ -172,12 +172,12 @@ class Client:
     ) -> Packet:
         """
         Wait for a packet to be received.
-
+        
         :param packet_type: The type of packet to wait for.
         :type packet_type: type[Packet]
         :param timeout: The amount of time to wait before timing out.
         :type timeout: float
-
+        
         :return: The packet that was received.
         :rtype: Packet
 
@@ -192,7 +192,7 @@ class Client:
     ) -> None:
         """
         Add a packet handler.
-
+        
         :param packet_type: The type of packet to handle.
         :type packet_type: type[Packet]
         :param handler: The handler to call when the packet is received.
@@ -208,7 +208,7 @@ class Client:
     ) -> None:
         """
         Removes a handler for a packet.
-
+        
         :param packet_type: The packet that the handler is reacting to.
         :type packet_type: type[Packet]
         :param handler: The handler that should be removed.

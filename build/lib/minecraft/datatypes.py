@@ -94,7 +94,6 @@ class DataType:
     """
     The base class for all data types.
     """
-
     def __bytes__(self) -> bytes:
         raise NotImplementedError
 
@@ -132,7 +131,6 @@ class Boolean(DataType):
     :ivar value: The value of this data type.
     :vartype value: bool
     """
-
     def __init__(self, value: bool):
         self.value = value
 
@@ -154,7 +152,6 @@ class Byte(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -173,7 +170,6 @@ class UnsignedByte(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -192,7 +188,6 @@ class Short(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -211,7 +206,6 @@ class UnsignedShort(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -230,7 +224,6 @@ class Int(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -249,7 +242,6 @@ class Long(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -268,7 +260,6 @@ class Float(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: float):
         self.value = value
 
@@ -287,7 +278,6 @@ class Double(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: float):
         self.value = value
 
@@ -306,7 +296,6 @@ class String(DataType):
     :ivar value: The value of this data type.
     :vartype value: str
     """
-
     def __init__(self, value: str):
         self.value = value
 
@@ -333,7 +322,6 @@ class Chat(String):
     :ivar value: The value of this data type.
     :vartype value: str
     """
-
     @property
     def json(self):
         """The parsed JSON data of this chat data. (:class:`dict`))"""
@@ -351,7 +339,6 @@ class Identifier(String):
     :ivar value: The value of this data type.
     :vartype value: str
     """
-
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         return super().from_bytes(data, max_length=32767)
@@ -364,7 +351,6 @@ class Varint(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -391,7 +377,7 @@ class Varint(DataType):
 
             if bits_read > 35:
                 raise ValueError("Varint is too big")
-
+            
             if bits_read > (max_size * 7):
                 raise ValueError("Varint exceeds max size")
 
@@ -410,7 +396,6 @@ class Varlong(DataType):
     :ivar value: The value of this data type.
     :vartype value: int
     """
-
     def __init__(self, value: int):
         self.value = value
 
@@ -437,7 +422,7 @@ class Varlong(DataType):
 
             if bits_read > 64:
                 raise Exception("Varlong is too big")
-
+            
             if bits_read > (max_size * 7):
                 raise ValueError("Varlong exceeds max size")
 
@@ -461,7 +446,6 @@ class EntityMetadataEntry:
     :ivar value: The value of this entry.
     :vartype value: DataType
     """
-
     def __init__(self, index: UnsignedByte, type: Varint, value: DataType):
         self.index = index
         self.type = type
@@ -513,7 +497,6 @@ class Rotation(DataType):
     :ivar z: The z rotation.
     :vartype z: Float
     """
-
     def __init__(self, x: Float, y: Float, z: Float):
         self.x = x
         self.y = y
@@ -540,7 +523,6 @@ class ParticleType(DataType):
     :ivar data: The particle's data.
     :vartype data: bytes
     """
-
     def __init__(self, name: Identifier, id: Varint, data: bytes):
         self.name: Identifier = name
         self.id: Varint = id
@@ -569,7 +551,6 @@ class VillagerData(DataType):
     :ivar level: The level of the villager.
     :vartype level: Varint
     """
-
     def __init__(self, type: Varint, profession: Varint, level: Varint):
         self.type = type
         self.profession = profession
@@ -590,12 +571,11 @@ class VillagerData(DataType):
 class GlobalPos(DataType):
     """
     Represents a global position.
-
+    
     :ivar dimension: The dimension of this position.
     :vartype dimension: Identifier
     :ivar position: The position in the dimension.
     :vartype position: Position"""
-
     def __init__(self, dimension: Identifier, position: "Position"):
         self.dimension = dimension
         self.position = position
@@ -618,7 +598,6 @@ class EntityMetadata(DataType):
     :ivar entries: The entries in this entity's metadata.
     :vartype entries: list[EntityMetadataEntry]
     """
-
     def __init__(self, entries: list[EntityMetadataEntry]):
         self.entries = entries
 
@@ -647,7 +626,6 @@ class NBT(DataType):
     :ivar data: The raw NBT data.
     :vartype data: bytes
     """
-
     def __init__(self, data: bytes):
         self.data = data
 
@@ -678,7 +656,6 @@ class Slot(DataType):
     :ivar nbt: The NBT data of the item in this slot.
     :vartype nbt: NBT | None
     """
-
     def __init__(
         self,
         present: Boolean,
@@ -724,7 +701,6 @@ class Position(DataType):
     :ivar z: The Z coordinate of this position.
     :vartype z: Int
     """
-
     def __init__(self, x: Int, y: Int, z: Int):
         self.x = x
         self.y = y
@@ -749,11 +725,10 @@ class Position(DataType):
 class Angle(DataType):
     """
     Represents an angle.
-
+    
     :ivar value: The angle.
     :vartype value: UnsignedByte
     """
-
     def __init__(self, value: UnsignedByte):
         self.value = value
 
@@ -772,7 +747,6 @@ class Unsigned64Int(DataType):
     :ivar value: The value of this unsigned 64-bit integer.
     :vartype value: int
     """
-
     # unsigned 64-bit integer
     def __init__(self, value: int):
         self.value = value
@@ -794,7 +768,6 @@ class UUID(DataType):
     :ivar least: The least significant bits of this UUID.
     :vartype least: Unsigned64Int
     """
-
     def __init__(self, most: Unsigned64Int, least: Unsigned64Int):
         self.most = most
         self.least = least
@@ -831,7 +804,6 @@ class Array(DataType):
     :ivar data: The data in this array. Type will be the same as :attr:`data_type`.
     :vartype data: list[DataType]
     """
-
     def __init__(self, data_type: DataType, data: list[DataType]):
         self.data_type = data_type
         self.data = data
@@ -857,7 +829,6 @@ class ByteArray(DataType):
     :ivar data: The data in this byte array.
     :vartype data: bytes
     """
-
     def __init__(self, data: bytes):
         self.data = data
 
@@ -885,18 +856,13 @@ class Property(DataType):
     :ivar signature: The signature of this property.
     :vartype signature: String | None
     """
-
     def __init__(self, name: String, value: String, signature: String | None = None):
         self.name = name
         self.value = value
         self.signature = signature
 
     def __bytes__(self) -> bytes:
-        val = (
-            bytes(self.name)
-            + bytes(self.value)
-            + bytes(Boolean(self.signature is not None))
-        )
+        val = bytes(self.name) + bytes(self.value) + bytes(Boolean(self.signature is not None))
         if self.signature is not None:
             val += bytes(self.signature)
         return val
@@ -924,7 +890,6 @@ class Statistic(DataType):
     :ivar value: The value of this statistic.
     :vartype value: Varint
     """
-
     def __init__(self, category: StatCategory, stat_id: StatID, value: Varint):
         self.category: StatCategory = category
         self.stat_id: StatID = stat_id
@@ -954,16 +919,15 @@ class CommandSuggestionMatch(DataType):
     :ivar tooltip: The tooltip.
     :vartype tooltip: Chat | None
     """
-
     def __init__(self, match: String, tooltip: Chat | None = None):
         self.match: String = match
         self.tooltip: Chat | None = tooltip
 
     def __bytes__(self) -> bytes:
         return (
-            bytes(self.match)
-            + bytes(Boolean(self.tooltip is not None))
-            + (bytes(self.tooltip) if self.tooltip is not None else b"")
+            bytes(self.match) + bytes(Boolean(self.tooltip is not None)) + (
+            bytes(self.tooltip) if self.tooltip is not None else b""
+            )
         )
 
     @classmethod
@@ -996,7 +960,6 @@ class CommandNode(DataType):
     :ivar suggestions_type: The suggestions type of this command node.
     :vartype suggestions_type: Identifier | None
     """
-
     def __init__(
         self,
         flags: Byte,
@@ -1068,7 +1031,6 @@ class BlockEntity(DataType):
     :ivar data: The data of this block entity.
     :vartype data: NBT
     """
-
     def __init__(self, xz: Byte, y: Short, type: Varint, data: NBT):
         self.xz: Byte = xz
         self.y: Short = y
@@ -1100,11 +1062,10 @@ class BlockEntity(DataType):
 class BitSet(DataType):
     """
     Represents a bit set.
-
+    
     :ivar longs: The longs of this bit set.
     :vartype longs: list[Long]
     """
-
     def __init__(self, longs: list[Long]):
         self.longs: list[Long] = longs
 
@@ -1128,7 +1089,7 @@ class BitSet(DataType):
 class MapIcon(DataType):
     """
     Represents a map icon.
-
+    
     :ivar type: The type of this map icon.
     :vartype type: MapIconType
     :ivar x: The x coordinate of this map icon.
@@ -1140,7 +1101,6 @@ class MapIcon(DataType):
     :ivar display_name: The display name of this map icon.
     :vartype display_name: Chat
     """
-
     def __init__(
         self,
         type: MapIconType,
@@ -1205,7 +1165,6 @@ class Trade(DataType):
     :ivar demand: The demand of this trade.
     :vartype demand: Int
     """
-
     def __init__(
         self,
         input_item_1: Slot,
@@ -1278,7 +1237,6 @@ class DataProxy:
 
     :meta public:
     """
-
     def __init__(self, **attrs):
         self.attrs = {k: v for k, v in attrs.items() if k != "attrs"}
 
@@ -1316,10 +1274,10 @@ class PlayerInfoUpdatePlayer(DataType):
     **Data Proxy Attributes**
 
     * :attr:`add_player`:
-        * **name**( :class:`String`) - The name of the player.
-        * **properties** (list[:class:`Property`]) - The properties of the player.
+        * **name**( :class:`String`) - The name of the player. 
+        * **properties** (list[:class:`Property`]) - The properties of the player. 
     * :attr:`initialize_chat`:
-        * **has_signature_data** (:class:`Boolean`) - Whether the object has signature data. Other attributes will be ``None`` if this is ``False``.
+        * **has_signature_data** (:class:`Boolean`) - Whether the object has signature data. Other attributes will be ``None`` if this is ``False``. 
         * **chat_session_id** (:class:`UUID` | None) - The chat session ID.
         * **public_key_expiry** (:class:`Long` | None) - The public key expiry.
         * **public_key** (:class:`ByteArray` | None) - The public key.
@@ -1329,13 +1287,12 @@ class PlayerInfoUpdatePlayer(DataType):
     * :attr:`update_listed`:
         * **listed** (:class:`Boolean`) - Whether the player is listed.
     * :attr:`update_latency`:
-        * **latency** (:class:`VarInt`) - The latency of the player.
+        * **latency** (:class:`VarInt`) - The latency of the player. 
     * :attr:`update_display_name`:
-        * **has_display_name** (:class:`Boolean`) - Whether the player has a display name.
-        * **display_name** (:class:`String` | None) - The display name of the player. ``None`` if ``has_display_name`` is ``False``.
-
+        * **has_display_name** (:class:`Boolean`) - Whether the player has a display name. 
+        * **display_name** (:class:`String` | None) - The display name of the player. ``None`` if ``has_display_name`` is ``False``. 
+    
     """
-
     def __init__(
         self,
         uuid: UUID,
@@ -1461,7 +1418,7 @@ class PlayerInfoUpdatePlayer(DataType):
 class Advancement(DataType):
     """
     Represents an advancement.
-
+    
     :ivar parent_id: The advancement's parent ID.
     :vartype parent_id: String | None
     :ivar display_data: The advancement's display data.
@@ -1471,7 +1428,6 @@ class Advancement(DataType):
     :ivar requirements: The advancement's requirements.
     :vartype requirements: list[list[String]]
     """
-
     def __init__(
         self,
         parent_id: String | None = None,
@@ -1531,8 +1487,8 @@ class Advancement(DataType):
 
 class AdvancementDisplay(DataType):
     """
-    Represents an advancement display.
-
+    Represents an advancement display.  
+    
     :ivar title: The advancement's title.
     :vartype title: Chat
     :ivar description: The advancement's description.
@@ -1550,7 +1506,6 @@ class AdvancementDisplay(DataType):
     :ivar y: The advancement's Y position.
     :vartype y: float
     """
-
     def __init__(
         self,
         title: Chat,
@@ -1616,7 +1571,6 @@ class CriterionProgress(DataType):
     :ivar date: The date the criterion was achieved.
     :vartype date: Long | None
     """
-
     def __init__(
         self,
         achieved: Boolean,
@@ -1652,7 +1606,6 @@ class AdvancementProgress(DataType):
     :ivar progress: The advancement's progress.
     :vartype progress: CriterionProgress
     """
-
     def __init__(
         self,
         identifier: Identifier,
@@ -1679,11 +1632,10 @@ class AdvancementProgress(DataType):
 class Ingredient(DataType):
     """
     Represents an ingredient in a crafting recipe.
-
+    
     :ivar items: The ingredient's items.
     :vartype items: list[Slot]
     """
-
     def __init__(
         self,
         items: list[Slot],
@@ -1723,7 +1675,6 @@ class Recipe(DataType):
 
         Add recipe types and their respective data proxy values.
     """
-
     def __init__(
         self,
         recipe_type: Identifier,

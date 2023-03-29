@@ -27,61 +27,46 @@
 
 from __future__ import annotations
 
-from .datatypes import Chat
+from io import BytesIO
+from typing import Literal, Self
+
+from ..enums import State
 
 
-class DisconnectError(Exception):
-    """
-    Exception raised when the server disconnects the client.
+class Packet:
+    """Represents a Minecraft packet."""
 
-    :ivar reason: The reason for the disconnect.
-    :vartype reason: Chat
-    """
+    packet_id: int = None  # :meta public:
+    bound_to: Literal["client", "server"] = None  # :meta public:
+    state: State = None  # :meta public:
 
-    def __init__(self, reason):
-        self.reason: Chat = reason
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
+        """
+        Converts a packet's data into a packet object.
 
-    def __str__(self):
-        return str(self.reason)
+        :param data: The packet's data.
+        :type data: io.BytesIO
 
+        :return: The packet object.
+        :rtype: Packet
+        """
+        return cls()
 
-class LoginDisconnectError(DisconnectError):
-    """
-    Exception raised when the server disconnects the client during the login phase.
-    """
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(packet_id={self.packet_id} {' '.join([f'{k}={v}' for k, v in self.__dict__.items()])})"
 
-    pass
+    def __bytes__(self):
+        return self.packet_id.to_bytes(1, "big")
 
+    def __len__(self):
+        return len(bytes(self))
 
-class MalformedPacketSizeError(Exception):
-    """
-    Exception raised when a packet that is too large is recieved.
-    """
+    def __eq__(self, other):
+        return bytes(self) == bytes(other)
 
-    pass
+    def __hash__(self):
+        return hash(bytes(self))
 
-
-class UnknownPacketError(Exception):
-    """
-    Exception raised when a packet with an unknown ID is recieved.
-    """
-
-    def __init__(self, message: str, packet_id: int, data: bytes):
-        self.message: str = message
-        self.packet_id: int = packet_id
-        self.data: bytes = data
-
-
-class AuthenticationError(Exception):
-    """
-    Exception raised when the client fails to authenticate with the builtin Microsoft authentication scheme.
-
-    :ivar message: The error message.
-    :vartype message: str
-    :ivar correlation_id: The correlation ID.
-    :vartype correlation_id: str | None
-    """
-
-    def __init__(self, message: str, correlation_id: str | None = None) -> None:
-        super().__init__(message)
-        self.correlation_id = correlation_id
+    def to_bytes(self) -> bytes:
+        return bytes(self)

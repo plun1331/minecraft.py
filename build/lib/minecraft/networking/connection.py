@@ -28,7 +28,7 @@
 from __future__ import annotations
 
 import asyncio
-from io import BytesIO
+import io
 import logging
 import time
 import zlib
@@ -162,7 +162,7 @@ class Connection:
         :params data: The data to compress.
         :type data: bytes
 
-        :return: The compressed data, as well as a boolean indicating
+        :return: The compressed data, as well as a boolean indicating 
                  whether or not the data was actually compressed.
         :rtype: tuple[bytes, bool]
         """
@@ -256,7 +256,7 @@ class Connection:
                     )
                     return
 
-                buffer = BytesIO(packet_data)
+                buffer = io.BytesIO(packet_data)
 
                 data_length = 0
                 if self.use_compression:
@@ -389,7 +389,7 @@ class Connection:
 
         .. note::
             Unless ``immediate`` is ``True``, this does not wait for the packet to be sent.
-            It instead adds the packet to a queue.
+            It instead adds the packet to a queue. 
             Keep in mind that immediate will skip the queue and write the packet directly.
 
             If you want to ensure the packet is sent, you should consider using :meth:`wait_for`.

@@ -34,7 +34,7 @@ class DisconnectError(Exception):
     """
     Exception raised when the server disconnects the client.
 
-    :ivar reason: The reason for the disconnect.
+    :ivar reason: The reason for the disconnect. 
     :vartype reason: Chat
     """
 
