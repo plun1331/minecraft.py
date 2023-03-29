@@ -5787,9 +5787,12 @@ class UpdateTags(Packet):
         for _ in range(Varint.from_bytes(data).value):
             tags.append(
                 DataProxy(
-                    tag_name=Identifier.from_bytes(data),
+                    tag_type=Identifier.from_bytes(data),
                     entries=[
-                        Varint.from_bytes(data)
+                        DataProxy(
+                            name=Identifier.from_bytes(data),
+                            entries=[Varint.from_bytes(data) for _ in range(Varint.from_bytes(data).value)]
+                        )
                         for _ in range(Varint.from_bytes(data).value)
                     ],
                 )

@@ -66,8 +66,26 @@ class UnknownPacketError(Exception):
     Exception raised when a packet with an unknown ID is recieved.
     """
 
-    def __init__(self, message: str, packet_id: int, data: bytes):
-        self.message: str = message
+    def __init__(self, packet_id: int, data: bytes):
+        super().__init__(f"Failed to find a packet with ID {packet_id}")
+        self.packet_id: int = packet_id
+        self.data: bytes = data
+
+
+class PacketParsingError(Exception):
+    """
+    Exception raised when a packet fails to parse.
+
+    :ivar original_exception: The original exception.
+    :vartype original_exception: Exception
+    :ivar packet_id: The packet ID.
+    :vartype packet_id: int
+    :ivar data: The packet data.
+    :vartype data: bytes
+    """
+    def __init__(self, exc: Exception, packet_id: int, data: bytes) -> None:
+        super().__init__(f"Failed to parse packet with ID {packet_id}: {exc}")
+        self.original_exception: Exception = exc
         self.packet_id: int = packet_id
         self.data: bytes = data
 

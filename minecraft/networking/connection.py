@@ -42,12 +42,11 @@ from .reactors import REACTORS
 from .reactors.base import REACTOR
 from ..datatypes import *
 from ..enums import NextState, State
-from ..exceptions import MalformedPacketSizeError, UnknownPacketError
+from ..exceptions import MalformedPacketSizeError, PacketParsingError
 from ..packets import (
     get_packet,
     Handshake,
     LoginStart,
-    Packet,
     PACKET,
 )
 
@@ -196,7 +195,8 @@ class Connection:
         :type port: int
         """
         log.info(
-            f"Connecting to {host}:{port} with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})"
+            f"Connecting to %s:%s with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})",
+            host, port,
         )
         self.host = host
         self.port = port
@@ -216,9 +216,9 @@ class Connection:
                 await asyncio.sleep(0.01)
                 continue
             read = self.decrypt(read)
-            currentByte = read[0]
-            value |= (currentByte & 0x7F) << position
-            if (currentByte & 0x80) == 0:
+            current_byte = read[0]
+            value |= (current_byte & 0x7F) << position
+            if (current_byte & 0x80) == 0:
                 break
             position += 7
             if position >= 32:
@@ -232,7 +232,7 @@ class Connection:
                 log.debug("Reader < Recieving packet of length %s", packet_length)
                 if packet_length > 2097151:
                     log.error(
-                        f"Reader x< Packet length {packet_length} is too large, terminating connection"
+                        "Reader x< Packet length %s is too large, terminating connection", packet_length
                     )
                     await self.close(
                         error=MalformedPacketSizeError(
@@ -288,29 +288,13 @@ class Connection:
                         )
                         await self.close(
                             error=MalformedPacketSizeError(
-                                f"Packet length of %s did not match expected length of %s",
-                                len(packet_data),
-                                data_length,
+                                f"Packet length of {len(packet_data)} did not match expected length of {data_length}",
                             )
                         )
                         return
                 try:
                     packet = get_packet(packet_data, state=self.state)
-                except KeyError:
-                    log.error(
-                        "Reader < Recieved unknown packet with id %s: %s",
-                        Varint.from_bytes(BytesIO(packet_data)).value,
-                        packet_data,
-                    )
-                    await self.close(
-                        error=UnknownPacketError(
-                            "Unknown packet recieved from server",
-                            packet_id=Varint.from_bytes(BytesIO(packet_data)).value,
-                            data=packet_data,
-                        )
-                    )
-                    return
-                except Exception as e:
+                except PacketParsingError as exc:
                     log.exception(
                         "Reader < Failed to parse packet with id %s",
                         Varint.from_bytes(BytesIO(packet_data)).value,

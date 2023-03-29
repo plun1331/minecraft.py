@@ -1651,7 +1651,7 @@ class RenameItem(Packet):
         return cls(item_name)
 
 
-class ResourcePack(Packet):
+class ServerResourcePackStatus(Packet):
     """
     Sends the resource pack status to the server.
 

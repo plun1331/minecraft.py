@@ -18,6 +18,7 @@ from .play_clientbound import *
 from .play_serverbound import *
 from .status_clientbound import *
 from .status_serverbound import *
+from ..exceptions import UnknownPacketError, PacketParsingError
 
 PACKET = TypeVar("PACKET", bound=Packet)
 
@@ -69,12 +70,20 @@ def get_packet(
     :exc:`ValueError`
         The bound was invalid.
     """
+    original_data = data
     data = BytesIO(data)
     packet_id = Varint.from_bytes(data).value
     log.debug("Processing packet with ID %s", packet_id)
-    if bound == "client":
-        return PACKETS_CLIENTBOUND[state][packet_id].from_bytes(data)
-    elif bound == "server":
-        return PACKETS_SERVERBOUND[state][packet_id].from_bytes(data)
-    else:
-        raise ValueError(f"Invalid bound: {bound}")
+    try:
+        if bound == "client":
+            packet = PACKETS_CLIENTBOUND[state][packet_id]
+        elif bound == "server":
+            packet = PACKETS_SERVERBOUND[state][packet_id]
+        else:
+            raise ValueError(f"Invalid bound: {bound}")
+    except KeyError as e:
+        raise UnknownPacketError(packet_id, original_data) from e
+    try:
+        return packet.from_bytes(data)
+    except Exception as e:
+        raise PacketParsingError(e, packet_id, original_data) from e

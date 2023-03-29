@@ -28,10 +28,9 @@
 from __future__ import annotations
 from io import BytesIO
 
-from typing import Self, TYPE_CHECKING
+from typing import Self
 
-if TYPE_CHECKING:
-    from .datatypes import *
+from .datatypes import Byte, Double, Float, Identifier, Int, Long, Varint, Boolean
 
 
 class _Brigadier:
@@ -72,22 +71,22 @@ class _Brigadier:
 
 class BrigadierFloat(_Brigadier):
     # brigadier:float
-    object_type: Float
+    object_type = Float
 
 
 class BrigadierDouble(_Brigadier):
     # brigadier:double
-    object_type: Double
+    object_type = Double
 
 
 class BrigadierInteger(_Brigadier):
     # brigadier:integer
-    object_type: Int
+    object_type = Int
 
 
 class BrigadierLong(_Brigadier):
     # brigadier:long
-    object_type: Long
+    object_type = Long
 
 
 class BrigadierString:

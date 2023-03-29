@@ -36,8 +36,6 @@ from typing import Any, TYPE_CHECKING
 
 from nbt import nbt
 
-from .command_parsers import parsers as cmd_parsers
-
 try:
     from typing import Self
 except ImportError:
@@ -87,6 +85,8 @@ __all__ = (
     "AdvancementDisplay",
     "Recipe",
     "ParticleType",
+    "Vector3",
+    "Quaternion",
 )
 
 
@@ -323,7 +323,10 @@ class String(DataType):
         data = data.read(length.value)
         if len(data) != length.value:
             raise ValueError("String length mismatch")
-        return cls(data.decode("utf-8"))
+        try:
+            return cls(data.decode("utf-8"))
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"UTF-8 decoding error: {exc}\n{data!r}") from exc
 
 
 class Chat(String):
@@ -380,20 +383,20 @@ class Varint(DataType):
         return bytes(data)
 
     @classmethod
-    def from_bytes(cls, data: BytesIO, *, max_size: int = 5) -> Self:
+    def from_bytes(cls, data: BytesIO) -> Self:
         value = 0
         bits_read = 0
 
         while True:
-            current_byte = data.read(1)[0]
+            try:
+                current_byte = data.read(1)[0]
+            except IndexError:
+                break
             value |= (current_byte & 0x7F) << bits_read
             bits_read += 7
 
             if bits_read > 35:
                 raise ValueError("Varint is too big")
-
-            if bits_read > (max_size * 7):
-                raise ValueError("Varint exceeds max size")
 
             if (current_byte & 0x80) == 0:
                 break
@@ -426,7 +429,7 @@ class Varlong(DataType):
         return bytes(data)
 
     @classmethod
-    def from_bytes(cls, data: BytesIO, *, max_size: int = 5) -> Self:
+    def from_bytes(cls, data: BytesIO) -> Self:
         value = 0
         bits_read = 0
 
@@ -438,9 +441,6 @@ class Varlong(DataType):
             if bits_read > 64:
                 raise Exception("Varlong is too big")
 
-            if bits_read > (max_size * 7):
-                raise ValueError("Varlong exceeds max size")
-
             if (current_byte & 0x80) == 0:
                 break
 
@@ -448,6 +448,68 @@ class Varlong(DataType):
             value = -((value ^ 0xFFFFFFFFFFFFFFFF) + 1)
 
         return cls(value)
+
+
+class Vector3(DataType):
+    """
+    Represents a 3D vector.
+
+    :ivar x: The X coordinate of this vector.
+    :vartype x: Float
+    :ivar y: The Y coordinate of this vector.
+    :vartype y: Float
+    :ivar z: The Z coordinate of this vector.
+    :vartype z: Float
+    """
+
+    def __init__(self, x: Float, y: Float, z: Float):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.x) + bytes(self.y) + bytes(self.z)
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        return cls(
+            Float.from_bytes(data),
+            Float.from_bytes(data),
+            Float.from_bytes(data),
+        )
+
+
+class Quaternion(DataType):
+    """
+    Represents a quaternion.
+
+    :ivar x: The X coordinate of this quaternion.
+    :vartype x: Float
+    :ivar y: The Y coordinate of this quaternion.
+    :vartype y: Float
+    :ivar z: The Z coordinate of this quaternion.
+    :vartype z: Float
+    :ivar w: The W coordinate of this quaternion.
+    :vartype w: Float
+    """
+
+    def __init__(self, x: Float, y: Float, z: Float, w: Float):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.x) + bytes(self.y) + bytes(self.z) + bytes(self.w)
+
+    @classmethod
+    def from_bytes(cls, data: BytesIO) -> Self:
+        return cls(
+            Float.from_bytes(data),
+            Float.from_bytes(data),
+            Float.from_bytes(data),
+            Float.from_bytes(data),
+        )
 
 
 class EntityMetadataEntry:
@@ -473,32 +535,40 @@ class EntityMetadataEntry:
     @classmethod
     def from_bytes(cls, data: BytesIO, index: UnsignedByte) -> Self:
         type = Varint.from_bytes(data)
-        value = {
-            0: Byte.from_bytes,
-            1: Varint.from_bytes,
-            2: Varlong.from_bytes,
-            3: Float.from_bytes,
-            4: String.from_bytes,
-            5: Chat.from_bytes,
-            6: Chat.from_bytes,
-            7: Slot.from_bytes,
-            8: Boolean.from_bytes,
-            9: Rotation.from_bytes,
-            10: Position.from_bytes,
-            11: Position.from_bytes,
-            12: Varint.from_bytes,
-            13: UUID.from_bytes,
-            14: Varint.from_bytes,
-            15: NBT.from_bytes,
-            16: ParticleType.from_bytes,
-            17: VillagerData.from_bytes,
-            18: Varint.from_bytes,
-            19: Varint.from_bytes,
-            20: Varint.from_bytes,
-            21: Varint.from_bytes,
-            22: GlobalPos.from_bytes,
-            23: Varint.from_bytes,
-        }[type.value](data)
+        try:
+            parser = {
+                0: Byte.from_bytes,
+                1: Varint.from_bytes,
+                2: Varlong.from_bytes,
+                3: Float.from_bytes,
+                4: String.from_bytes,
+                5: Chat.from_bytes,
+                6: lambda data: Chat.from_bytes(data) if Boolean.from_bytes(data).value else None,
+                7: Slot.from_bytes,
+                8: Boolean.from_bytes,
+                9: Rotation.from_bytes,
+                10: Position.from_bytes,
+                11: lambda data: Position.from_bytes(data) if Boolean.from_bytes(data).value else None,
+                12: Varint.from_bytes,
+                13: lambda data: UUID.from_bytes(data) if Boolean.from_bytes(data).value else None,
+                14: Varint.from_bytes,
+                15: Varint.from_bytes,
+                16: NBT.from_bytes,
+                17: ParticleType.from_bytes,
+                18: VillagerData.from_bytes,
+                19: Varint.from_bytes,
+                20: Varint.from_bytes,
+                21: Varint.from_bytes,
+                22: Varint.from_bytes,
+                23: lambda data: GlobalPos.from_bytes(data) if Boolean.from_bytes(data).value else None,
+                24: Varint.from_bytes,
+                25: Varint.from_bytes,
+                26: Vector3.from_bytes,
+                27: Quaternion.from_bytes,
+            }[type.value]
+        except KeyError:
+            return cls(index, type, None)
+        value = parser(data)
         return cls(index, type, value)
 
 
@@ -1031,6 +1101,7 @@ class CommandNode(DataType):
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
+        from .command_parsers import parsers as cmd_parsers
         from .enums import CommandParser
 
         flags = Byte.from_bytes(data)
@@ -1043,7 +1114,7 @@ class CommandNode(DataType):
         name = String.from_bytes(data) if _flags & 0x03 != 0 else None
         parser = CommandParser.from_value(Varint.from_bytes(data)) if _flags & 0x03 == 2 else None
         properties = None
-        if parser and parser.value.value in cmd_parsers:
+        if parser is not None and parser.value.value in cmd_parsers:
             properties = cmd_parsers[parser.value.value].from_bytes(data)
         suggestions = Identifier.from_bytes(data) if _flags & 0x10 else None
         return cls(flags, children, redirect, name, parser, properties, suggestions)
@@ -1393,7 +1464,8 @@ class PlayerInfoUpdatePlayer(DataType):
         update_listed = None
         update_latency = None
         update_display_name = None
-        if actions.value & PlayerInfoUpdateActionBits.ADD_PLAYER.value:
+        if actions.value & PlayerInfoUpdateActionBits.ADD_PLAYER.value == \
+            PlayerInfoUpdateActionBits.ADD_PLAYER.value:
             name = String.from_bytes(data)
             properties_count = Varint.from_bytes(data).value
             properties = []
@@ -1403,7 +1475,8 @@ class PlayerInfoUpdatePlayer(DataType):
                 name=name,
                 properties=properties,
             )
-        if actions.value & PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value:
+        if actions.value & PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value == \
+            PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value:
             has_signature_data = Boolean.from_bytes(data)
             chat_session_id = None
             public_key_expiry = None
@@ -1423,22 +1496,26 @@ class PlayerInfoUpdatePlayer(DataType):
                 public_key=public_key,
                 public_key_signature=public_key_signature,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value:
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value == \
+            PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value:
             gamemode = Varint.from_bytes(data)
             update_gamemode = DataProxy(
                 gamemode=gamemode,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value:
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value == \
+            PlayerInfoUpdateActionBits.UPDATE_LISTED.value:
             listed = Boolean.from_bytes(data)
             update_listed = DataProxy(
                 listed=listed,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value:
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value == \
+            PlayerInfoUpdateActionBits.UPDATE_LATENCY.value:
             latency = Varint.from_bytes(data)
             update_latency = DataProxy(
                 latency=latency,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value:
+        if actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value == \
+            PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value:
             has_display_name = Boolean.from_bytes(data)
             display_name = None
             if has_display_name:
