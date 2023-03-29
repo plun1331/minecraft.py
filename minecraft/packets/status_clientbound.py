@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *

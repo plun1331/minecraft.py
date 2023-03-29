@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 from typing import Generator
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
@@ -80,7 +81,7 @@ class BundleDelimiter(Packet):
         return self.packet_id.to_bytes(1, "big")
 
     @classmethod
-    def from_bytes(cls) -> BundleDelimiter:
+    def from_bytes(cls, data: BytesIO) -> BundleDelimiter:
         return cls()
 
 
@@ -731,8 +732,8 @@ class ChunkBiomes(Packet):
     bound_to = "client"
     state = State.PLAY
 
-    def __init__(self, chunk_biome_data: list[_DataProxy]):
-        self.chunk_biome_data: list[_DataProxy] = chunk_biome_data
+    def __init__(self, chunk_biome_data: list[DataProxy]):
+        self.chunk_biome_data: list[DataProxy] = chunk_biome_data
 
     def __bytes__(self):
         return (
@@ -756,7 +757,7 @@ class ChunkBiomes(Packet):
         chunk_biome_data = []
         for _ in range(Varint.from_bytes(data).value):
             chunk_biome_data.append(
-                _DataProxy(
+                DataProxy(
                     chunk_x=Int.from_bytes(data),
                     chunk_z=Int.from_bytes(data),
                     data=ByteArray.from_bytes(
@@ -1700,7 +1701,6 @@ class InitializeWorldBorder(Packet):
         )
 
 
-class KeepAliveClientbound(Packet):
 class KeepAliveClientbound(Packet):
     """
     The server will frequently send out a keep-alive, each containing a random ID.
@@ -2852,7 +2852,6 @@ class PlaceGhostRecipe(Packet):
 
 
 class ClientPlayerAbilities(Packet):
-class ClientPlayerAbilities(Packet):
     """
     This packet is sent by the server to update the client's
     abilities and flags.
@@ -2927,11 +2926,11 @@ class PlayerChatMessage(Packet):
 
     def __init__(
         self,
-        header: _DataProxy,
-        body: _DataProxy,
-        previous_messages: list[_DataProxy],
-        other: _DataProxy,
-        network_target: _DataProxy,
+        header: DataProxy,
+        body: DataProxy,
+        previous_messages: list[DataProxy],
+        other: DataProxy,
+        network_target: DataProxy,
     ):
         self.header = header
         self.body = body
@@ -2999,7 +2998,7 @@ class PlayerChatMessage(Packet):
         message_signature = None
         if sig_present:
             message_signature = ByteArray.from_bytes(data, length=256)
-        header_section = _DataProxy(
+        header_section = DataProxy(
             sender=sender,
             index=index,
             message_signature=message_signature,
@@ -3011,7 +3010,7 @@ class PlayerChatMessage(Packet):
         timestamp = Long.from_bytes(data)
         # salt
         salt = Long.from_bytes(data)
-        body_section = _DataProxy(
+        body_section = DataProxy(
             body=body,
             timestamp=timestamp,
             salt=salt,
@@ -3023,7 +3022,7 @@ class PlayerChatMessage(Packet):
         for _ in range(prev_count):
             prev_id = Varint.from_bytes(data).value
             prev_sig = ByteArray.from_bytes(data, length=256)
-            previous_messages.append(_DataProxy(id=prev_id, signature=prev_sig))
+            previous_messages.append(DataProxy(id=prev_id, signature=prev_sig))
         # - Other
         # unsigned_content
         unsigned_content_present = Boolean.from_bytes(data)
@@ -3036,7 +3035,7 @@ class PlayerChatMessage(Packet):
             if filter_type is FilterType.PARTIALLY_FILTERED
             else None
         )
-        other_section = _DataProxy(
+        other_section = DataProxy(
             unsigned_content=unsigned_content,
             filter_type=filter_type,
             filter_bits=filter_bits,
@@ -3051,7 +3050,7 @@ class PlayerChatMessage(Packet):
         network_target_name = (
             Chat.from_bytes(data) if network_target_name_present else None
         )
-        network_target_section = _DataProxy(
+        network_target_section = DataProxy(
             chat_type=chat_type,
             network_name=network_name,
             network_target_name=network_target_name,
@@ -3651,8 +3650,6 @@ class Respawn(Packet):
         has_death_location: Boolean,
         death_dimension: Identifier | None = None,
         death_location: Position | None = None,
-        death_dimension: Identifier | None = None,
-        death_location: Position | None = None,
     ):
         self.dimension_type = dimension_type
         self.dimension_name = dimension_name
@@ -3899,7 +3896,6 @@ class ServerData(Packet):
 
     def __init__(
         self,
-        motd: Chat,
         motd: Chat,
         icon: String | None = None,
         enforces_secure_chat: Boolean = Boolean(False),
@@ -4176,7 +4172,6 @@ class SetCamera(Packet):
         return cls(entity_id)
 
 
-class ClientSetHeldItem(Packet):
 class ClientSetHeldItem(Packet):
     """
     Sent by the server to the client to set the held item of the player.
@@ -4755,7 +4750,7 @@ class UpdateTeams(Packet):
         self,
         team_name: String,
         mode: UpdateTeamModes,
-        data: _DataProxy,
+        data: DataProxy,
     ):
         self.team_name = team_name
         self.mode = mode
@@ -4808,7 +4803,7 @@ class UpdateTeams(Packet):
         mode = UpdateTeamModes.from_value(Byte.from_bytes(data))
         # data
         if mode is UpdateTeamModes.CREATE:
-            data = _DataProxy(
+            data = DataProxy(
                 display_name=Chat.from_bytes(data),
                 friendly_flags=Byte.from_bytes(data),
                 name_tag_visibility=NameTagVisibility(
@@ -4824,9 +4819,9 @@ class UpdateTeams(Packet):
                 ],
             )
         elif mode is UpdateTeamModes.REMOVE:
-            data = _DataProxy()
+            data = DataProxy()
         elif mode is UpdateTeamModes.UPDATE:
-            data = _DataProxy(
+            data = DataProxy(
                 display_name=Chat.from_bytes(data),
                 friendly_flags=Byte.from_bytes(data),
                 name_tag_visibility=NameTagVisibility(
@@ -4838,7 +4833,7 @@ class UpdateTeams(Packet):
                 suffix=Chat.from_bytes(data),
             )
         elif mode in (UpdateTeamModes.ADD_ENTITIES, UpdateTeamModes.REMOVE_ENTITIES):
-            data = _DataProxy(
+            data = DataProxy(
                 entities=[
                     String.from_bytes(data, max_length=40)
                     for _ in range(Varint.from_bytes(data).value)
@@ -5577,7 +5572,7 @@ class UpdateAttributes(Packet):
     def __init__(
         self,
         entity_id: Varint,
-        attributes: list[_DataProxy],
+        attributes: list[DataProxy],
     ):
         self.entity_id = entity_id
         self.attributes = attributes
@@ -5607,19 +5602,17 @@ class UpdateAttributes(Packet):
         # attributes
         attributes = []
         for _ in range(Varint.from_bytes(data).value):
-        for _ in range(Varint.from_bytes(data).value):
             key = Identifier.from_bytes(data)
             value = Double.from_bytes(data)
             modifiers = []
-            for _ in range(Varint.from_bytes(data).value):
             for _ in range(Varint.from_bytes(data).value):
                 uuid = UUID.from_bytes(data)
                 amount = Double.from_bytes(data)
                 operation = Varint.from_bytes(data)
                 modifiers.append(
-                    _DataProxy(uuid=uuid, amount=amount, operation=operation)
+                    DataProxy(uuid=uuid, amount=amount, operation=operation)
                 )
-            attributes.append(_DataProxy(key=key, value=value, modifiers=modifiers))
+            attributes.append(DataProxy(key=key, value=value, modifiers=modifiers))
         return cls(entity_id, attributes)
 
 
@@ -5656,7 +5649,6 @@ class FeatureFlags(Packet):
         # Fields: features (list)
         # features
         features = []
-        for _ in range(Varint.from_bytes(data).value):
         for _ in range(Varint.from_bytes(data).value):
             features.append(Identifier.from_bytes(data))
         return cls(features)
@@ -5758,8 +5750,6 @@ class UpdateRecipes(Packet):
         recipes = []
         total_len = Varint.from_bytes(data).value
         for _ in range(total_len):
-        total_len = Varint.from_bytes(data).value
-        for _ in range(total_len):
             recipes.append(Recipe.from_bytes(data))
         return cls(recipes)
 
@@ -5781,7 +5771,7 @@ class UpdateTags(Packet):
 
     def __init__(
         self,
-        tags: list[_DataProxy],
+        tags: list[DataProxy],
     ):
         self.tags = tags
 
@@ -5806,7 +5796,7 @@ class UpdateTags(Packet):
         tags = []
         for _ in range(Varint.from_bytes(data).value):
             tags.append(
-                _DataProxy(
+                DataProxy(
                     tag_name=Identifier.from_bytes(data),
                     entries=[
                         Varint.from_bytes(data)

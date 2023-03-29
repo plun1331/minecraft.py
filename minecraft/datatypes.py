@@ -79,7 +79,7 @@ __all__ = (
     "MapIcon",
     "Property",
     "Trade",
-    "_DataProxy",
+    "DataProxy",
     "PlayerInfoUpdatePlayer",
     "Advancement",
     "AdvancementProgress",
@@ -377,6 +377,9 @@ class Varint(DataType):
 
             if bits_read > 35:
                 raise ValueError("Varint is too big")
+            
+            if bits_read > (max_size * 7):
+                raise ValueError("Varint exceeds max size")
 
             if (current_byte & 0x80) == 0:
                 break
@@ -419,6 +422,9 @@ class Varlong(DataType):
 
             if bits_read > 64:
                 raise Exception("Varlong is too big")
+            
+            if bits_read > (max_size * 7):
+                raise ValueError("Varlong exceeds max size")
 
             if (current_byte & 0x80) == 0:
                 break
@@ -856,7 +862,7 @@ class Property(DataType):
         self.signature = signature
 
     def __bytes__(self) -> bytes:
-        val = bytes(self.name) + bytes(self.value) + bytes(Boolean(self.signed))
+        val = bytes(self.name) + bytes(self.value) + bytes(Boolean(self.signature is not None))
         if self.signature is not None:
             val += bytes(self.signature)
         return val
@@ -1223,7 +1229,7 @@ class Trade(DataType):
         )
 
 
-class _DataProxy:
+class DataProxy:
     """
     A proxy class for data types that do not have their own class.
 
@@ -1243,7 +1249,7 @@ class _DataProxy:
         self.attrs[name] = value
 
     def __repr__(self):
-        return f"_DataProxy({', '.join(f'{k}={v!r}' for k, v in self.attrs.items())})"
+        return f"DataProxy({', '.join(f'{k}={v!r}' for k, v in self.attrs.items())})"
 
 
 class PlayerInfoUpdatePlayer(DataType):
@@ -1253,17 +1259,17 @@ class PlayerInfoUpdatePlayer(DataType):
     :ivar uuid: The UUID of the player.
     :vartype uuid: UUID
     :ivar add_player: The add player data.
-    :vartype add_player: _DataProxy
+    :vartype add_player: DataProxy
     :ivar initialize_chat: The initialize chat data.
-    :vartype initialize_chat: _DataProxy
+    :vartype initialize_chat: DataProxy
     :ivar update_gamemode: The update gamemode data.
-    :vartype update_gamemode: _DataProxy
+    :vartype update_gamemode: DataProxy
     :ivar update_listed: The update listed data.
-    :vartype update_listed: _DataProxy
+    :vartype update_listed: DataProxy
     :ivar update_latency: The update latency data.
-    :vartype update_latency: _DataProxy
+    :vartype update_latency: DataProxy
     :ivar update_display_name: The update display name data.
-    :vartype update_display_name: _DataProxy
+    :vartype update_display_name: DataProxy
 
     **Data Proxy Attributes**
 
@@ -1290,20 +1296,20 @@ class PlayerInfoUpdatePlayer(DataType):
     def __init__(
         self,
         uuid: UUID,
-        add_player: _DataProxy | None = None,
-        initialize_chat: _DataProxy | None = None,
-        update_gamemode: _DataProxy | None = None,
-        update_listed: _DataProxy | None = None,
-        update_latency: _DataProxy | None = None,
-        update_display_name: _DataProxy | None = None,
+        add_player: DataProxy | None = None,
+        initialize_chat: DataProxy | None = None,
+        update_gamemode: DataProxy | None = None,
+        update_listed: DataProxy | None = None,
+        update_latency: DataProxy | None = None,
+        update_display_name: DataProxy | None = None,
     ):
         self.uuid: UUID = uuid
-        self.add_player: _DataProxy | None = add_player
-        self.initialize_chat: _DataProxy | None = initialize_chat
-        self.update_gamemode: _DataProxy | None = update_gamemode
-        self.update_listed: _DataProxy | None = update_listed
-        self.update_latency: _DataProxy | None = update_latency
-        self.update_display_name: _DataProxy | None = update_display_name
+        self.add_player: DataProxy | None = add_player
+        self.initialize_chat: DataProxy | None = initialize_chat
+        self.update_gamemode: DataProxy | None = update_gamemode
+        self.update_listed: DataProxy | None = update_listed
+        self.update_latency: DataProxy | None = update_latency
+        self.update_display_name: DataProxy | None = update_display_name
 
     def __bytes__(self) -> bytes:
         res = bytes(self.uuid)
@@ -1350,7 +1356,7 @@ class PlayerInfoUpdatePlayer(DataType):
             properties = []
             for _ in range(properties_count):
                 properties.append(Property.from_bytes(data))
-            add_player = _DataProxy(
+            add_player = DataProxy(
                 name=name,
                 properties=properties,
             )
@@ -1367,7 +1373,7 @@ class PlayerInfoUpdatePlayer(DataType):
                 public_key = ByteArray.from_bytes(data, length=pk_size)
                 pk_sig_size = Varint.from_bytes(data).value
                 public_key_signature = ByteArray.from_bytes(data, length=pk_sig_size)
-            initialize_chat = _DataProxy(
+            initialize_chat = DataProxy(
                 has_signature_data=has_signature_data,
                 chat_session_id=chat_session_id,
                 public_key_expiry=public_key_expiry,
@@ -1376,17 +1382,17 @@ class PlayerInfoUpdatePlayer(DataType):
             )
         if actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value:
             gamemode = Varint.from_bytes(data)
-            update_gamemode = _DataProxy(
+            update_gamemode = DataProxy(
                 gamemode=gamemode,
             )
         if actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value:
             listed = Boolean.from_bytes(data)
-            update_listed = _DataProxy(
+            update_listed = DataProxy(
                 listed=listed,
             )
         if actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value:
             latency = Varint.from_bytes(data)
-            update_latency = _DataProxy(
+            update_latency = DataProxy(
                 latency=latency,
             )
         if actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value:
@@ -1394,7 +1400,7 @@ class PlayerInfoUpdatePlayer(DataType):
             display_name = None
             if has_display_name:
                 display_name = Chat.from_bytes(data)
-            update_display_name = _DataProxy(
+            update_display_name = DataProxy(
                 has_display_name=has_display_name,
                 display_name=display_name,
             )
@@ -1416,7 +1422,7 @@ class Advancement(DataType):
     :ivar parent_id: The advancement's parent ID.
     :vartype parent_id: String | None
     :ivar display_data: The advancement's display data.
-    :vartype display_data: _DataProxy | None
+    :vartype display_data: DataProxy | None
     :ivar criteria: The advancement's criteria.
     :vartype criteria: dict[Identifier, None]
     :ivar requirements: The advancement's requirements.
@@ -1425,12 +1431,12 @@ class Advancement(DataType):
     def __init__(
         self,
         parent_id: String | None = None,
-        display_data: _DataProxy | None = None,
+        display_data: DataProxy | None = None,
         criteria: dict[Identifier, None] | None = None,
         requirements: list[list[String]] | None = None,
     ):
         self.parent_id: String | None = parent_id
-        self.display_data: _DataProxy | None = display_data
+        self.display_data: DataProxy | None = display_data
         self.criteria: dict[Identifier, None] = criteria or {}
         self.requirements: list[list[String]] = requirements or []
 
@@ -1458,7 +1464,7 @@ class Advancement(DataType):
             parent_id = String.from_bytes(data)
         display_data = None
         if Boolean.from_bytes(data):
-            display_data = _DataProxy.from_bytes(data)
+            display_data = DataProxy.from_bytes(data)
         criteria_count = Varint.from_bytes(data).value
         criteria = {}
         for _ in range(criteria_count):
@@ -1662,7 +1668,7 @@ class Recipe(DataType):
     :ivar recipe_id: The recipe ID.
     :vartype recipe_id: Identifier
     :ivar data: The recipe data.
-    :vartype data: _DataProxy
+    :vartype data: DataProxy
 
     .. admonition:: TODO
         :class: note
@@ -1673,11 +1679,11 @@ class Recipe(DataType):
         self,
         recipe_type: Identifier,
         recipe_id: Identifier,
-        data: _DataProxy,
+        data: DataProxy,
     ):
         self.recipe_type: Identifier = recipe_type
         self.recipe_id: Identifier = recipe_id
-        self.data: _DataProxy = data
+        self.data: DataProxy = data
 
     def __bytes__(self) -> bytes:
         res = bytes(self.recipe_type)
@@ -1751,7 +1757,7 @@ class Recipe(DataType):
         _data = None
         if recipe_type:
             if recipe_type.value == "minecraft:crafting_shapeless":
-                _data = _DataProxy(
+                _data = DataProxy(
                     group=String.from_bytes(data),
                     category=Varint.from_bytes(data),
                     ingredients=[
@@ -1763,7 +1769,7 @@ class Recipe(DataType):
             elif recipe_type.value == "minecraft:crafting_shaped":
                 width = Varint.from_bytes(data).value
                 height = Varint.from_bytes(data).value
-                _data = _DataProxy(
+                _data = DataProxy(
                     width=width,
                     height=height,
                     group=String.from_bytes(data),
@@ -1778,7 +1784,7 @@ class Recipe(DataType):
                 recipe_type.value.startswith("minecraft:crafting_special_")
                 or recipe_type.value == "minecraft:crafting_decorated_pot"
             ):
-                _data = _DataProxy(
+                _data = DataProxy(
                     category=Varint.from_bytes(data),
                 )
             elif recipe_type.value in (
@@ -1787,7 +1793,7 @@ class Recipe(DataType):
                 "minecraft:smoking",
                 "minecraft:campfire_cooking",
             ):
-                _data = _DataProxy(
+                _data = DataProxy(
                     group=String.from_bytes(data),
                     category=Varint.from_bytes(data),
                     ingredient=Ingredient.from_bytes(data),
@@ -1796,26 +1802,26 @@ class Recipe(DataType):
                     cooking_time=Varint.from_bytes(data),
                 )
             elif recipe_type.value == "minecraft:stonecutting":
-                _data = _DataProxy(
+                _data = DataProxy(
                     group=String.from_bytes(data),
                     ingredient=Ingredient.from_bytes(data),
                     result=Slot.from_bytes(data),
                 )
             elif recipe_type.value == "minecraft:smithing":
-                _data = _DataProxy(
+                _data = DataProxy(
                     base=Ingredient.from_bytes(data),
                     addition=Ingredient.from_bytes(data),
                     result=Slot.from_bytes(data),
                 )
             elif recipe_type.value == "minecraft:smithing_transform":
-                _data = _DataProxy(
+                _data = DataProxy(
                     template=Ingredient.from_bytes(data),
                     base=Ingredient.from_bytes(data),
                     addition=Ingredient.from_bytes(data),
                     result=Slot.from_bytes(data),
                 )
             elif recipe_type.value == "minecraft:smithing_trim":
-                _data = _DataProxy(
+                _data = DataProxy(
                     template=Ingredient.from_bytes(data),
                     base=Ingredient.from_bytes(data),
                     addition=Ingredient.from_bytes(data),

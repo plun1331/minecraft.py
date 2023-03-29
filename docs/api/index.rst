@@ -15,5 +15,6 @@ The following section outlines the API of minecraft.py.
     enums
     exceptions
     nbt
+    version
     networking/index
     packets/index
