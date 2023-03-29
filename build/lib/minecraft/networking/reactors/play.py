@@ -49,10 +49,11 @@ class PlayReactor(Reactor):
     """
     Reacts to packets sent during the play state.
     """
-
     @react_to(KeepAliveClientbound)
     async def keep_alive(self, packet: KeepAliveClientbound):
-        await self.connection.send_packet(KeepAliveServerbound(id=packet.keep_alive_id))
+        await self.connection.send_packet(
+            KeepAliveServerbound(id=packet.keep_alive_id)
+        )
 
     @react_to(Ping)
     async def ping(self, packet: Ping):
@@ -62,3 +63,4 @@ class PlayReactor(Reactor):
     async def disconnect(self, packet: DisconnectPlay):
         log.warning("Disconnected from server during play: %s", packet.reason.json)
         await self.connection.close(error=DisconnectError(packet.reason))
+    
