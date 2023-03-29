@@ -698,20 +698,12 @@ class ChangeDifficulty(Packet):
             + bytes(self.difficulty)
             + bytes(self.locked)
         )
-        return (
-            self.packet_id.to_bytes(1, "big")
-            + bytes(self.difficulty)
-            + bytes(self.locked)
-        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: difficulty (unsigned byte), locked (boolean)
-        # Fields: difficulty (unsigned byte), locked (boolean)
         # difficulty
         difficulty = UnsignedByte.from_bytes(data)
-
-        locked = Boolean.from_bytes(data)
 
         locked = Boolean.from_bytes(data)
         return cls(difficulty, locked)

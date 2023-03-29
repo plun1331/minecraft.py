@@ -27,3 +27,11 @@ Login
 .. autoclass:: LoginReactor
     :members:
     :undoc-members:
+
+
+Play
+---------
+
+.. autoclass:: PlayReactor
+    :members:
+    :undoc-members:

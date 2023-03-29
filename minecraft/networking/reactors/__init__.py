@@ -9,11 +9,12 @@ Processes and reacts to packets.
 """
 from .base import Reactor, REACTOR, react_to
 from .login import LoginReactor
+from .play import PlayReactor
 from ...enums import State
 
 REACTORS: dict[State, type[Reactor]] = {
     State.HANDSHAKE: None,
     State.STATUS: None,
     State.LOGIN: LoginReactor,
-    State.PLAY: None,
+    State.PLAY: PlayReactor,
 }

@@ -28,7 +28,7 @@
 from __future__ import annotations
 
 import asyncio
-import io
+from io import BytesIO
 import logging
 import time
 import zlib
@@ -256,7 +256,7 @@ class Connection:
                     )
                     return
 
-                buffer = io.BytesIO(packet_data)
+                buffer = BytesIO(packet_data)
 
                 data_length = 0
                 if self.use_compression:
