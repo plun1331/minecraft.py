@@ -41,3 +41,7 @@ Note that this requires that you have [`git`](https://git-scm.com/) installed.
     - [`sphinx`](https://pypi.org/project/sphinx/) for documentation generation.
     - [`furo`](https://pypi.org/project/furo/) for our documentation styling.
     - [`myst-parser`](https://pypi.org/project/myst-parser/) for parsing markdown files.
+    
+## Support
+
+For support, please join my Discord server at https://plun.is-a.dev/discord and visit the `#help` channel under `minecraft.py`.
