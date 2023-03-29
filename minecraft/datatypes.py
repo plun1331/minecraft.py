@@ -1112,7 +1112,11 @@ class CommandNode(DataType):
         _flags = flags.value
         redirect = Varint.from_bytes(data) if _flags & 0x08 else None
         name = String.from_bytes(data) if _flags & 0x03 != 0 else None
-        parser = CommandParser.from_value(Varint.from_bytes(data)) if _flags & 0x03 == 2 else None
+        parser = (
+            CommandParser.from_value(Varint.from_bytes(data))
+            if _flags & 0x03 == 2
+            else None
+        )
         properties = None
         if parser is not None and parser.value.value in cmd_parsers:
             properties = cmd_parsers[parser.value.value].from_bytes(data)
