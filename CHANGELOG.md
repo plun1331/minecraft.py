@@ -12,3 +12,5 @@ These changes are available on the `main` branch, but have not yet been released
 ### Added
 - Implement all play packet classes.
   ([#5](https://github.com/plun1331/minecraft.py/pull/5))
+- Add a `pyproject.toml` file.
+  ([#14](https://github.com/plun1331/minecraft.py/pull/14))
