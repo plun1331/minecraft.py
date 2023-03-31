@@ -123,6 +123,9 @@ class DataType:
         if isinstance(other, self.__class__):
             return self.__dict__ != other.__dict__
         return False
+    
+    def __hash__(self) -> int:
+        return hash(tuple(self.__dict__.values()))
 
 
 class Boolean(DataType):
@@ -163,7 +166,7 @@ class Byte(DataType):
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        return cls(data.read(1)[0])
+        return cls(struct.unpack(">b", data.read(1))[0])
 
 
 class UnsignedByte(DataType):
@@ -182,7 +185,7 @@ class UnsignedByte(DataType):
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        return cls(data.read(1)[0])
+        return cls(struct.unpack(">B", data.read(1))[0])
 
 
 class Short(DataType):
@@ -535,39 +538,36 @@ class EntityMetadataEntry:
     @classmethod
     def from_bytes(cls, data: BytesIO, index: UnsignedByte) -> Self:
         type = Varint.from_bytes(data)
-        try:
-            parser = {
-                0: Byte.from_bytes,
-                1: Varint.from_bytes,
-                2: Varlong.from_bytes,
-                3: Float.from_bytes,
-                4: String.from_bytes,
-                5: Chat.from_bytes,
-                6: lambda data: Chat.from_bytes(data) if Boolean.from_bytes(data).value else None,
-                7: Slot.from_bytes,
-                8: Boolean.from_bytes,
-                9: Rotation.from_bytes,
-                10: Position.from_bytes,
-                11: lambda data: Position.from_bytes(data) if Boolean.from_bytes(data).value else None,
-                12: Varint.from_bytes,
-                13: lambda data: UUID.from_bytes(data) if Boolean.from_bytes(data).value else None,
-                14: Varint.from_bytes,
-                15: Varint.from_bytes,
-                16: NBT.from_bytes,
-                17: ParticleType.from_bytes,
-                18: VillagerData.from_bytes,
-                19: Varint.from_bytes,
-                20: Varint.from_bytes,
-                21: Varint.from_bytes,
-                22: Varint.from_bytes,
-                23: lambda data: GlobalPos.from_bytes(data) if Boolean.from_bytes(data).value else None,
-                24: Varint.from_bytes,
-                25: Varint.from_bytes,
-                26: Vector3.from_bytes,
-                27: Quaternion.from_bytes,
-            }[type.value]
-        except KeyError:
-            return cls(index, type, None)
+        parser = {
+            0: Byte.from_bytes,
+            1: Varint.from_bytes,
+            2: Varlong.from_bytes,
+            3: Float.from_bytes,
+            4: String.from_bytes,
+            5: Chat.from_bytes,
+            6: lambda data: Chat.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            7: Slot.from_bytes,
+            8: Boolean.from_bytes,
+            9: Rotation.from_bytes,
+            10: Position.from_bytes,
+            11: lambda data: Position.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            12: Varint.from_bytes,
+            13: lambda data: UUID.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            14: Varint.from_bytes,
+            15: Varint.from_bytes,
+            16: NBT.from_bytes,
+            17: ParticleType.from_bytes,
+            18: VillagerData.from_bytes,
+            19: Varint.from_bytes,
+            20: Varint.from_bytes,
+            21: Varint.from_bytes,
+            22: Varint.from_bytes,
+            23: lambda data: GlobalPos.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            24: Varint.from_bytes,
+            25: Varint.from_bytes,
+            26: Vector3.from_bytes,
+            27: Quaternion.from_bytes,
+        }[type.value]
         value = parser(data)
         return cls(index, type, value)
 
@@ -693,46 +693,85 @@ class EntityMetadata(DataType):
         self.entries = entries
 
     def __bytes__(self) -> bytes:
-        out = bytearray()
+        out = b""
         for entry in self.entries:
             out += bytes(entry)
         out += bytes(UnsignedByte(0xFF))
-        return bytes(out)
+        return out
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         entries = []
         while True:
-            index = UnsignedByte.from_bytes(data)
+            try:
+                index = UnsignedByte.from_bytes(data)
+            except struct.error:
+                break
             if index.value == 0xFF:
                 break
-            entries.append(EntityMetadataEntry.from_bytes(data, index))
+            try:
+                entries.append(EntityMetadataEntry.from_bytes(data, index))
+            except KeyError:
+                break
         return cls(entries)
 
 
-class NBT(DataType):
+class NBT(nbt.NBTFile):
     """
-    Represents NBT data.
-
-    :ivar data: The raw NBT data.
-    :vartype data: bytes
+    Represents NBT data. This inherits from :class:`nbt.NBTFile`.
     """
 
-    def __init__(self, data: bytes):
-        self.data = data
-
-    @property
-    def nbt(self):
-        """Parsed NBT data. (:class:`nbtlib.NBTFile`)"""
-        return nbt.NBTFile(buffer=BytesIO(self.data))
+    def __init__(self, data: BytesIO, tag_id: int):
+        super(nbt.NBTFile, self).__init__()
+        self.id = tag_id
+        self.filename = None
+        self.file = data
+        self.parse_file()
 
     def __bytes__(self) -> bytes:
-        return bytes(Varint(len(self.data))) + self.data
+        buffer = BytesIO()
+        self._render_buffer(buffer)
+        return buffer.read()
 
+    def __len__(self) -> int:
+        return len(bytes(self))
+
+    def parse_file(self):
+        """Completely parse a file, extracting all tags."""
+        try:
+            type = nbt.TAG_Byte(buffer=self.file)
+            if type.value == self.id:
+                if self.id != nbt.TAG_END:
+                    name = nbt.TAG_String(buffer=self.file).value
+                    self._parse_buffer(self.file)
+                    self.name = name
+                else:
+                    self.name = ""
+            else:
+                raise nbt.MalformedFileError("First record was not the expected tag")
+        except nbt.StructError as e:
+            raise nbt.MalformedFileError("Partial File Parse: file possibly truncated.") from e
+    
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        length = Varint.from_bytes(data)
-        return cls(data.read(length.value))
+        current_index = data.tell()
+        _raw_data = data.read()
+        data.seek(current_index)
+        remaining = 0
+        err = None
+        for tag in (nbt.TAG_COMPOUND, nbt.TAG_END):
+            buffer = BytesIO(_raw_data)
+            try:
+                ret = cls(buffer, tag)
+                err = None
+                remaining = len(buffer.read())
+                break
+            except nbt.MalformedFileError as exc:
+                err = exc
+        if err is not None:
+            raise err
+        data.seek(current_index + len(_raw_data) - remaining)
+        return ret
 
 
 class Slot(DataType):
@@ -753,7 +792,7 @@ class Slot(DataType):
         self,
         present: Boolean,
         item_id: Varint | None = None,
-        count: UnsignedByte | None = None,
+        count: Byte | None = None,
         _nbt: NBT | None = None,
     ):
         self.present = present
@@ -1736,24 +1775,26 @@ class AdvancementProgress(DataType):
 
     def __init__(
         self,
-        identifier: Identifier,
-        progress: CriterionProgress,
+        criterion: dict[Identifier, CriterionProgress],
     ):
-        self.identifier: Identifier = identifier
-        self.progress: CriterionProgress = progress
+        self.criterion: dict[Identifier, CriterionProgress] = criterion
 
     def __bytes__(self) -> bytes:
-        res = bytes(self.identifier)
-        res += bytes(self.progress)
+        res = bytes(Varint(len(self.criterion)))
+        for identifier, progress in self.criterion.items():
+            res += bytes(identifier)
+            res += bytes(progress)
         return res
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
-        identifier = Identifier.from_bytes(data)
-        progress = CriterionProgress.from_bytes(data)
+        criterion_count = Varint.from_bytes(data).value
+        criterion = {}
+        for _ in range(criterion_count):
+            identifier = Identifier.from_bytes(data)
+            criterion[identifier] = CriterionProgress.from_bytes(data)
         return cls(
-            identifier,
-            progress,
+            criterion,
         )
 
 

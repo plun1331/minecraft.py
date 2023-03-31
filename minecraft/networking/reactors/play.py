@@ -30,9 +30,8 @@ from __future__ import annotations
 import logging
 
 from .base import react_to, Reactor
-from ..encryption import create_cipher, process_encryption_request
-from ...datatypes import Boolean, ByteArray
-from ...enums import State
+from ...datatypes import Boolean, Byte, String
+from ...enums import ChatMode, MainHand
 from ...exceptions import DisconnectError
 from ...packets import (
     KeepAliveClientbound,
@@ -40,6 +39,11 @@ from ...packets import (
     Ping,
     Pong,
     DisconnectPlay,
+    SynchronizePlayerPosition,
+    ConfirmTeleportation,
+    LoginPlay,
+    ClientInformation,
+    SetPlayerPositionAndRotation,
 )
 
 log = logging.getLogger(__name__)
@@ -62,3 +66,32 @@ class PlayReactor(Reactor):
     async def disconnect(self, packet: DisconnectPlay):
         log.warning("Disconnected from server during play: %s", packet.reason.json)
         await self.connection.close(error=DisconnectError(packet.reason))
+
+    @react_to(SynchronizePlayerPosition)
+    async def synchronize_player_position(self, packet: SynchronizePlayerPosition):
+        await self.connection.send_packet(ConfirmTeleportation(teleport_id=packet.teleport_id))
+        await self.connection.send_packet(
+            SetPlayerPositionAndRotation(
+                x=packet.x,
+                feet_y=packet.y,
+                z=packet.z,
+                yaw=packet.yaw,
+                pitch=packet.pitch,
+                on_ground=Boolean(True),
+            )
+        )
+
+    @react_to(LoginPlay)
+    async def login(self, packet: LoginPlay):
+        await self.connection.send_packet(
+            ClientInformation(
+                locale=String("en_US"),
+                view_distance=Byte(8),
+                chat_mode=ChatMode.ENABLED,
+                chat_colors=Boolean(True),
+                displayed_skin_parts=Byte(0b11111111),
+                main_hand=MainHand.RIGHT,
+                enable_text_filtering=Boolean(False),
+                allow_server_listings=Boolean(True),
+            )
+        )

@@ -3320,14 +3320,16 @@ class SynchronizePlayerPosition(Packet):
         x: Double,
         y: Double,
         z: Double,
-        feet_eyes: FeetEyes,
+        yaw: Float,
+        pitch: Float,
         flags: Byte,
         teleport_id: Varint,
     ):
         self.x = x
         self.y = y
         self.z = z
-        self.feet_eyes = feet_eyes
+        self.yaw = yaw
+        self.pitch = pitch
         self.flags = flags
         self.teleport_id = teleport_id
 
@@ -3337,14 +3339,15 @@ class SynchronizePlayerPosition(Packet):
             + bytes(self.x)
             + bytes(self.y)
             + bytes(self.z)
-            + bytes(self.feet_eyes)
+            + bytes(self.yaw)
+            + bytes(self.pitch)
             + bytes(self.flags)
             + bytes(self.teleport_id)
         )
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
-        # Fields: x (double), y (double), z (double), feet_eyes (varint), flags (byte),
+        # Fields: x (double), y (double), z (double), yaw (float), pitch (float) flags (byte),
         # teleport_id (varint), dismount_vehicle (boolean)
         # x
         x = Double.from_bytes(data)
@@ -3352,13 +3355,15 @@ class SynchronizePlayerPosition(Packet):
         y = Double.from_bytes(data)
         # z
         z = Double.from_bytes(data)
-        # feet_eyes
-        feet_eyes = FeetEyes.from_value(Varint.from_bytes(data))
+        # yaw
+        yaw = Float.from_bytes(data)
+        # pitch
+        pitch = Float.from_bytes(data)
         # flags
         flags = Byte.from_bytes(data)
         # teleport_id
         teleport_id = Varint.from_bytes(data)
-        return cls(x, y, z, feet_eyes, flags, teleport_id)
+        return cls(x, y, z, yaw, pitch, flags, teleport_id)
 
 
 class UpdateRecipeBook(Packet):
@@ -5500,7 +5505,7 @@ class UpdateAdvancements(Packet):
         reset: Boolean,
         mapping: dict[Identifier, Advancement],
         identifiers: list[Identifier],
-        progress: list[AdvancementProgress],
+        progress: dict[Identifier, AdvancementProgress],
     ):
         self.reset = reset
         self.mapping = mapping
@@ -5513,13 +5518,16 @@ class UpdateAdvancements(Packet):
             + bytes(self.reset)
             + bytes(Varint(len(self.mapping)))
             + b"".join(
-                bytes(Identifier(key)) + bytes(value)
+                bytes(key) + bytes(value)
                 for key, value in self.mapping.items()
             )
             + bytes(Varint(len(self.identifiers)))
             + b"".join(bytes(identifier) for identifier in self.identifiers)
             + bytes(Varint(len(self.progress)))
-            + b"".join(bytes(progress) for progress in self.progress)
+            + b"".join(
+                bytes(key) + bytes(value)
+                for key, value in self.progress.items()
+            )
         )
 
     @classmethod
@@ -5538,9 +5546,11 @@ class UpdateAdvancements(Packet):
         for _ in range(Varint.from_bytes(data).value):
             identifiers.append(Identifier.from_bytes(data))
         # progress
-        progress = []
+        progress = {}
         for _ in range(Varint.from_bytes(data).value):
-            progress.append(AdvancementProgress.from_bytes(data))
+            key = Identifier.from_bytes(data)
+            value = AdvancementProgress.from_bytes(data)
+            progress[key] = value
         return cls(reset, mapping, identifiers, progress)
 
 

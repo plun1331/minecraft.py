@@ -90,8 +90,8 @@ class LoginReactor(Reactor):
 
     @react_to(SetCompression)
     async def set_compression(self, packet: SetCompression):
-        log.warning(
-            f"Server requested compression with threshold {packet.threshold.value}"
+        log.info(
+            "Server requested compression with threshold %s", packet.threshold.value
         )
         self.connection.compression_threshold = packet.threshold.value
         self.connection.use_compression = packet.threshold.value >= 0
