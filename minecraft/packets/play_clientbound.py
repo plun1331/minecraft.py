@@ -5517,16 +5517,12 @@ class UpdateAdvancements(Packet):
             self.packet_id.to_bytes(1, "big")
             + bytes(self.reset)
             + bytes(Varint(len(self.mapping)))
-            + b"".join(
-                bytes(key) + bytes(value)
-                for key, value in self.mapping.items()
-            )
+            + b"".join(bytes(key) + bytes(value) for key, value in self.mapping.items())
             + bytes(Varint(len(self.identifiers)))
             + b"".join(bytes(identifier) for identifier in self.identifiers)
             + bytes(Varint(len(self.progress)))
             + b"".join(
-                bytes(key) + bytes(value)
-                for key, value in self.progress.items()
+                bytes(key) + bytes(value) for key, value in self.progress.items()
             )
         )
 
@@ -5801,7 +5797,10 @@ class UpdateTags(Packet):
                     entries=[
                         DataProxy(
                             name=Identifier.from_bytes(data),
-                            entries=[Varint.from_bytes(data) for _ in range(Varint.from_bytes(data).value)]
+                            entries=[
+                                Varint.from_bytes(data)
+                                for _ in range(Varint.from_bytes(data).value)
+                            ],
                         )
                         for _ in range(Varint.from_bytes(data).value)
                     ],

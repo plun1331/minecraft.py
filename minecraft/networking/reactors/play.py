@@ -69,7 +69,9 @@ class PlayReactor(Reactor):
 
     @react_to(SynchronizePlayerPosition)
     async def synchronize_player_position(self, packet: SynchronizePlayerPosition):
-        await self.connection.send_packet(ConfirmTeleportation(teleport_id=packet.teleport_id))
+        await self.connection.send_packet(
+            ConfirmTeleportation(teleport_id=packet.teleport_id)
+        )
         await self.connection.send_packet(
             SetPlayerPositionAndRotation(
                 x=packet.x,

@@ -123,7 +123,7 @@ class DataType:
         if isinstance(other, self.__class__):
             return self.__dict__ != other.__dict__
         return False
-    
+
     def __hash__(self) -> int:
         return hash(tuple(self.__dict__.values()))
 
@@ -545,14 +545,20 @@ class EntityMetadataEntry:
             3: Float.from_bytes,
             4: String.from_bytes,
             5: Chat.from_bytes,
-            6: lambda data: Chat.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            6: lambda data: Chat.from_bytes(data)
+            if Boolean.from_bytes(data).value
+            else None,
             7: Slot.from_bytes,
             8: Boolean.from_bytes,
             9: Rotation.from_bytes,
             10: Position.from_bytes,
-            11: lambda data: Position.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            11: lambda data: Position.from_bytes(data)
+            if Boolean.from_bytes(data).value
+            else None,
             12: Varint.from_bytes,
-            13: lambda data: UUID.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            13: lambda data: UUID.from_bytes(data)
+            if Boolean.from_bytes(data).value
+            else None,
             14: Varint.from_bytes,
             15: Varint.from_bytes,
             16: NBT.from_bytes,
@@ -562,7 +568,9 @@ class EntityMetadataEntry:
             20: Varint.from_bytes,
             21: Varint.from_bytes,
             22: Varint.from_bytes,
-            23: lambda data: GlobalPos.from_bytes(data) if Boolean.from_bytes(data).value else None,
+            23: lambda data: GlobalPos.from_bytes(data)
+            if Boolean.from_bytes(data).value
+            else None,
             24: Varint.from_bytes,
             25: Varint.from_bytes,
             26: Vector3.from_bytes,
@@ -750,8 +758,10 @@ class NBT(nbt.NBTFile):
             else:
                 raise nbt.MalformedFileError("First record was not the expected tag")
         except nbt.StructError as e:
-            raise nbt.MalformedFileError("Partial File Parse: file possibly truncated.") from e
-    
+            raise nbt.MalformedFileError(
+                "Partial File Parse: file possibly truncated."
+            ) from e
+
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         current_index = data.tell()
@@ -1507,8 +1517,10 @@ class PlayerInfoUpdatePlayer(DataType):
         update_listed = None
         update_latency = None
         update_display_name = None
-        if actions.value & PlayerInfoUpdateActionBits.ADD_PLAYER.value == \
-            PlayerInfoUpdateActionBits.ADD_PLAYER.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.ADD_PLAYER.value
+            == PlayerInfoUpdateActionBits.ADD_PLAYER.value
+        ):
             name = String.from_bytes(data)
             properties_count = Varint.from_bytes(data).value
             properties = []
@@ -1518,8 +1530,10 @@ class PlayerInfoUpdatePlayer(DataType):
                 name=name,
                 properties=properties,
             )
-        if actions.value & PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value == \
-            PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value
+            == PlayerInfoUpdateActionBits.INITIALIZE_CHAT.value
+        ):
             has_signature_data = Boolean.from_bytes(data)
             chat_session_id = None
             public_key_expiry = None
@@ -1539,26 +1553,34 @@ class PlayerInfoUpdatePlayer(DataType):
                 public_key=public_key,
                 public_key_signature=public_key_signature,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value == \
-            PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value
+            == PlayerInfoUpdateActionBits.UPDATE_GAMEMODE.value
+        ):
             gamemode = Varint.from_bytes(data)
             update_gamemode = DataProxy(
                 gamemode=gamemode,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value == \
-            PlayerInfoUpdateActionBits.UPDATE_LISTED.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.UPDATE_LISTED.value
+            == PlayerInfoUpdateActionBits.UPDATE_LISTED.value
+        ):
             listed = Boolean.from_bytes(data)
             update_listed = DataProxy(
                 listed=listed,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value == \
-            PlayerInfoUpdateActionBits.UPDATE_LATENCY.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.UPDATE_LATENCY.value
+            == PlayerInfoUpdateActionBits.UPDATE_LATENCY.value
+        ):
             latency = Varint.from_bytes(data)
             update_latency = DataProxy(
                 latency=latency,
             )
-        if actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value == \
-            PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value:
+        if (
+            actions.value & PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value
+            == PlayerInfoUpdateActionBits.UPDATE_DISPLAY_NAME.value
+        ):
             has_display_name = Boolean.from_bytes(data)
             display_name = None
             if has_display_name:
