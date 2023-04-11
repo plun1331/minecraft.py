@@ -2083,6 +2083,7 @@ class UpdateLight(Packet):
         block_light_size = Varint.from_bytes(data).value
         block_light = []
         for _ in range(block_light_size):
+            # FIXME: Varint is too big (possible incorrect packet structure)
             arr_length = Varint.from_bytes(data).value
             block_light.append(ByteArray.from_bytes(data, length=arr_length))
         return cls(
@@ -3903,7 +3904,6 @@ class ServerData(Packet):
         return (
             self.packet_id.to_bytes(1, "big")
             + bytes(self.motd)
-            + bytes(self.motd)
             + bytes(Boolean(self.icon is not None))
             + (bytes(self.icon) if self.icon is not None else b"")
             + bytes(self.enforces_secure_chat)
@@ -3914,11 +3914,13 @@ class ServerData(Packet):
         # Fields: motd (chat), icon (string), enforces_secure_chat (boolean)
         # motd
         motd = Chat.from_bytes(data)
-        motd = Chat.from_bytes(data)
         # icon
         icon = None
         if Boolean.from_bytes(data).value:
-            icon = String.from_bytes(data, max_length=32767)
+            # while this is labeled as a string,
+            # it's actually a png
+            icon_length = Varint.from_bytes(data).value
+            icon = BytesIO(data.read(icon_length))
         # enforces_secure_chat
         enforces_secure_chat = Boolean.from_bytes(data)
         return cls(motd, icon, enforces_secure_chat)

@@ -60,7 +60,7 @@ class PlayReactor(Reactor):
 
     @react_to(Ping)
     async def ping(self, packet: Ping):
-        await self.connection.send_packet(Pong(id=packet.id))
+        await self.connection.send_packet(Pong(id=packet.id), immediate=True)
 
     @react_to(DisconnectPlay)
     async def disconnect(self, packet: DisconnectPlay):

@@ -1650,7 +1650,26 @@ class Advancement(DataType):
             parent_id = String.from_bytes(data)
         display_data = None
         if Boolean.from_bytes(data):
-            display_data = DataProxy.from_bytes(data)
+            title = Chat.from_bytes(data)
+            description = Chat.from_bytes(data)
+            icon = Slot.from_bytes(data)
+            frame_type = Varint.from_bytes(data)
+            flags = Int.from_bytes(data)
+            background_texture = None
+            if 0x01 & flags.value:
+                background_texture = Identifier.from_bytes(data)
+            x_coord = Float.from_bytes(data)
+            y_coord = Float.from_bytes(data)
+            display_data = DataProxy(
+                title=title,
+                description=description,
+                icon=icon,
+                frame_type=frame_type,
+                flags=flags,
+                background_texture=background_texture,
+                x_coord=x_coord,
+                y_coord=y_coord,
+            )
         criteria_count = Varint.from_bytes(data).value
         criteria = {}
         for _ in range(criteria_count):

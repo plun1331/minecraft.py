@@ -300,11 +300,16 @@ class Connection:
                     log.exception(
                         "Reader < Failed to parse packet with id %s",
                         Varint.from_bytes(BytesIO(packet_data)).value,
+                        exc_info=exc,
                     )
                     continue
 
                 log.debug("Reader < Recieved %s", packet.__class__.__name__)
                 if self.reactor and packet.__class__ in self.reactor.handlers:
+                    log.info(
+                        "Dispatching %s to reactor handler",
+                        packet.__class__.__name__
+                    )
                     await self.reactor.handlers[packet.__class__](packet)
                 self.dispatcher.dispatch(packet)
         except asyncio.CancelledError:
