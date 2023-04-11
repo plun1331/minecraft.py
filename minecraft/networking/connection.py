@@ -306,7 +306,7 @@ class Connection:
 
                 log.debug("Reader < Recieved %s", packet.__class__.__name__)
                 if self.reactor and packet.__class__ in self.reactor.handlers:
-                    log.info(
+                    log.debug(
                         "Dispatching %s to reactor handler",
                         packet.__class__.__name__
                     )
