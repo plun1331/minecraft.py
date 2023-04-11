@@ -83,6 +83,7 @@ class PacketParsingError(Exception):
     :ivar data: The packet data.
     :vartype data: bytes
     """
+
     def __init__(self, exc: Exception, packet_id: int, data: bytes) -> None:
         super().__init__(f"Failed to parse packet with ID {packet_id}: {exc}")
         self.original_exception: Exception = exc

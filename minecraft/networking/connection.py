@@ -196,7 +196,8 @@ class Connection:
         """
         log.info(
             f"Connecting to %s:%s with protocol version {PROTOCOL_VERSION} ({RELEASE_NAME})",
-            host, port,
+            host,
+            port,
         )
         self.host = host
         self.port = port
@@ -232,7 +233,8 @@ class Connection:
                 log.debug("Reader < Recieving packet of length %s", packet_length)
                 if packet_length > 2097151:
                     log.error(
-                        "Reader x< Packet length %s is too large, terminating connection", packet_length
+                        "Reader x< Packet length %s is too large, terminating connection",
+                        packet_length,
                     )
                     await self.close(
                         error=MalformedPacketSizeError(
