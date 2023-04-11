@@ -5,7 +5,7 @@
 The following versions are currently supported and recieving security updates:
 
 | Version     | Supported          |
-| ----------- | ------------------ |
+| :---------: | :----------------: |
 | 0.0.0-alpha | :white_check_mark: |
 
 Unsupported versions will not recieve security updates, and vulnerability reports will not be accepted. 
@@ -13,8 +13,7 @@ If you are using an unsupported version, you should update to a supported versio
 
 ## Reporting a Vulnerability
 
-You may report vulnerabilities on GitHub, under the 
-[Security](https://github.com/plun1331/minecraft.py/security) tab, by clicking the green "Report a vulnerability" button.
+You may report vulnerabilities on GitHub, under [Security > Advisories](Development/pycord/security/advisories), by clicking the green "Report a vulnerability" button.
 
 Note that a GitHub account is required to perform this action.
 
