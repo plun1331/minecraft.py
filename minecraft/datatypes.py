@@ -602,6 +602,7 @@ class Statistic(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import StatCategory, StatID
+
         category = StatCategory(Varint.from_bytes(data))
         stat_id = StatID(Varint.from_bytes(data))
         value = Varint.from_bytes(data)
@@ -671,6 +672,7 @@ class CommandNode(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import CommandParser
+
         flags = Byte.from_bytes(data)
         children = []
         children_count = Varint.from_bytes(data)
@@ -771,6 +773,7 @@ class MapIcon(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         from .enums import MapIconType
+
         type = MapIconType(Byte.from_bytes(data))
         x = Byte.from_bytes(data)
         y = Byte.from_bytes(data)
@@ -906,6 +909,7 @@ class PlayerInfoUpdatePlayer(DataType):
     @classmethod
     def from_bytes(cls, data: BytesIO, actions: Byte) -> Self:
         from .enums import PlayerInfoUpdateActionBits
+
         uuid = UUID.from_bytes(data)
         add_player = None
         initialize_chat = None
