@@ -24,6 +24,6 @@
 * Ask any question about the project in our [Discord server](https://plun.is-a.dev/discord)
 
 Your contributions are greatly appreciated. Thank you!
-- The minecraft.py development team
+\- The minecraft.py development team
 
 *Adapted from the Ruby Rails [contribution guidelines](https://github.com/rails/rails/blob/main/CONTRIBUTING.md).*
