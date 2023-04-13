@@ -13,7 +13,7 @@ If you are using an unsupported version, you should update to a supported versio
 
 ## Reporting a Vulnerability
 
-You may report vulnerabilities on GitHub, under [Security > Advisories](Development/pycord/security/advisories), by clicking the green "Report a vulnerability" button.
+You may report vulnerabilities on GitHub, under [Security > Advisories](https://github.com/plun1331/minecraft.py/security/advisories), by clicking the green "Report a vulnerability" button.
 
 Note that a GitHub account is required to perform this action.
 
