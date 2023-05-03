@@ -8,7 +8,7 @@ The following versions are currently supported and recieving security updates:
 | :---------: | :----------------: |
 | 0.0.0-alpha | :white_check_mark: |
 
-Unsupported versions will not recieve security updates, and vulnerability reports will not be accepted. 
+Unsupported versions will not recieve security updates, and while vulnerability reports will be accepted, they will not be patched. 
 If you are using an unsupported version, you should update to a supported version.
 
 ## Reporting a Vulnerability
