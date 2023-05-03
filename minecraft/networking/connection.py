@@ -323,7 +323,7 @@ class Connection:
                 packet: PACKET = await self.outgoing_packets.get()
                 if packet.state != self.state:
                     log.error(
-                        "Writer x> Illegal packet %s " " during %s (expected state %s)",
+                        "Writer x> Illegal packet %s during %s (expected state %s)",
                         packet.__class__.__name__,
                         self.state.name,
                         packet.state.name,
@@ -340,11 +340,11 @@ class Connection:
                 packet_length = len(packet)
                 if packet_length > 2097151:
                     log.error(
-                        f"Writer x> Packet length {packet_length} is too large, terminating connection"
+                        f"Writer x> Packet length %s is too large, terminating connection", packet_length
                     )
                     await self.close(
                         error=MalformedPacketSizeError(
-                            f"Packet length of {packet_length} is too large"
+                            f"Packet length of %s is too large", packet_length
                         )
                     )
                     return

@@ -50,15 +50,11 @@ class LoginDisconnectError(DisconnectError):
     Exception raised when the server disconnects the client during the login phase.
     """
 
-    pass
-
 
 class MalformedPacketSizeError(Exception):
     """
     Exception raised when a packet that is too large is recieved.
     """
-
-    pass
 
 
 class UnknownPacketError(Exception):

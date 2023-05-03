@@ -1409,9 +1409,9 @@ class DataProxy:
     def __getattr__(self, name):
         return self.attrs[name]
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, value) -> None:
         if name == "attrs":
-            return super().__setattr__(name, value)
+            super().__setattr__(name, value)
         self.attrs[name] = value
 
     def __repr__(self):

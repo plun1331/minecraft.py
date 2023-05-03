@@ -10,8 +10,8 @@ import os
 import sys
 
 # copy ../CHANGELOG.md to ./changelog.md
-with open("../CHANGELOG.md", "r") as file:
-    with open("./changelog.md", "w") as dest:
+with open("../CHANGELOG.md", "r", encoding="utf-8") as file:
+    with open("./changelog.md", "w", encoding="utf-8") as dest:
         dest.write(file.read())
 
 sys.path.insert(0, os.path.abspath(".."))

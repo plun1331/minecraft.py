@@ -41,7 +41,7 @@ class Packet:
     state: State = None  # :meta public:
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
+    def from_bytes(cls, data: BytesIO) -> Self:
         """
         Converts a packet's data into a packet object.
 
