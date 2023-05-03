@@ -448,9 +448,7 @@ class Connection:
         while self.state != state:
             await asyncio.sleep(0.01)
             if timeout_at is not None and time.time() > timeout_at:
-                raise asyncio.TimeoutError(
-                    f"Timed out waiting for {state.name} state"
-                )
+                raise asyncio.TimeoutError(f"Timed out waiting for {state.name} state")
 
     # Login
     async def login(self):
