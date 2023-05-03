@@ -340,7 +340,8 @@ class Connection:
                 packet_length = len(packet)
                 if packet_length > 2097151:
                     log.error(
-                        "Writer x> Packet length %s is too large, terminating connection", packet_length
+                        "Writer x> Packet length %s is too large, terminating connection",
+                        packet_length,
                     )
                     await self.close(
                         error=MalformedPacketSizeError(
