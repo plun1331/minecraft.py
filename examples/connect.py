@@ -23,6 +23,8 @@ class Client(minecraft.Client):
         # Authenticate with Microsoft
         # Replace CLIENT_ID with your own client ID from the Azure Developer Portal:
         # https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/RegisteredApps
+        # 
+        # The `msal` library must be installed
         await self.microsoft_auth("CLIENT_ID")
 
 

@@ -35,9 +35,9 @@ Note that this requires that you have [`git`](https://git-scm.com/) installed.
 
 
 ### Optional Requirements
-- `microsoft-auth`
+- `microsoft-auth`: Enables the builtin device code authentication flow with `Client.microsoft_auth`.
     - [`msal`](https://pypi.org/project/msal/) for Microsoft authentication
-- `docs`
+- `docs`: For building the docs locally. Typically not needed unless you plan on contributing.
     - [`sphinx`](https://pypi.org/project/sphinx/) for documentation generation.
     - [`furo`](https://pypi.org/project/furo/) for our documentation styling.
     - [`myst-parser`](https://pypi.org/project/myst-parser/) for parsing markdown files.
