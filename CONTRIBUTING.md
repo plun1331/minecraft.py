@@ -11,8 +11,6 @@
   Be sure to include a **title and clear description**, as much relevant information as possible, 
   and a code sample demonstrating the expected behavior that is not occurring.
 
-* For more detailed information on submitting a bug report and creating an issue, visit our [reporting guidelines](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#reporting-an-issue).
-
 #### **Did you fix something or add something new?**
 
 * Open a new GitHub pull request with the change.
