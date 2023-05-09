@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-microsoft-auth = ["msal~=1.21.0"]
+microsoft-auth = ["msal~=1.22.0"]
 
 [project.urls]
 repository = "https://github.com/plun1331/minecraft.py"
