@@ -28,36 +28,45 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Self
+from typing import Literal, Self
+
+from ..enums import State
 
 
 class Packet:
     """Represents a Minecraft packet."""
 
-    packet_id: int = None
+    packet_id: int = None  # :meta public:
+    bound_to: Literal["client", "server"] = None  # :meta public:
+    state: State = None  # :meta public:
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> Self:  # pylint: disable=unused-argument
+    def from_bytes(cls, data: BytesIO) -> Self:
+        """
+        Converts a packet's data into a packet object.
+
+        :param data: The packet's data.
+        :type data: io.BytesIO
+
+        :return: The packet object.
+        :rtype: Packet
+        """
         return cls()
 
-    @classmethod
-    def decode(cls, data: bytes) -> Self:
-        io = BytesIO(data)
-        packet_id = int(io.read(1)[0])
-        if packet_id != cls.packet_id:
-            raise ValueError(
-                f"Packet ID ({packet_id}) does not match expected packet ID ({cls.packet_id})"
-            )
-        return cls.from_bytes(io)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(packet_id={self.packet_id})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(packet_id={self.packet_id} {' '.join([f'{k}={v}' for k, v in self.__dict__.items()])})"
 
     def __bytes__(self):
         return self.packet_id.to_bytes(1, "big")
 
     def __len__(self):
-        return len(self.packet_id.to_bytes(1, "big"))
+        return len(bytes(self))
 
     def __eq__(self, other):
         return bytes(self) == bytes(other)
+
+    def __hash__(self):
+        return hash(bytes(self))
+
+    def to_bytes(self) -> bytes:
+        return bytes(self)

@@ -26,18 +26,20 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from .base import Packet
+from ..datatypes import *
 from ..enums import (
     BlockFace,
     ChatMode,
     ClientCommandAction,
+    CommandBlockMode,
     Hand,
     InteractionType,
     MainHand,
     PlayerActionStatus,
     PlayerCommandAction,
-    CommandBlockMode,
     ProgramStructureBlockAction,
     ProgramStructureBlockMirror,
     ProgramStructureBlockMode,
@@ -45,20 +47,24 @@ from ..enums import (
     RecipeBookID,
     ResourcePackStatus,
     SeenAdvancementsAction,
+    State,
 )
-from ..datatypes import *
 
 
 class ConfirmTeleportation(Packet):
     """
     Sent by client as confirmation of Synchronize Player Position.
 
-    Packet ID: 0x00
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, teleport_id: Varint):
         self.teleport_id = teleport_id
@@ -78,12 +84,16 @@ class QueryBlockEntityTag(Packet):
     """
     Used when ``Shift+F3+I`` is pressed while looking at a block.
 
-    Packet ID: 0x01
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, transaction_id: Varint, location: Position):
         self.transaction_id = transaction_id
@@ -106,17 +116,21 @@ class QueryBlockEntityTag(Packet):
         return cls(transaction_id, location)
 
 
-class ChangeDifficulty(Packet):
+class ChangeServerDifficulty(Packet):
     """
     Only be used on singleplayer;
     the difficulty buttons are disabled in multiplayer.
 
-    Packet ID: 0x02
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x02
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, difficulty: UnsignedByte):
         self.difficulty = difficulty
@@ -136,12 +150,16 @@ class MessageAcknowledgement(Packet):
     """
     Sent by client to acknowledge a message.
 
-    Packet ID: 0x03
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x03``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x03
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, message_count: Varint):
         self.message_count = message_count
@@ -161,12 +179,16 @@ class ChatCommand(Packet):
     """
     Sent by client to send a command.
 
-    Packet ID: 0x04
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x04``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x04
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -235,12 +257,16 @@ class ChatMessage(Packet):
     """
     Send a chat message.
 
-    Packet ID: 0x05
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x05``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x05
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -299,16 +325,59 @@ class ChatMessage(Packet):
         )
 
 
+class PlayerSession(Packet):
+    """
+    Sent by client to send information about the player session.
+
+    **Packet ID**: ``0x06``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
+    """
+
+    packet_id = 0x06
+    bound_to = "server"
+    state = State.PLAY
+
+    def __init__(
+        self,
+        session_id: UUID,
+        public_key_expires_at: Long,
+        public_key: ByteArray,
+        public_key_signature: ByteArray,
+    ):
+        self.session_id = session_id
+        self.public_key_expires_at = public_key_expires_at
+        self.public_key = public_key
+        self.public_key_signature = public_key_signature
+
+    def __bytes__(self):
+        return (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.session_id)
+            + bytes(self.public_key_expires_at)
+            + bytes(Varint(len(self.public_key)))
+            + bytes(self.public_key)
+            + bytes(Varint(len(self.public_key_signature)))
+            + bytes(self.public_key_signature)
+        )
+
+
 class ClientCommand(Packet):
     """
     Sent by client to send a command.
 
-    Packet ID: 0x06
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x07``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x06
+    packet_id = 0x07
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -323,7 +392,7 @@ class ClientCommand(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: action_id (ClientCommandAction)
         # action_id
-        action_id = ClientCommandAction(Varint.from_bytes(data))
+        action_id = ClientCommandAction.from_value(Varint.from_bytes(data))
         return cls(action_id)
 
 
@@ -331,12 +400,16 @@ class ClientInformation(Packet):
     """
     Sent by client to send information about the client.
 
-    Packet ID: 0x07
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x08``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x07
+    packet_id = 0x08
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -381,13 +454,13 @@ class ClientInformation(Packet):
         # view_distance
         view_distance = Varint.from_bytes(data)
         # chat_mode
-        chat_mode = ChatMode(Varint.from_bytes(data))
+        chat_mode = ChatMode.from_value(Varint.from_bytes(data))
         # chat_colors
         chat_colors = Boolean.from_bytes(data)
         # displayed_skin_parts
         displayed_skin_parts = BitSet.from_bytes(data)
         # main_hand
-        main_hand = MainHand(Varint.from_bytes(data))
+        main_hand = MainHand.from_value(Varint.from_bytes(data))
         # enable_text_filtering
         enable_text_filtering = Boolean.from_bytes(data)
         # allow_server_listings
@@ -408,12 +481,16 @@ class CommandSuggestionsRequest(Packet):
     """
     Sent when the client needs to tab-complete a minecraft:ask_server suggestion type.
 
-    Packet ID: 0x08
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x09``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x08
+    packet_id = 0x09
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -444,12 +521,16 @@ class ClickContainerButton(Packet):
     """
     Used when clicking on window buttons.
 
-    Packet ID: 0x09
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x09
+    packet_id = 0x0A
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -480,12 +561,16 @@ class ClickContainer(Packet):
     """
     Sent by the client when the player clicks on a slot in a window.
 
-    Packet ID: 0x0A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0A
+    packet_id = 0x0B
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -555,12 +640,16 @@ class CloseContainer(Packet):
     """
     Sent by the client when the player closes a window.
 
-    Packet ID: 0x0B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0B
+    packet_id = 0x0C
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -583,12 +672,16 @@ class PluginMessageServerbound(Packet):
     """
     Sent by the client when it wants to send a plugin message to the server.
 
-    Packet ID: 0x0C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0C
+    packet_id = 0x0D
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -617,12 +710,16 @@ class EditBook(Packet):
     """
     Sent by the client when the player edits a book.
 
-    Packet ID: 0x0D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0D
+    packet_id = 0x0E
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -661,12 +758,16 @@ class QueryEntityTag(Packet):
     """
     Sent by the client when the player queries an entity's tags.
 
-    Packet ID: 0x0E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x0F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0E
+    packet_id = 0x0F
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -697,12 +798,16 @@ class Interact(Packet):
     """
     Sent by the client when the player interacts with an entity.
 
-    Packet ID: 0x0F
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x10``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x0F
+    packet_id = 0x10
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -767,12 +872,16 @@ class JigsawGenerate(Packet):
     """
     Sent by the client when the player generates a jigsaw structure.
 
-    Packet ID: 0x10
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x11``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x10
+    packet_id = 0x11
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -808,12 +917,16 @@ class KeepAliveServerbound(Packet):
     """
     Sent by the client to keep the connection alive.
 
-    Packet ID: 0x11
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x12``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x11
+    packet_id = 0x12
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -836,12 +949,16 @@ class LockDifficulty(Packet):
     """
     Sent by the client when the player locks the difficulty.
 
-    Packet ID: 0x12
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x13``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x12
+    packet_id = 0x13
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -864,12 +981,16 @@ class SetPlayerPosition(Packet):
     """
     Updates the player's XYZ position on the server.
 
-    Packet ID: 0x13
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x14``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x13
+    packet_id = 0x14
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -910,12 +1031,16 @@ class SetPlayerPositionAndRotation(Packet):
     """
     Sent by the client when the player moves and rotates.
 
-    Packet ID: 0x14
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x15``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x14
+    packet_id = 0x15
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -966,12 +1091,16 @@ class SetPlayerRotation(Packet):
     """
     Sent by the client when the player rotates.
 
-    Packet ID: 0x15
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x16``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x15
+    packet_id = 0x16
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1007,12 +1136,16 @@ class SetPlayerOnGround(Packet):
     """
     Sent by the client when the player moves on the ground.
 
-    Packet ID: 0x16
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x17``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x16
+    packet_id = 0x17
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1035,12 +1168,16 @@ class MoveVehicle(Packet):
     """
     Sent by the client when the player moves the vehicle.
 
-    Packet ID: 0x17
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x18``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x17
+    packet_id = 0x18
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1086,12 +1223,16 @@ class PaddleBoat(Packet):
     """
     Sent by the client when the player paddles the boat.
 
-    Packet ID: 0x18
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x19``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x18
+    packet_id = 0x19
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1122,12 +1263,16 @@ class PickItem(Packet):
     """
     Sent by the client when the player picks an item.
 
-    Packet ID: 0x19
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x19
+    packet_id = 0x1A
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1150,12 +1295,16 @@ class PlaceRecipe(Packet):
     """
     Sent by the client when the player places a recipe.
 
-    Packet ID: 0x1A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1A
+    packet_id = 0x1B
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1187,17 +1336,21 @@ class PlaceRecipe(Packet):
         return cls(window_id, recipe, make_all)
 
 
-class PlayerAbilities(Packet):
+class ServerPlayerAbilities(Packet):
     """
     The vanilla client sends this packet when the
     player starts/stops flying with the Flags parameter changed accordingly.
 
-    Packet ID: 0x1B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1B
+    packet_id = 0x1C
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1220,12 +1373,16 @@ class PlayerAction(Packet):
     """
     Sent by the client when the player performs an action.
 
-    Packet ID: 0x1C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1C
+    packet_id = 0x1D
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1252,11 +1409,11 @@ class PlayerAction(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: status (Varint), location (Position), face (Varint), sequence (Varint)
         # status
-        status = PlayerActionStatus(Varint.from_bytes(data))
+        status = PlayerActionStatus.from_value(Varint.from_bytes(data))
         # location
         location = Position.from_bytes(data)
         # face
-        face = BlockFace(Varint.from_bytes(data))
+        face = BlockFace.from_value(Varint.from_bytes(data))
         # sequence
         sequence = Varint.from_bytes(data)
         return cls(status, location, face, sequence)
@@ -1266,12 +1423,16 @@ class PlayerCommand(Packet):
     """
     Sent by the client when the player uses a command.
 
-    Packet ID: 0x1D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1D
+    packet_id = 0x1E
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1297,7 +1458,7 @@ class PlayerCommand(Packet):
         # entity_id
         entity_id = Varint.from_bytes(data)
         # action_id
-        action_id = PlayerCommandAction(Varint.from_bytes(data))
+        action_id = PlayerCommandAction.from_value(Varint.from_bytes(data))
         # jump_boost
         jump_boost = Varint.from_bytes(data)
         return cls(entity_id, action_id, jump_boost)
@@ -1307,12 +1468,16 @@ class PlayerInput(Packet):
     """
     Also known as 'Input' packet.
 
-    Packet ID: 0x1E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x1F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1E
+    packet_id = 0x1F
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1348,12 +1513,16 @@ class Pong(Packet):
     """
     Response to the clientbound packet (Ping) with the same id.
 
-    Packet ID: 0x1F
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x20``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
-    packet_id = 0x1F
+    packet_id = 0x20
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1372,66 +1541,20 @@ class Pong(Packet):
         return cls(id)
 
 
-class PlayerSession(Packet):
-    """
-    Updates the player's session.
-
-    Packet ID: 0x20
-    State: Play
-    Bound to: Server
-    """
-
-    packet_id = 0x20
-
-    def __init__(
-        self,
-        session_id: UUID,
-        public_key_expires_at: Long,
-        public_key: ByteArray,
-        public_key_signature: ByteArray,
-    ):
-        self.session_id = session_id
-        self.public_key_expires_at = public_key_expires_at
-        self.public_key = public_key
-        self.public_key_signature = public_key_signature
-
-    def __bytes__(self):
-        return (
-            self.packet_id.to_bytes(1, "big")
-            + bytes(self.session_id)
-            + bytes(self.public_key_expires_at)
-            + bytes(Varint(len(self.public_key)))
-            + bytes(self.public_key)
-            + bytes(Varint(len(self.public_key_signature)))
-            + bytes(self.public_key_signature)
-        )
-
-    @classmethod
-    def from_bytes(cls, data: BytesIO):
-        # Fields: session_id (UUID), public_key_expires_at (Long), public_key (ByteArray), public_key_signature (ByteArray)
-        # session_id
-        session_id = UUID.from_bytes(data)
-        # public_key_expires_at
-        public_key_expires_at = Long.from_bytes(data)
-        # public_key
-        public_key = ByteArray.from_bytes(data, length=Varint.from_bytes(data).value)
-        # public_key_signature
-        public_key_signature = ByteArray.from_bytes(
-            data, length=Varint.from_bytes(data).value
-        )
-        return cls(session_id, public_key_expires_at, public_key, public_key_signature)
-
-
 class ChangeRecipeBookSettings(Packet):
     """
     Sent by the client when the player changes the recipe book settings.
 
-    Packet ID: 0x21
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x21``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x21
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1455,7 +1578,7 @@ class ChangeRecipeBookSettings(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: book_id (Varint), book_open (Boolean), filter_active (Boolean)
         # book_id
-        book_id = RecipeBookID(Varint.from_bytes(data))
+        book_id = RecipeBookID.from_value(Varint.from_bytes(data))
         # book_open
         book_open = Boolean.from_bytes(data)
         # filter_active
@@ -1467,12 +1590,16 @@ class SetSeenRecipe(Packet):
     """
     Sent by the client when the player sees a recipe.
 
-    Packet ID: 0x22
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x22``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x22
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1496,12 +1623,16 @@ class RenameItem(Packet):
     Sent as a player is renaming an item in an anvil.
     Each keypress in the anvil UI sends a new packet.
 
-    Packet ID: 0x23
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x23``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x23
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1520,16 +1651,20 @@ class RenameItem(Packet):
         return cls(item_name)
 
 
-class ResourcePack(Packet):
+class ServerResourcePackStatus(Packet):
     """
     Sends the resource pack status to the server.
 
-    Packet ID: 0x24
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x24``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x24
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1546,7 +1681,7 @@ class ResourcePack(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: resource_pack_status (Varint)
         # resource_pack_status
-        resource_pack_status = ResourcePackStatus(Varint.from_bytes(data))
+        resource_pack_status = ResourcePackStatus.from_value(Varint.from_bytes(data))
         return cls(resource_pack_status)
 
 
@@ -1554,12 +1689,16 @@ class SeenAdvancements(Packet):
     """
     Sent by the client when the player sees an advancement.
 
-    Packet ID: 0x25
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x25``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x25
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1580,7 +1719,7 @@ class SeenAdvancements(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: action (Varint), tab_id (Identifier)
         # action
-        action = SeenAdvancementsAction(Varint.from_bytes(data))
+        action = SeenAdvancementsAction.from_value(Varint.from_bytes(data))
         # tab_id
         tab_id = (
             Identifier.from_bytes(data)
@@ -1594,12 +1733,16 @@ class SelectTrade(Packet):
     """
     Sent by the client when the player selects a trade in a villager's trade UI.
 
-    Packet ID: 0x26
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x26``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x26
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1622,12 +1765,16 @@ class SetBeaconEffect(Packet):
     """
     Sent by the client when the player sets the beacon effect.
 
-    Packet ID: 0x27
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x27``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x27
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1656,16 +1803,20 @@ class SetBeaconEffect(Packet):
         return cls(primary_effect, secondary_effect)
 
 
-class SetHeldItem(Packet):
+class ServerSetHeldItem(Packet):
     """
     Sent by the client when the player changes their held item.
 
-    Packet ID: 0x28
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x28``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x28
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1688,12 +1839,16 @@ class ProgramCommandBlock(Packet):
     """
     Sent by the client when the player programs a command block.
 
-    Packet ID: 0x29
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x29``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x29
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self, location: Position, command: String, mode: CommandBlockMode, flags: Byte
@@ -1720,7 +1875,7 @@ class ProgramCommandBlock(Packet):
         # command
         command = String.from_bytes(data, max_length=32767)
         # mode
-        mode = CommandBlockMode(Varint.from_bytes(data))
+        mode = CommandBlockMode.from_value(Varint.from_bytes(data))
         # flags
         flags = Byte.from_bytes(data)
         return cls(location, command, mode, flags)
@@ -1730,12 +1885,16 @@ class ProgramCommandBlockMinecart(Packet):
     """
     Sent by the client when the player programs a command block minecart.
 
-    Packet ID: 0x2A
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2A``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2A
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1771,12 +1930,16 @@ class SetCreativeModeSlot(Packet):
     """
     Sent by the client when the player sets a slot in the creative inventory.
 
-    Packet ID: 0x2B
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2B``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2B
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1803,12 +1966,16 @@ class ProgramJigsawBlock(Packet):
     """
     Sent when Done is pressed on the Jigsaw Block interface.
 
-    Packet ID: 0x2C
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2C``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2C
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1859,10 +2026,16 @@ class ProgramStructureBlock(Packet):
     """
     Programs a structure block.
 
-    Packet ID: 0x2D
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2D``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
+
+    packet_id = 0x2D
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -1931,9 +2104,9 @@ class ProgramStructureBlock(Packet):
         # location
         location = Position.from_bytes(data)
         # action
-        action = ProgramStructureBlockAction(Varint.from_bytes(data))
+        action = ProgramStructureBlockAction.from_value(Varint.from_bytes(data))
         # mode
-        mode = ProgramStructureBlockMode(Varint.from_bytes(data))
+        mode = ProgramStructureBlockMode.from_value(Varint.from_bytes(data))
         # name
         name = String.from_bytes(data, max_length=32767)
         # offset_x
@@ -1949,9 +2122,9 @@ class ProgramStructureBlock(Packet):
         # size_z
         size_z = Byte.from_bytes(data)
         # mirror
-        mirror = ProgramStructureBlockMirror(Varint.from_bytes(data))
+        mirror = ProgramStructureBlockMirror.from_value(Varint.from_bytes(data))
         # rotation
-        rotation = ProgramStructureBlockRotation(Varint.from_bytes(data))
+        rotation = ProgramStructureBlockRotation.from_value(Varint.from_bytes(data))
         # metadata
         metadata = String.from_bytes(data, max_length=128)
         # integrity
@@ -1984,12 +2157,16 @@ class UpdateSign(Packet):
     """
     Updates a sign.
 
-    Packet ID: 0x2E
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2E``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2E
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2035,12 +2212,16 @@ class SwingArm(Packet):
     """
     Swings the player's arm.
 
-    Packet ID: 0x2F
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x2F``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x2F
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, hand: Hand):
         self.hand = hand
@@ -2052,7 +2233,7 @@ class SwingArm(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         return cls(hand)
 
 
@@ -2060,12 +2241,16 @@ class TeleportToEntity(Packet):
     """
     Teleports the player to the entity.
 
-    Packet ID: 0x30
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x30``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x30
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, target_player: UUID):
         self.target_player = target_player
@@ -2085,12 +2270,16 @@ class UseItemOn(Packet):
     """
     Uses an item on a block or entity.
 
-    Packet ID: 0x31
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x31``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x31
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(
         self,
@@ -2129,11 +2318,11 @@ class UseItemOn(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand), location (Position), face (BlockFace), cursor_x (Float), cursor_y (Float), cursor_z (Float), inside_block (Boolean), sequence (Varint)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         # location
         location = Position.from_bytes(data)
         # face
-        face = BlockFace(Varint.from_bytes(data))
+        face = BlockFace.from_value(Varint.from_bytes(data))
         # cursor_x
         cursor_x = Float.from_bytes(data)
         # cursor_y
@@ -2153,12 +2342,16 @@ class UseItem(Packet):
     """
     Uses an item.
 
-    Packet ID: 0x32
-    State: Play
-    Bound to: Server
+    **Packet ID**: ``0x32``
+
+    **State**: :attr:`.State.PLAY`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x32
+    bound_to = "server"
+    state = State.PLAY
 
     def __init__(self, hand: Hand, sequence: Varint):
         self.hand = hand
@@ -2173,7 +2366,7 @@ class UseItem(Packet):
     def from_bytes(cls, data: BytesIO):
         # Fields: hand (Hand), sequence (Varint)
         # hand
-        hand = Hand(Varint.from_bytes(data))
+        hand = Hand.from_value(Varint.from_bytes(data))
         # sequence
         sequence = Varint.from_bytes(data)
         return cls(hand, sequence)

@@ -26,22 +26,27 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
-from ..enums import NextState
+from ..enums import NextState, State
 
 
 class Handshake(Packet):
     """
     Handshake packet sent by the client to the server to initiate a connection.
 
-    Packet ID: 0x00
-    State: Handshaking
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.HANDSHAKE`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
+    bound_to = "server"
+    state = State.HANDSHAKE
 
     def __init__(
         self,
@@ -65,7 +70,7 @@ class Handshake(Packet):
         # server port
         server_port = UnsignedShort.from_bytes(data)
         # next state
-        next_state = NextState(Varint.from_bytes(data))
+        next_state = NextState.from_value(Varint.from_bytes(data))
         return cls(protocol_version, server_address, server_port, next_state)
 
     def __bytes__(self):

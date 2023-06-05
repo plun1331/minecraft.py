@@ -26,32 +26,38 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class DisconnectLogin(Packet):
     """
     Sent by the server when the client is disconnected.
 
-    Packet ID: 0x00
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
-    id = 0x00
+    packet_id = 0x00
+    bound_to = "client"
+    state = State.LOGIN
 
-    def __init__(self, reason: String) -> None:
-        self.reason: String = reason
+    def __init__(self, reason: Chat) -> None:
+        self.reason: Chat = reason
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(self.reason)
+        return self.packet_id.to_bytes(1, "big") + bytes(self.reason)
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
         # Fields: reason (string)
-        return cls(String.from_bytes(data))
+        return cls(Chat.from_bytes(data))
 
     def __str__(self) -> str:
         return str(self.reason)
@@ -61,12 +67,16 @@ class EncryptionRequest(Packet):
     """
     Sent by the server to request encryption.
 
-    Packet ID: 0x01
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x01
+    bound_to = "client"
+    state = State.LOGIN
 
     def __init__(
         self, server_id: String, public_key: ByteArray, verify_token: ByteArray
@@ -88,7 +98,7 @@ class EncryptionRequest(Packet):
         )
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> "EncryptionRequest":
+    def from_bytes(cls, data: BytesIO) -> EncryptionRequest:
         # Fields: server_id (string), public key length (varint),
         # public_key (byte array), verify token length (varing), verify_token (byte array)
         # server id
@@ -108,12 +118,16 @@ class LoginSuccess(Packet):
     """
     Sent by the server to indicate that the client has successfully logged in.
 
-    Packet ID: 0x02
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
-    id = 0x02
+    packet_id = 0x02
+    bound_to = "client"
+    state = State.LOGIN
 
     def __init__(
         self, uuid: UUID, username: String, properties: list[Property]
@@ -123,7 +137,9 @@ class LoginSuccess(Packet):
         self.properties = properties
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(self.uuid) + bytes(self.username)
+        return (
+            self.packet_id.to_bytes(1, "big") + bytes(self.uuid) + bytes(self.username)
+        )
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "LoginSuccess":
@@ -145,18 +161,22 @@ class SetCompression(Packet):
     """
     Sent by the server to indicate that the client should use compression.
 
-    Packet ID: 0x03
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x03``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
-    id = 0x03
+    packet_id = 0x03
+    bound_to = "client"
+    state = State.LOGIN
 
     def __init__(self, threshold: Varint) -> None:
         self.threshold = threshold
 
     def __bytes__(self) -> bytes:
-        return bytes(self.id) + bytes(self.threshold)
+        return self.packet_id.to_bytes(1, "big") + bytes(self.threshold)
 
     @classmethod
     def from_bytes(cls, data: BytesIO) -> "SetCompression":
@@ -171,12 +191,16 @@ class LoginPluginRequest(Packet):
     Used to implement a custom handshaking flow together with Login Plugin Response.
     Our client should always respond that it hasn't understood the request.
 
-    Packet ID: 0x04
-    State: Login
-    Bound To: Client
+    **Packet ID**: ``0x04``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x04
+    bound_to = "client"
+    state = State.LOGIN
 
     def __init__(self, message_id: Varint, channel: String, data: ByteArray) -> None:
         self.message_id = message_id

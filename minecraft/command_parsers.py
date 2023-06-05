@@ -26,11 +26,11 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
-from typing import Self, TYPE_CHECKING
+from typing import Self
 
-if TYPE_CHECKING:
-    from .datatypes import *
+from .datatypes import Byte, Double, Float, Identifier, Int, Long, Varint, Boolean
 
 
 class _Brigadier:
@@ -71,22 +71,22 @@ class _Brigadier:
 
 class BrigadierFloat(_Brigadier):
     # brigadier:float
-    object_type: Float
+    object_type = Float
 
 
 class BrigadierDouble(_Brigadier):
     # brigadier:double
-    object_type: Double
+    object_type = Double
 
 
 class BrigadierInteger(_Brigadier):
     # brigadier:integer
-    object_type: Int
+    object_type = Int
 
 
 class BrigadierLong(_Brigadier):
     # brigadier:long
-    object_type: Long
+    object_type = Long
 
 
 class BrigadierString:
@@ -125,7 +125,6 @@ class _OneFlag:
     @classmethod
     def from_bytes(cls, data: BytesIO) -> Self:
         flags = Byte.from_bytes(data)
-        _flags = flags.value
         return cls(flags)
 
 
@@ -141,7 +140,7 @@ class MinecraftScoreHolder(_OneFlag):
 
 class _Identifier:
     def __init__(self, value: Identifier):
-        self.registry: Identifier = value
+        self.value: Identifier = value
 
     def __repr__(self):
         return f"{self.__class__.__name__}(value={self.value})"

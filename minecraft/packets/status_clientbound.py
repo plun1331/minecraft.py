@@ -28,21 +28,27 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class StatusResponse(Packet):
     """
     Status response packet sent by the server to the client in response to a status request.
 
-    Packet ID: 0x00
-    State: Status
-    Bound to: Client
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x00
+    bound_to = "client"
+    state = State.STATUS
 
     def __init__(self, json_response: String):
         self.json_response = json_response
@@ -66,12 +72,16 @@ class PingResponse(Packet):
     """
     Ping response packet sent by the server to the client in response to a ping request.
 
-    Packet ID: 0x01
-    State: Status
-    Bound to: Client
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Client
     """
 
     packet_id = 0x01
+    bound_to = "client"
+    state = State.STATUS
 
     def __init__(self, payload: Varint):
         self.payload: Varint = payload

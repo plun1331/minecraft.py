@@ -1,4 +1,7 @@
 .devcontainer
 __pycache__
-build/**
+docs/_build/**
 **.egg-info/**
+dist/**
+docs/changelog.md
+build/**

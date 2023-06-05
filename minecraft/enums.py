@@ -27,14 +27,58 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum as _Enum
+from typing import Any
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 from .datatypes import Byte, Int, String, UnsignedByte, Varint
 
 
+class Enum(_Enum):
+    """The base Enum class. All enums should inherit from this class."""
+
+    def __bytes__(self):
+        return bytes(self.value)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}.{self.name}"
+
+    @classmethod
+    def from_value(cls, value: Any) -> Self:
+        """
+        Converts a value into an enum member.
+
+        :param value: The value to convert.
+
+        :return: The enum member.
+
+        :raises ValueError: The value is not a valid enum member.
+        """
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"{value} is not a valid {cls.__name__}")
+
+
 class NextState(Enum):
+    """The next state of the connection."""
+
     STATUS = Varint(1)
     LOGIN = Varint(2)
+
+
+class State(Enum):
+    HANDSHAKE = Varint(0)
+    STATUS = Varint(1)
+    LOGIN = Varint(2)
+    PLAY = Varint(3)
 
 
 class Animation(Enum):

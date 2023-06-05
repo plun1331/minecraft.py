@@ -26,21 +26,27 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class LoginStart(Packet):
     """
     Sent by the client to start the login process.
 
-    Packet ID: 0x00
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
-    id = 0x00
+    packet_id = 0x00
+    bound_to = "server"
+    state = State.LOGIN
 
     def __init__(self, username: String, uuid: UUID | None) -> None:
         self.username: String = username
@@ -51,7 +57,11 @@ class LoginStart(Packet):
         return self.uuid is not None
 
     def __bytes__(self) -> bytes:
-        res = bytes(self.id) + bytes(self.username) + bytes(Boolean(self.uuid_set))
+        res = (
+            self.packet_id.to_bytes(1, "big")
+            + bytes(self.username)
+            + bytes(Boolean(self.uuid_set))
+        )
         if self.uuid_set:
             res += bytes(self.uuid)
         return res
@@ -74,12 +84,16 @@ class EncryptionResponse(Packet):
     """
     Sent by the client to respond to the encryption request.
 
-    Packet ID: 0x01
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01
+    bound_to = "server"
+    state = State.LOGIN
 
     def __init__(self, shared_secret: ByteArray, verify_token: ByteArray) -> None:
         self.shared_secret: ByteArray = shared_secret
@@ -97,7 +111,7 @@ class EncryptionResponse(Packet):
         )
 
     @classmethod
-    def from_bytes(cls, data: BytesIO) -> "EncryptionResponse":
+    def from_bytes(cls, data: BytesIO) -> EncryptionResponse:
         # Fields: shared secret length (varint), shared secret (byte array),
         # verify token length (varint), verify token (byte array)
         # shared secret length
@@ -116,12 +130,16 @@ class LoginPluginResponse(Packet):
     Sent in response to a plugin message request.
     Our client should always respond with a `successful=False` with no further payload.
 
-    Packet ID: 0x02
-    State: Login
-    Bound To: Server
+    **Packet ID**: ``0x02``
+
+    **State**: :attr:`.State.LOGIN`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x02
+    bound_to = "server"
+    state = State.LOGIN
 
     def __init__(
         self, message_id: Varint, successful: Boolean, data: ByteArray | None = None

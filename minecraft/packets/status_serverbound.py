@@ -26,21 +26,27 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import annotations
+from io import BytesIO
 
 from .base import Packet
 from ..datatypes import *
+from ..enums import State
 
 
 class StatusRequest(Packet):
     """
     Status request packet sent by the client to the server to request the server's status.
 
-    Packet ID: 0x00
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x00``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x00
+    bound_to = "server"
+    state = State.STATUS
 
     @classmethod
     def from_bytes(cls, data: BytesIO):
@@ -55,12 +61,16 @@ class PingRequest(Packet):
     """
     Ping request packet sent by the client to the server to request the server's ping.
 
-    Packet ID: 0x01
-    State: Status
-    Bound to: Server
+    **Packet ID**: ``0x01``
+
+    **State**: :attr:`.State.STATUS`
+
+    **Bound to**: Server
     """
 
     packet_id = 0x01
+    bound_to = "server"
+    state = State.STATUS
 
     def __init__(self, payload: Long):
         self.payload: Long = payload
